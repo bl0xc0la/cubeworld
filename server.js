@@ -1,75 +1,32 @@
 const express = require("express");
-const path = require("path");
-const mongoose = require("mongoose");
+const http = require("http");
+const cors = require("cors");
+const { Server } = require("socket.io");
 
 const connectDB = require("./config/db");
-const User = require("./models/User");
+
+const authRoutes = require("./routes/auth");
+const gameRoutes = require("./routes/games");
+
+const setupSockets = require("./sockets/multiplayer");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
 
+app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static("public"));
 
-// CONNECT DATABASE
 connectDB();
 
-/* -------------------- FRONTEND -------------------- */
+/* ROUTES */
+app.use("/api/auth", authRoutes);
+app.use("/api/games", gameRoutes);
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
-});
+/* SOCKETS */
+setupSockets(io);
 
-/* -------------------- API -------------------- */
-
-// REGISTER
-app.post("/api/register", async (req, res) => {
-
-    const { username, password } = req.body;
-
-    const exists = await User.findOne({ username });
-
-    if (exists) {
-        return res.json({ success: false, message: "User exists" });
-    }
-
-    const user = new User({
-        username,
-        password
-    });
-
-    await user.save();
-
-    res.json({ success: true });
-
-});
-
-// LOGIN
-app.post("/api/login", async (req, res) => {
-
-    const { username, password } = req.body;
-
-    const user = await User.findOne({ username, password });
-
-    if (!user) {
-        return res.json({ success: false });
-    }
-
-    res.json({
-        success: true,
-        user
-    });
-
-});
-
-// STATUS CHECK
-app.get("/api/status", (req, res) => {
-    res.json({ online: true });
-});
-
-/* -------------------- START -------------------- */
-
+/* START */
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log("CubeWorld running");
-});
+server.listen(PORT, () => console.log("CubeWorld v2 running"));
