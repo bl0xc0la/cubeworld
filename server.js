@@ -1,32 +1,39 @@
 const express = require("express");
-const http = require("http");
-const cors = require("cors");
-const { Server } = require("socket.io");
+const path = require("path");
 
-const connectDB = require("./config/db");
+let connectDB;
 
-const authRoutes = require("./routes/auth");
-const gameRoutes = require("./routes/games");
-
-const setupSockets = require("./sockets/multiplayer");
+// SAFE IMPORT (won’t crash if file missing)
+try {
+    connectDB = require("./config/db");
+} catch (e) {
+    console.log("MongoDB disabled (config/db missing)");
+}
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
 
-app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(__dirname));
 
-connectDB();
+// Try DB only if it exists
+if (connectDB) {
+    connectDB();
+}
 
-/* ROUTES */
-app.use("/api/auth", authRoutes);
-app.use("/api/games", gameRoutes);
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
 
-/* SOCKETS */
-setupSockets(io);
+// TEST API
+app.get("/api/status", (req, res) => {
+    res.json({
+        success: true,
+        message: "CubeWorld running"
+    });
+});
 
-/* START */
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log("CubeWorld v2 running"));
+
+app.listen(PORT, () => {
+    console.log("CubeWorld online on port " + PORT);
+});
