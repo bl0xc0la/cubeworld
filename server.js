@@ -13,14 +13,6 @@ const User = mongoose.model("User", new mongoose.Schema({
         verified: { type: Boolean, default: false }
     }));
 
-    const World = mongoose.model("World", new mongoose.Schema({
-        gameId: { type: String, required: true, unique: true },
-        owner: String,
-        data: Object,
-        updatedAt: { type: Date, default: Date.now }
-    }));
-    ```
-
 **Push that change to GitHub**, and Render will automatically try to redeploy. It should get past that error! 
 
 Are you seeing the `models` folder in your GitHub file list?
