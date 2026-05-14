@@ -1,222 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>CubeWorld v2</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="/socket.io/socket.io.js"></script>
-
+<title>CubeWorld</title>
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:#0f1115;
-    color:white;
-}
-
-#auth{
-    position:fixed;
-    inset:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#0b0d10;
-}
-
-.box{
-    width:300px;
-    padding:20px;
-    background:#1a1f27;
-    border-radius:10px;
-}
-
-input{
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    background:#111;
-    border:1px solid #333;
-    color:white;
-}
-
-button{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    background:#2563eb;
-    border:none;
-    color:white;
-    cursor:pointer;
-}
-
-#app{
-    display:none;
-    padding:20px;
-}
-
-.card{
-    background:#1a1f27;
-    padding:12px;
-    margin:10px 0;
-    border-radius:10px;
-}
-
-#games{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-    gap:10px;
-}
-
-.game{
-    background:#161a20;
-    padding:10px;
-    border-radius:10px;
-}
+body { margin:0; font-family:Arial; background:#0f1115; color:white; }
+#box { padding:20px; }
+button { padding:10px; margin-top:10px; }
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="auth">
-    <div class="box">
-        <h2>CubeWorld v2</h2>
+<div id="box">
+    <h1>CubeWorld v2</h1>
 
-        <input id="u" placeholder="username">
-        <input id="p" type="password" placeholder="password">
+    <button onclick="check()">Check Server</button>
 
-        <button onclick="register()">Register</button>
-        <button onclick="login()">Login</button>
-
-        <p id="msg"></p>
-    </div>
-</div>
-
-<!-- APP -->
-<div id="app">
-
-    <h2>Dashboard</h2>
-
-    <div class="card">
-        Logged in as: <span id="user"></span>
-    </div>
-
-    <h3>Games</h3>
-    <button onclick="loadGames()">Refresh Games</button>
-
-    <div id="games"></div>
-
-    <h3>Studio (simple demo)</h3>
-
-    <div class="card">
-        <input id="gameTitle" placeholder="Game title">
-        <button onclick="createGame()">Create Game</button>
-    </div>
-
+    <p id="out"></p>
 </div>
 
 <script>
-
-const socket = io();
-let currentUser = null;
-
-/* ---------------- AUTH ---------------- */
-
-async function register(){
-
-    const res = await fetch("/api/auth/register",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            username: u.value,
-            password: p.value
-        })
-    });
-
+async function check(){
+    const res = await fetch("/api/status");
     const data = await res.json();
-    msg.innerText = "Registered";
+    document.getElementById("out").innerText = data.message;
 }
-
-async function login(){
-
-    const res = await fetch("/api/auth/login",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            username: u.value,
-            password: p.value
-        })
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-
-        currentUser = data.user;
-
-        auth.style.display = "none";
-        app.style.display = "block";
-
-        user.innerText = currentUser.username;
-
-        loadGames();
-
-    } else {
-        msg.innerText = "Login failed";
-    }
-}
-
-/* ---------------- GAMES ---------------- */
-
-async function loadGames(){
-
-    const res = await fetch("/api/games");
-    const games = await res.json();
-
-    document.getElementById("games").innerHTML =
-    games.map(g => `
-        <div class="game">
-            <b>${g.title}</b><br>
-            <small>${g.creator}</small><br><br>
-
-            <button onclick="joinGame('${g._id}')">
-                Play
-            </button>
-        </div>
-    `).join("");
-}
-
-async function createGame(){
-
-    const title = document.getElementById("gameTitle").value;
-
-    await fetch("/api/games/create",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            title,
-            creator: currentUser.username,
-            description:"New game"
-        })
-    });
-
-    loadGames();
-}
-
-/* ---------------- MULTIPLAYER ---------------- */
-
-function joinGame(id){
-
-    socket.emit("join", id);
-
-    alert("Joined game: " + id);
-}
-
-socket.on("updateObject",(data)=>{
-    console.log("Live update:", data);
-});
-
 </script>
 
 </body>
