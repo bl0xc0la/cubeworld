@@ -1,29 +1,178 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>CubeWorld</title>
+<meta charset="UTF-8">
+<title>CubeWorld v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body { margin:0; font-family:Arial; background:#0f1115; color:white; }
-#box { padding:20px; }
-button { padding:10px; margin-top:10px; }
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0f1115;
+    color: white;
+}
+
+/* TOP BAR */
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #161a20;
+    border-bottom: 1px solid #222;
+}
+
+/* LAYOUT */
+#app {
+    display: none;
+    padding: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.card {
+    background: #161a20;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+/* LOGIN */
+#auth {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0b0d10;
+}
+
+.box {
+    width: 300px;
+    background: #1a1f27;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    background: #111;
+    border: 1px solid #333;
+    color: white;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: #2563eb;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.nav button {
+    width: auto;
+    padding: 8px 12px;
+}
+
+.hidden {
+    display: none;
+}
 </style>
 </head>
+
 <body>
 
-<div id="box">
-    <h1>CubeWorld v2</h1>
+<!-- LOGIN -->
+<div id="auth">
+    <div class="box">
+        <h2>CubeWorld</h2>
 
-    <button onclick="check()">Check Server</button>
+        <input id="u" placeholder="username">
+        <input id="p" type="password" placeholder="password">
 
-    <p id="out"></p>
+        <button onclick="login()">Login</button>
+
+        <p id="msg"></p>
+    </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<header>
+    <div>CubeWorld v2</div>
+    <div id="user"></div>
+</header>
+
+<div class="nav">
+    <button onclick="show('home')">Home</button>
+    <button onclick="show('games')">Games</button>
+    <button onclick="show('studio')">Studio</button>
+</div>
+
+<!-- HOME -->
+<div id="home">
+    <h2>Dashboard</h2>
+    <div class="card">
+        Welcome to CubeWorld
+    </div>
+</div>
+
+<!-- GAMES -->
+<div id="games" class="hidden">
+    <h2>Games</h2>
+    <div class="grid">
+        <div class="card">City Life</div>
+        <div class="card">Sword Fight</div>
+        <div class="card">Obby</div>
+    </div>
+</div>
+
+<!-- STUDIO -->
+<div id="studio" class="hidden">
+    <h2>Studio</h2>
+    <div class="card">
+        Studio coming soon (save/load + multiplayer later)
+    </div>
+</div>
+
 </div>
 
 <script>
-async function check(){
-    const res = await fetch("/api/status");
-    const data = await res.json();
-    document.getElementById("out").innerText = data.message;
+
+function login() {
+    const username = document.getElementById("u").value;
+
+    if (!username) return;
+
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    document.getElementById("user").innerText = username;
 }
+
+function show(page) {
+
+    document.getElementById("home").classList.add("hidden");
+    document.getElementById("games").classList.add("hidden");
+    document.getElementById("studio").classList.add("hidden");
+
+    document.getElementById(page).classList.remove("hidden");
+}
+
 </script>
 
 </body>
