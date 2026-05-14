@@ -1,5 +1,5 @@
 {
-  "name": "cubeworld-v2",
+  "name": "cubeworld",
   "version": "2.0.0",
   "main": "server.js",
   "scripts": {
@@ -7,8 +7,6 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "mongoose": "^8.3.3",
-    "socket.io": "^4.7.5",
-    "cors": "^2.8.5"
+    "mongoose": "^8.3.3"
   }
 }
