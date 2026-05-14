@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CubeWorld</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+    --bg:#0b0f16;
+    --panel:rgba(20,25,35,0.8);
+    --stroke:rgba(255,255,255,0.08);
+    --accent:#3b82f6;
+    --shadow:0 10px 30px rgba(0,0,0,0.5);
+    --radius:14px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+}
+
+body{
+    background:var(--bg);
+    color:white;
+}
+
+/* LAYOUT */
+.app{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    height:100vh;
+}
+
+/* SIDEBAR */
+.sidebar{
+    background:rgba(15,18,25,0.95);
+    padding:14px;
+    border-right:1px solid var(--stroke);
+}
+
+.title{
+    font-weight:bold;
+    margin-bottom:12px;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border:none;
+    border-radius:12px;
+    background:#1a2233;
+    color:white;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+}
+
+button:hover{
+    background:#24324d;
+}
+
+/* MAIN */
+.main{
+    padding:16px;
+}
+
+.card{
+    background:var(--panel);
+    border:1px solid var(--stroke);
+    border-radius:var(--radius);
+    padding:14px;
+    box-shadow:var(--shadow);
+    margin-bottom:12px;
+    backdrop-filter:blur(10px);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:10px;
+}
+
+.hidden{
+    display:none;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    border-radius:10px;
+    border:none;
+    background:#111827;
+    color:white;
+}
+
+/* LOGIN */
+#login{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#0b0f16;
+}
+
+.loginBox{
+    width:300px;
+    padding:20px;
+    background:#151b26;
+    border-radius:14px;
+    box-shadow:var(--shadow);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+    <div class="loginBox">
+        <h2>CubeWorld</h2>
+        <input id="u" placeholder="username">
+        <button onclick="login()">Enter</button>
+    </div>
+</div>
+
+<!-- APP -->
+<div class="app hidden" id="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="title">CubeWorld</div>
+    <button onclick="show('home')">Home</button>
+    <button onclick="show('games')">Games</button>
+    <button onclick="show('studio')">Studio</button>
+    <button onclick="show('admin')">Admin</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div id="home">
+    <div class="card">
+        Welcome <span id="user"></span>
+    </div>
+
+    <div class="card">
+        Server Status:
+        <div id="status">loading...</div>
+    </div>
+</div>
+
+<div id="games" class="hidden">
+    <div class="card">Games</div>
+
+    <div class="grid">
+        <div class="card">City Life</div>
+        <div class="card">Obby World</div>
+        <div class="card">Sword Fight</div>
+    </div>
+</div>
+
+<div id="studio" class="hidden">
+    <div class="card">
+        CubeWorld Studio (coming soon)
+    </div>
+</div>
+
+<div id="admin" class="hidden">
+    <div class="card">
+        Admin Panel (backend required)
+    </div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let username = "";
+
+function login(){
+    username = document.getElementById("u").value;
+
+    if(!username) return;
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").classList.remove("hidden");
+
+    document.getElementById("user").innerText = username;
+
+    loadStatus();
+}
+
+function show(page){
+
+    document.querySelectorAll(".main > div")
+    .forEach(d => d.classList.add("hidden"));
+
+    document.getElementById(page).classList.remove("hidden");
+}
+
+/* SERVER STATUS */
+async function loadStatus(){
+
+    try{
+
+        const res = await fetch("/api/status");
+        const data = await res.json();
+
+        document.getElementById("status").innerText =
+            data.online ? "ONLINE" : "OFFLINE";
+
+    }catch(e){
+        document.getElementById("status").innerText = "ERROR";
+    }
+}
+
+setInterval(loadStatus, 5000);
+
+</script>
+
+</body>
+</html>
