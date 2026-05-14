@@ -2,55 +2,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CubeWorld v3</title>
-<script src="/socket.io/socket.io.js"></script>
+<title>CubeWorld v4</title>
 
 <style>
+
+:root{
+    --bg:#070707;
+    --panel:#0f0f0f;
+    --gold:#d4af37;
+    --gold2:#ffcc66;
+    --shadow:0 10px 30px rgba(0,0,0,0.6);
+    --radius:16px;
+}
 
 body{
     margin:0;
     font-family:Arial;
-    background:#0b0f16;
+    background:var(--bg);
     color:white;
 }
-
-.app{
-    display:grid;
-    grid-template-columns:200px 1fr;
-    height:100vh;
-}
-
-.sidebar{
-    background:#111827;
-    padding:10px;
-}
-
-button{
-    width:100%;
-    margin:5px 0;
-    padding:10px;
-    border:none;
-    background:#1f2937;
-    color:white;
-    border-radius:6px;
-}
-
-button:hover{
-    background:#2b3a55;
-}
-
-.main{
-    padding:15px;
-}
-
-.card{
-    background:#111827;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:10px;
-}
-
-.hidden{display:none}
 
 /* LOGIN */
 #login{
@@ -59,24 +29,93 @@ button:hover{
     display:flex;
     justify-content:center;
     align-items:center;
-    background:#0b0f16;
+
+    background: radial-gradient(circle at top, #1a1a1a, #000);
 }
 
 .box{
-    width:300px;
+    width:320px;
     padding:20px;
-    background:#111827;
-    border-radius:10px;
+    background:linear-gradient(145deg,#111,#000);
+    border:1px solid #222;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
 }
 
 input{
     width:100%;
     padding:10px;
-    margin:5px 0;
+    margin:6px 0;
     border:none;
-    background:#0f172a;
+    border-radius:12px;
+    background:#111;
     color:white;
+    outline:none;
 }
+
+button{
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+
+    border:none;
+    border-radius:12px;
+
+    background:linear-gradient(145deg,var(--gold),var(--gold2));
+    color:black;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    box-shadow:0 8px 20px rgba(212,175,55,0.3);
+}
+
+button:hover{
+    transform:translateY(-1px);
+}
+
+/* APP */
+.app{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    height:100vh;
+}
+
+.sidebar{
+    background:linear-gradient(180deg,#0a0a0a,#111);
+    border-right:1px solid #222;
+    padding:12px;
+}
+
+.navBtn{
+    background:#111;
+    color:white;
+    margin:6px 0;
+}
+
+.navBtn:hover{
+    border:1px solid var(--gold);
+}
+
+.main{
+    padding:16px;
+}
+
+/* CARDS */
+.card{
+    background:linear-gradient(145deg,#111,#0a0a0a);
+    border:1px solid #1f1f1f;
+    border-radius:var(--radius);
+    padding:14px;
+    box-shadow:var(--shadow);
+    margin-bottom:10px;
+}
+
+.goldText{
+    color:var(--gold);
+}
+
+.hidden{display:none}
 
 </style>
 </head>
@@ -85,22 +124,22 @@ input{
 
 <div id="login">
     <div class="box">
-        <h3>CubeWorld Login</h3>
+        <h2 class="goldText">CubeWorld</h2>
+
         <input id="u" placeholder="username">
         <input id="p" type="password" placeholder="password">
-        <input id="e" placeholder="email">
-        <button onclick="register()">Register</button>
+
         <button onclick="login()">Login</button>
-        <input id="code" placeholder="email code">
-        <button onclick="verify()">Verify Email</button>
+        <button onclick="register()">Register</button>
     </div>
 </div>
 
 <div class="app hidden" id="app">
 
 <div class="sidebar">
-    <button onclick="show('home')">Home</button>
-    <button onclick="show('studio')">Studio</button>
+    <button class="navBtn" onclick="show('home')">Home</button>
+    <button class="navBtn" onclick="show('friends')">Friends</button>
+    <button class="navBtn" onclick="show('studio')">Studio</button>
 </div>
 
 <div class="main">
@@ -109,18 +148,20 @@ input{
     <div class="card">
         Welcome <span id="user"></span>
     </div>
+</div>
 
+<div id="friends" class="hidden">
     <div class="card">
-        Join Studio Room
-        <input id="room">
-        <button onclick="joinRoom()">Join</button>
+        Add Friend
+        <input id="friend">
+        <button onclick="addFriend()">Add</button>
     </div>
 </div>
 
 <div id="studio" class="hidden">
     <div class="card">
         CubeWorld Studio
-        <button onclick="sendUpdate()">Add Block</button>
+        <button onclick="saveWorld()">Save World</button>
     </div>
 </div>
 
@@ -129,11 +170,8 @@ input{
 
 <script>
 
-const socket = io();
 let user = "";
-let room = "";
 
-/* REGISTER */
 async function register(){
 
     await fetch("/api/register",{
@@ -141,26 +179,13 @@ async function register(){
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
             username:u.value,
-            password:p.value,
-            email:e.value
+            email:"test@test.com",
+            password:p.value
         })
     });
+
 }
 
-/* VERIFY */
-async function verify(){
-
-    await fetch("/api/verify",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            email:e.value,
-            code:code.value
-        })
-    });
-}
-
-/* LOGIN */
 async function login(){
 
     const res = await fetch("/api/login",{
@@ -175,7 +200,6 @@ async function login(){
     const data = await res.json();
 
     if(data.success){
-
         user = data.user;
 
         login.style.display="none";
@@ -185,19 +209,38 @@ async function login(){
     }
 }
 
-/* STUDIO */
-function joinRoom(){
-    room = document.getElementById("room").value;
-    socket.emit("join", room);
-    show('studio');
+/* FRIENDS */
+function addFriend(){
+
+    fetch("/api/friend/add",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            user,
+            friend:friend.value
+        })
+    });
+
 }
 
-function sendUpdate(){
-    socket.emit("studioUpdate",{room,user,action:"block"});
+/* WORLD */
+function saveWorld(){
+
+    fetch("/api/world/save",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            gameId:"main",
+            owner:user,
+            data:{blocks:1}
+        })
+    });
+
 }
 
 /* NAV */
 function show(id){
+
     document.querySelectorAll(".main > div")
     .forEach(d=>d.classList.add("hidden"));
 
