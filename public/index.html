@@ -1,118 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>CubeWorld</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CubeWorld v3</title>
+<script src="/socket.io/socket.io.js"></script>
 
 <style>
-:root{
-    --bg:#0b0f16;
-    --panel:rgba(20,25,35,0.8);
-    --stroke:rgba(255,255,255,0.08);
-    --accent:#3b82f6;
-    --shadow:0 10px 30px rgba(0,0,0,0.5);
-    --radius:14px;
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial;
-}
 
 body{
-    background:var(--bg);
+    margin:0;
+    font-family:Arial;
+    background:#0b0f16;
     color:white;
 }
 
-/* LAYOUT */
 .app{
     display:grid;
     grid-template-columns:220px 1fr;
     height:100vh;
 }
 
-/* SIDEBAR */
 .sidebar{
-    background:rgba(15,18,25,0.95);
-    padding:14px;
-    border-right:1px solid var(--stroke);
-}
-
-.title{
-    font-weight:bold;
-    margin-bottom:12px;
+    background:#111827;
+    padding:12px;
 }
 
 button{
     width:100%;
+    margin:5px 0;
     padding:10px;
-    margin:6px 0;
     border:none;
-    border-radius:12px;
-    background:#1a2233;
+    border-radius:10px;
+    background:#1f2937;
     color:white;
-    cursor:pointer;
-    box-shadow:var(--shadow);
 }
 
 button:hover{
-    background:#24324d;
+    background:#2b3a55;
 }
 
-/* MAIN */
 .main{
-    padding:16px;
+    padding:15px;
 }
 
 .card{
-    background:var(--panel);
-    border:1px solid var(--stroke);
-    border-radius:var(--radius);
-    padding:14px;
-    box-shadow:var(--shadow);
-    margin-bottom:12px;
-    backdrop-filter:blur(10px);
+    background:#111827;
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:10px;
 }
 
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-    gap:10px;
-}
-
-.hidden{
-    display:none;
-}
+.hidden{display:none}
 
 input{
     width:100%;
     padding:10px;
-    margin-top:6px;
+    margin:5px 0;
     border-radius:10px;
     border:none;
-    background:#111827;
+    background:#0f172a;
     color:white;
-}
-
-/* LOGIN */
-#login{
-    position:fixed;
-    inset:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#0b0f16;
-}
-
-.loginBox{
-    width:300px;
-    padding:20px;
-    background:#151b26;
-    border-radius:14px;
-    box-shadow:var(--shadow);
 }
 
 </style>
@@ -120,60 +67,52 @@ input{
 
 <body>
 
-<!-- LOGIN -->
 <div id="login">
-    <div class="loginBox">
-        <h2>CubeWorld</h2>
+    <div class="card">
+        <h2>CubeWorld Login</h2>
         <input id="u" placeholder="username">
-        <button onclick="login()">Enter</button>
+        <input id="p" type="password" placeholder="password">
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
     </div>
 </div>
 
-<!-- APP -->
 <div class="app hidden" id="app">
 
-<!-- SIDEBAR -->
 <div class="sidebar">
-    <div class="title">CubeWorld</div>
     <button onclick="show('home')">Home</button>
     <button onclick="show('games')">Games</button>
     <button onclick="show('studio')">Studio</button>
     <button onclick="show('admin')">Admin</button>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
 <div id="home">
     <div class="card">
         Welcome <span id="user"></span>
     </div>
-
-    <div class="card">
-        Server Status:
-        <div id="status">loading...</div>
-    </div>
 </div>
 
 <div id="games" class="hidden">
-    <div class="card">Games</div>
-
-    <div class="grid">
-        <div class="card">City Life</div>
-        <div class="card">Obby World</div>
-        <div class="card">Sword Fight</div>
+    <div class="card">
+        <button onclick="createGame()">Create Game</button>
+        <div id="gameList"></div>
     </div>
 </div>
 
 <div id="studio" class="hidden">
     <div class="card">
-        CubeWorld Studio (coming soon)
+        Studio Mode
+        <button onclick="saveWorld()">Save World</button>
     </div>
 </div>
 
 <div id="admin" class="hidden">
     <div class="card">
-        Admin Panel (backend required)
+        Admin Panel
+        <input id="banUser" placeholder="user">
+        <button onclick="ban()">Ban</button>
     </div>
 </div>
 
@@ -182,46 +121,86 @@ input{
 
 <script>
 
-let username = "";
+const socket = io();
+let user = "";
 
-function login(){
-    username = document.getElementById("u").value;
-
-    if(!username) return;
-
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").classList.remove("hidden");
-
-    document.getElementById("user").innerText = username;
-
-    loadStatus();
+/* AUTH */
+async function register(){
+    await fetch("/api/register",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            username:u.value,
+            password:p.value
+        })
+    });
 }
 
-function show(page){
+async function login(){
 
-    document.querySelectorAll(".main > div")
-    .forEach(d => d.classList.add("hidden"));
+    const res = await fetch("/api/login",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            username:u.value,
+            password:p.value
+        })
+    });
 
-    document.getElementById(page).classList.remove("hidden");
-}
+    const data = await res.json();
 
-/* SERVER STATUS */
-async function loadStatus(){
+    if(data.success){
+        user = data.user;
 
-    try{
+        login.style.display="none";
+        app.classList.remove("hidden");
 
-        const res = await fetch("/api/status");
-        const data = await res.json();
-
-        document.getElementById("status").innerText =
-            data.online ? "ONLINE" : "OFFLINE";
-
-    }catch(e){
-        document.getElementById("status").innerText = "ERROR";
+        document.getElementById("user").innerText = user;
     }
 }
 
-setInterval(loadStatus, 5000);
+/* NAV */
+function show(id){
+    document.querySelectorAll(".main > div").forEach(d=>d.classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
+}
+
+/* GAMES */
+async function createGame(){
+
+    await fetch("/api/games/create",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            title:"New Game",
+            creator:user
+        })
+    });
+}
+
+/* STUDIO */
+function saveWorld(){
+    fetch("/api/world/save",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            gameId:"1",
+            data:{blocks:10}
+        })
+    });
+}
+
+/* ADMIN */
+function ban(){
+    fetch("/api/admin/ban",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            admin:user,
+            user:banUser.value
+        })
+    });
+}
 
 </script>
 
