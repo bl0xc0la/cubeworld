@@ -1,39 +1,64 @@
 const express = require("express");
-const path = require("path");
-
-let connectDB;
-
-// SAFE IMPORT (won’t crash if file missing)
-try {
-    connectDB = require("./config/db");
-} catch (e) {
-    console.log("MongoDB disabled (config/db missing)");
-}
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static("public"));
 
-// Try DB only if it exists
-if (connectDB) {
-    connectDB();
-}
+/* ---------------- STATE ---------------- */
+const games = {};
+const users = {};
+const admins = ["BloxColaYT"];
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+/* ---------------- JOIN GAME ---------------- */
+io.on("connection", (socket) => {
+
+    socket.on("joinGame", ({ gameId, user }) => {
+        socket.join(gameId);
+
+        if (!games[gameId]) {
+            games[gameId] = { players: [] };
+        }
+
+        games[gameId].players.push(user);
+
+        io.to(gameId).emit("playerList", games[gameId].players);
+    });
+
+    /* multiplayer movement */
+    socket.on("move", (data) => {
+        io.to(data.gameId).emit("playerMove", data);
+    });
+
+    /* studio updates */
+    socket.on("studioUpdate", (data) => {
+        io.to(data.gameId).emit("studioUpdate", data);
+    });
+
 });
 
-// TEST API
+/* ---------------- ADMIN API ---------------- */
+app.post("/api/admin/ban", (req, res) => {
+    const { user, admin } = req.body;
+
+    if (!admins.includes(admin)) {
+        return res.json({ success: false, message: "not admin" });
+    }
+
+    users[user] = "banned";
+
+    res.json({ success: true });
+});
+
 app.get("/api/status", (req, res) => {
     res.json({
-        success: true,
-        message: "CubeWorld running"
+        online: true,
+        players: Object.values(games).reduce((a,b)=>a+b.players.length,0)
     });
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log("CubeWorld online on port " + PORT);
-});
+server.listen(3000, () => console.log("CubeWorld running"));
