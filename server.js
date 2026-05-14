@@ -3,7 +3,9 @@ const http = require("http");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const { Server } = require("socket.io");
-const nodemailer = require("nodemailer");
+
+const User = require("./models/User");
+const World = require("./models/World");
 
 const app = express();
 const server = http.createServer(app);
@@ -15,72 +17,25 @@ app.use(express.static("public"));
 /* ---------------- DB ---------------- */
 mongoose.connect(process.env.MONGO_URL);
 
-/* ---------------- USER MODEL ---------------- */
-const UserSchema = new mongoose.Schema({
-    username: String,
-    email: String,
-    password: String,
-    verified: Boolean,
-    verifyToken: String
-});
-
-const User = mongoose.model("User", UserSchema);
-
-/* ---------------- EMAIL SETUP ---------------- */
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
-/* ---------------- REGISTER ---------------- */
+/* ---------------- AUTH ---------------- */
 app.post("/api/register", async (req, res) => {
 
     const { username, email, password } = req.body;
 
     const hashed = await bcrypt.hash(password, 10);
-    const token = Math.random().toString(36).substring(2, 10);
 
-    const user = new User({
+    await User.create({
         username,
         email,
         password: hashed,
-        verified: false,
-        verifyToken: token
+        friends: [],
+        dms: [],
+        verified: true
     });
-
-    await user.save();
-
-    await transporter.sendMail({
-        from: "CubeWorld",
-        to: email,
-        subject: "Verify your account",
-        text: `Your code: ${token}`
-    });
-
-    res.json({ success: true, message: "Check email for code" });
-});
-
-/* ---------------- VERIFY ---------------- */
-app.post("/api/verify", async (req, res) => {
-
-    const { email, code } = req.body;
-
-    const user = await User.findOne({ email });
-
-    if (!user || user.verifyToken !== code) {
-        return res.json({ success: false });
-    }
-
-    user.verified = true;
-    await user.save();
 
     res.json({ success: true });
 });
 
-/* ---------------- LOGIN ---------------- */
 app.post("/api/login", async (req, res) => {
 
     const { username, password } = req.body;
@@ -93,29 +48,77 @@ app.post("/api/login", async (req, res) => {
 
     if (!ok) return res.json({ success: false });
 
-    if (!user.verified) {
-        return res.json({ success: false, message: "not verified" });
-    }
-
     res.json({ success: true, user: user.username });
 });
 
-/* ---------------- MULTIPLAYER + STUDIO ---------------- */
+/* ---------------- FRIENDS ---------------- */
+app.post("/api/friend/add", async (req, res) => {
+
+    const { user, friend } = req.body;
+
+    await User.updateOne(
+        { username: user },
+        { $addToSet: { friends: friend } }
+    );
+
+    res.json({ success: true });
+});
+
+/* ---------------- DMS ---------------- */
+app.post("/api/dm/send", async (req, res) => {
+
+    const { from, to, message } = req.body;
+
+    await User.updateOne(
+        { username: to },
+        {
+            $push: {
+                dms: {
+                    from,
+                    message,
+                    time: new Date()
+                }
+            }
+        }
+    );
+
+    res.json({ success: true });
+});
+
+/* ---------------- WORLD SAVE ---------------- */
+app.post("/api/world/save", async (req, res) => {
+
+    const { gameId, owner, data } = req.body;
+
+    await World.findOneAndUpdate(
+        { gameId },
+        { owner, data, updatedAt: new Date() },
+        { upsert: true }
+    );
+
+    res.json({ success: true });
+});
+
+app.get("/api/world/:id", async (req, res) => {
+
+    const world = await World.findOne({ gameId: req.params.id });
+
+    res.json(world || {});
+});
+
+/* ---------------- MULTIPLAYER ---------------- */
 io.on("connection", (socket) => {
 
     socket.on("join", (room) => {
         socket.join(room);
     });
 
-    socket.on("studioUpdate", (data) => {
-        io.to(data.room).emit("studioUpdate", data);
+    socket.on("update", (data) => {
+        io.to(data.room).emit("update", data);
     });
 
-    socket.on("move", (data) => {
-        io.to(data.room).emit("move", data);
-    });
 });
 
 server.listen(process.env.PORT || 3000, () => {
-    console.log("CubeWorld v3 running");
+    console.log("CubeWorld v4 running");
 });
