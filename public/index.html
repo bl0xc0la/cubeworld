@@ -1,19 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CubeWorld v3</title>
-<script src="/socket.io/socket.io.js"></script>
+<title>CubeWorld</title>
 
 <style>
+:root{
+    --bg:#0b0f16;
+    --panel:#111827;
+    --panel2:#0f172a;
+    --accent:#3b82f6;
+    --shadow:0 10px 25px rgba(0,0,0,0.4);
+    --radius:10px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+}
 
 body{
-    margin:0;
-    font-family:Arial;
-    background:#0b0f16;
+    background:var(--bg);
     color:white;
 }
 
+/* LOGIN */
+#loginScreen{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:var(--bg);
+}
+
+.loginBox{
+    width:320px;
+    padding:20px;
+    background:var(--panel);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:8px;
+    border:none;
+    background:var(--panel2);
+    color:white;
+}
+
+/* APP */
 .app{
     display:grid;
     grid-template-columns:220px 1fr;
@@ -21,22 +62,24 @@ body{
 }
 
 .sidebar{
-    background:#111827;
+    background:var(--panel);
     padding:12px;
 }
 
 button{
     width:100%;
-    margin:5px 0;
     padding:10px;
+    margin:6px 0;
     border:none;
-    border-radius:10px;
+    border-radius:8px;
     background:#1f2937;
     color:white;
+    cursor:pointer;
+    box-shadow:var(--shadow);
 }
 
 button:hover{
-    background:#2b3a55;
+    background:#273449;
 }
 
 .main{
@@ -44,22 +87,15 @@ button:hover{
 }
 
 .card{
-    background:#111827;
+    background:var(--panel);
     padding:12px;
-    border-radius:12px;
+    border-radius:var(--radius);
     margin-bottom:10px;
+    box-shadow:var(--shadow);
 }
 
-.hidden{display:none}
-
-input{
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    border-radius:10px;
-    border:none;
-    background:#0f172a;
-    color:white;
+.hidden{
+    display:none;
 }
 
 </style>
@@ -67,53 +103,43 @@ input{
 
 <body>
 
-<div id="login">
-    <div class="card">
+<!-- LOGIN -->
+<div id="loginScreen">
+    <div class="loginBox">
         <h2>CubeWorld Login</h2>
-        <input id="u" placeholder="username">
-        <input id="p" type="password" placeholder="password">
-        <button onclick="register()">Register</button>
-        <button onclick="login()">Login</button>
+
+        <input id="usernameInput" placeholder="username">
+        <input id="passwordInput" type="password" placeholder="password">
+
+        <button onclick="handleLogin()">Login</button>
+
+        <div id="errorText" style="color:red;margin-top:8px;"></div>
     </div>
 </div>
 
+<!-- APP -->
 <div class="app hidden" id="app">
 
 <div class="sidebar">
     <button onclick="show('home')">Home</button>
     <button onclick="show('games')">Games</button>
     <button onclick="show('studio')">Studio</button>
-    <button onclick="show('admin')">Admin</button>
 </div>
 
 <div class="main">
 
 <div id="home">
     <div class="card">
-        Welcome <span id="user"></span>
+        Welcome <span id="userDisplay"></span>
     </div>
 </div>
 
 <div id="games" class="hidden">
-    <div class="card">
-        <button onclick="createGame()">Create Game</button>
-        <div id="gameList"></div>
-    </div>
+    <div class="card">Games Section</div>
 </div>
 
 <div id="studio" class="hidden">
-    <div class="card">
-        Studio Mode
-        <button onclick="saveWorld()">Save World</button>
-    </div>
-</div>
-
-<div id="admin" class="hidden">
-    <div class="card">
-        Admin Panel
-        <input id="banUser" placeholder="user">
-        <button onclick="ban()">Ban</button>
-    </div>
+    <div class="card">Studio (coming soon)</div>
 </div>
 
 </div>
@@ -121,85 +147,34 @@ input{
 
 <script>
 
-const socket = io();
-let user = "";
+let currentUser = "";
 
-/* AUTH */
-async function register(){
-    await fetch("/api/register",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            username:u.value,
-            password:p.value
-        })
-    });
-}
+/* FIXED LOGIN (no DOM name collisions) */
+function handleLogin(){
 
-async function login(){
+    const username = document.getElementById("usernameInput").value;
+    const password = document.getElementById("passwordInput").value;
 
-    const res = await fetch("/api/login",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            username:u.value,
-            password:p.value
-        })
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-        user = data.user;
-
-        login.style.display="none";
-        app.classList.remove("hidden");
-
-        document.getElementById("user").innerText = user;
+    if(!username || !password){
+        document.getElementById("errorText").innerText = "Missing fields";
+        return;
     }
+
+    currentUser = username;
+
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").classList.remove("hidden");
+
+    document.getElementById("userDisplay").innerText = currentUser;
 }
 
 /* NAV */
-function show(id){
-    document.querySelectorAll(".main > div").forEach(d=>d.classList.add("hidden"));
-    document.getElementById(id).classList.remove("hidden");
-}
+function show(page){
 
-/* GAMES */
-async function createGame(){
+    document.querySelectorAll(".main > div")
+    .forEach(el => el.classList.add("hidden"));
 
-    await fetch("/api/games/create",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            title:"New Game",
-            creator:user
-        })
-    });
-}
-
-/* STUDIO */
-function saveWorld(){
-    fetch("/api/world/save",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            gameId:"1",
-            data:{blocks:10}
-        })
-    });
-}
-
-/* ADMIN */
-function ban(){
-    fetch("/api/admin/ban",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            admin:user,
-            user:banUser.value
-        })
-    });
+    document.getElementById(page).classList.remove("hidden");
 }
 
 </script>
