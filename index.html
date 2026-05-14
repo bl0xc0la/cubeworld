@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CubeWorld</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+
+:root{
+    --bg:#111216;
+    --sidebar:#191b20;
+    --top:#1d2026;
+    --panel:#20242b;
+    --border:#313844;
+    --text:#f1f5f9;
+    --dim:#9ba4b2;
+    --accent:#0066ff;
+    --green:#22c55e;
+    --red:#ef4444;
+    --shadow:0 10px 35px rgba(0,0,0,.45);
+    --radius:14px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Inter,Segoe UI,sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    overflow:hidden;
+}
+
+.app{
+    display:grid;
+    grid-template-columns:250px 1fr;
+    grid-template-rows:64px 1fr;
+    height:100vh;
+}
+
+header{
+    grid-column:1/-1;
+    background:#1d2026;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    z-index:100;
+}
+
+.logo{
+    font-size:24px;
+    font-weight:900;
+}
+
+.logo span{
+    color:var(--accent);
+}
+
+.header-right{
+    display:flex;
+    gap:12px;
+    align-items:center;
+}
+
+.pill{
+    background:#272d36;
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:700;
+}
+
+aside{
+    background:#191b20;
+    border-right:1px solid var(--border);
+    padding:16px 12px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.nav-link{
+    padding:12px 14px;
+    border-radius:12px;
+    color:var(--dim);
+    cursor:pointer;
+    transition:.18s;
+    font-weight:600;
+}
+
+.nav-link:hover{
+    background:#262d36;
+    color:white;
+}
+
+.nav-link.active{
+    background:var(--accent);
+    color:white;
+}
+
+.sidebar-footer{
+    margin-top:auto;
+    font-size:12px;
+    color:var(--dim);
+    padding:10px;
+}
+
+main{
+    overflow-y:auto;
+    padding:24px;
+}
+
+.view{
+    display:none;
+}
+
+.view.active{
+    display:block;
+}
+
+.hero{
+    background:linear-gradient(135deg,#0066ff,#0045c7);
+    padding:35px;
+    border-radius:22px;
+    margin-bottom:24px;
+}
+
+.hero h1{
+    font-size:34px;
+    margin-bottom:8px;
+}
+
+.card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.games-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:18px;
+}
+
+.game-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:18px;
+    overflow:hidden;
+}
+
+.thumb{
+    height:140px;
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+}
+
+.game-content{
+    padding:16px;
+}
+
+.game-title{
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.game-meta{
+    color:var(--dim);
+    font-size:13px;
+    margin-bottom:14px;
+}
+
+.btn{
+    border:none;
+    cursor:pointer;
+    border-radius:12px;
+    padding:11px 15px;
+    font-weight:700;
+    width:100%;
+}
+
+.btn-blue{
+    background:var(--accent);
+    color:white;
+}
+
+.btn-green{
+    background:var(--green);
+    color:white;
+}
+
+.btn-red{
+    background:var(--red);
+    color:white;
+}
+
+input,
+textarea{
+    width:100%;
+    padding:14px;
+    background:#111317;
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:white;
+    outline:none;
+    margin-bottom:12px;
+}
+
+textarea{
+    resize:none;
+    height:120px;
+}
+
+.chat-box{
+    height:360px;
+    overflow-y:auto;
+    background:#111317;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:12px;
+}
+
+.msg{
+    margin-bottom:10px;
+}
+
+#auth-overlay{
+    position:fixed;
+    inset:0;
+    background:#101215;
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.auth-box{
+    width:360px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:24px;
+    padding:35px;
+}
+
+.auth-title{
+    font-size:34px;
+    font-weight:900;
+    margin-bottom:8px;
+}
+
+.auth-title span{
+    color:var(--accent);
+}
+
+.auth-sub{
+    color:var(--dim);
+    margin-bottom:24px;
+}
+
+.hidden{
+    display:none !important;
+}
+
+#studio-ui{
+    position:fixed;
+    inset:0;
+    background:#0a0a0a;
+    display:none;
+    z-index:5000;
+}
+
+.studio-topbar{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:50px;
+    background:#1b1f24;
+    border-bottom:1px solid #333;
+    display:flex;
+    align-items:center;
+    padding:0 14px;
+    gap:10px;
+    z-index:100;
+}
+
+.studio-sidebar{
+    position:absolute;
+    top:50px;
+    left:0;
+    bottom:0;
+    width:230px;
+    background:#181c21;
+    border-right:1px solid #333;
+    padding:14px;
+    overflow:auto;
+}
+
+.studio-properties{
+    position:absolute;
+    top:50px;
+    right:0;
+    bottom:0;
+    width:260px;
+    background:#181c21;
+    border-left:1px solid #333;
+    padding:14px;
+}
+
+.studio-viewport{
+    position:absolute;
+    top:50px;
+    left:230px;
+    right:260px;
+    bottom:0;
+}
+
+.explorer-item{
+    background:#242932;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:8px;
+    font-size:13px;
+}
+
+.game-item{
+    background:#181c21;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="auth-overlay">
+
+<div class="auth-box">
+
+<div class="auth-title">
+Cube<span>World</span>
+</div>
+
+<div class="auth-sub">
+Create an account or login
+</div>
+
+<input id="login-user" type="text" placeholder="Username">
+<input id="login-pass" type="password" placeholder="Password">
+
+<button class="btn btn-blue" onclick="core.login()" style="margin-bottom:10px;">
+Login
+</button>
+
+<button class="btn btn-green" onclick="core.register()">
+Create Account
+</button>
+
+<div id="auth-err" class="hidden" style="margin-top:12px;color:#ef4444;font-size:13px;text-align:center;">
+Invalid login
+</div>
+
+</div>
+
+</div>
+
+<div class="app">
+
+<header>
+
+<div class="logo">
+Cube<span>World</span>
+</div>
+
+<div class="header-right">
+
+<div class="pill">
+Admin: BloxColaYT
+</div>
+
+<div class="pill" id="user-name-display">
+Guest
+</div>
+
+</div>
+
+</header>
+
+<aside>
+
+<div class="nav-link active" onclick="core.nav('home',this)">
+Home
+</div>
+
+<div class="nav-link" onclick="core.nav('games',this)">
+Discover
+</div>
+
+<div class="nav-link" onclick="core.nav('create',this)">
+Studio
+</div>
+
+<div class="nav-link" onclick="core.nav('social',this)">
+Messages
+</div>
+
+<div class="nav-link" onclick="core.nav('api',this)">
+API
+</div>
+
+<div class="nav-link" onclick="core.nav('settings',this)">
+Settings
+</div>
+
+<div class="sidebar-footer">
+Support:<br>
+OfficialCubeWorld@hotmail.com
+</div>
+
+</aside>
+
+<main>
+
+<section id="view-home" class="view active">
+
+<div class="hero">
+
+<h1>Welcome to CubeWorld</h1>
+
+<p>
+Create games and publish worlds forever.
+</p>
+
+</div>
+
+<div class="card">
+
+<h2 style="margin-bottom:10px;">
+News
+</h2>
+
+<p style="color:var(--dim);">
+Public account system enabled.
+</p>
+
+</div>
+
+</section>
+
+<section id="view-games" class="view">
+
+<h2 style="margin-bottom:18px;">
+Discover Games
+</h2>
+
+<div class="games-grid" id="game-grid"></div>
+
+</section>
+
+<section id="view-create" class="view">
+
+<h2 style="margin-bottom:18px;">
+Publish Game
+</h2>
+
+<div class="card">
+
+<input id="game-title" type="text" placeholder="Game Title">
+
+<textarea id="game-description" placeholder="Game Description"></textarea>
+
+<div style="display:flex;gap:12px;">
+
+<button class="btn btn-blue" onclick="core.launchStudio()">
+Open Studio
+</button>
+
+<button class="btn btn-green" onclick="core.publishGame()">
+Publish Game
+</button>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2 style="margin-bottom:14px;">
+Published Games
+</h2>
+
+<div id="published-games"></div>
+
+</div>
+
+</section>
+
+<section id="view-social" class="view">
+
+<h2 style="margin-bottom:18px;">
+Messages
+</h2>
+
+<div class="card">
+
+<div class="chat-box" id="chat-box"></div>
+
+<div style="display:flex;gap:10px;">
+
+<input id="chat-in" type="text" placeholder="Type message..." style="margin:0;">
+
+<button class="btn btn-blue" onclick="core.send()">
+Send
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="view-api" class="view">
+
+<h2 style="margin-bottom:18px;">
+CubeWorld API
+</h2>
+
+<div class="card">
+
+<pre style="color:#60a5fa;">
+GET /api/users
+GET /api/games
+POST /api/login
+POST /api/publish
+</pre>
+
+</div>
+
+</section>
+
+<section id="view-settings" class="view">
+
+<h2 style="margin-bottom:18px;">
+Settings
+</h2>
+
+<div class="card">
+Settings panel coming soon.
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+<div id="studio-ui">
+
+<div class="studio-topbar">
+
+<button class="btn btn-red" style="width:auto;" onclick="core.exitStudio()">
+Exit
+</button>
+
+<button class="btn btn-blue" style="width:auto;" onclick="core.addCube()">
+Add Part
+</button>
+
+</div>
+
+<div class="studio-sidebar">
+
+<h3 style="margin-bottom:14px;">
+Explorer
+</h3>
+
+<div id="explorer-list">
+
+<div class="explorer-item">
+Workspace
+</div>
+
+<div class="explorer-item">
+Lighting
+</div>
+
+</div>
+
+</div>
+
+<div class="studio-properties">
+
+<h3 style="margin-bottom:14px;">
+Properties
+</h3>
+
+<div class="explorer-item">
+Material: Plastic
+</div>
+
+</div>
+
+<div class="studio-viewport" id="studio-canvas"></div>
+
+</div>
+
+<script>
+
+const api = {
+
+    users: JSON.parse(
+        localStorage.getItem("cubeworld_users") || "[]"
+    ),
+
+    games: JSON.parse(
+        localStorage.getItem("cubeworld_games") || "[]"
+    ),
+
+    messages: JSON.parse(
+        localStorage.getItem("cubeworld_messages") || "[]"
+    ),
+
+    currentUser:null,
+
+    save(){
+
+        localStorage.setItem(
+            "cubeworld_users",
+            JSON.stringify(this.users)
+        );
+
+        localStorage.setItem(
+            "cubeworld_games",
+            JSON.stringify(this.games)
+        );
+
+        localStorage.setItem(
+            "cubeworld_messages",
+            JSON.stringify(this.messages)
+        );
+
+    },
+
+    register(username,password){
+
+        const exists=this.users.find(
+            u=>u.username.toLowerCase()===username.toLowerCase()
+        );
+
+        if(exists){
+
+            return {
+                success:false,
+                message:"Username already exists"
+            };
+
+        }
+
+        const user={
+
+            id:Date.now(),
+
+            username:username,
+
+            password:password,
+
+            rank:
+                username==="BloxColaYT"
+                ? "Admin"
+                : "Player"
+
+        };
+
+        this.users.push(user);
+
+        this.save();
+
+        return {
+            success:true
+        };
+
+    },
+
+    login(username,password){
+
+        const user=this.users.find(
+            u=>
+                u.username===username &&
+                u.password===password
+        );
+
+        if(!user){
+
+            return {
+                success:false
+            };
+
+        }
+
+        this.currentUser=user;
+
+        return {
+            success:true,
+            user:user
+        };
+
+    },
+
+    publish(game){
+
+        this.games.push(game);
+
+        this.save();
+
+    }
+
+};
+
+if(
+    !api.users.find(
+        u=>u.username==="BloxColaYT"
+    )
+){
+
+    api.users.push({
+
+        id:1,
+
+        username:"BloxColaYT",
+
+        password:"Ilikechips!1",
+
+        rank:"Admin"
+
+    });
+
+    api.save();
+
+}
+
+const core = {
+
+    scene:null,
+    renderer:null,
+    camera:null,
+    animationFrame:null,
+
+    login(){
+
+        const username=document
+        .getElementById("login-user")
+        .value
+        .trim();
+
+        const password=document
+        .getElementById("login-pass")
+        .value;
+
+        const result=api.login(
+            username,
+            password
+        );
+
+        if(result.success){
+
+            document
+            .getElementById("auth-overlay")
+            .classList
+            .add("hidden");
+
+            document
+            .getElementById("user-name-display")
+            .innerText=result.user.username;
+
+            this.renderGames();
+
+            this.renderPublishedGames();
+
+        }else{
+
+            const err=document.getElementById("auth-err");
+
+            err.innerText="Invalid username or password";
+
+            err.classList.remove("hidden");
+
+        }
+
+    },
+
+    register(){
+
+        const username=document
+        .getElementById("login-user")
+        .value
+        .trim();
+
+        const password=document
+        .getElementById("login-pass")
+        .value;
+
+        const result=api.register(
+            username,
+            password
+        );
+
+        const err=document.getElementById("auth-err");
+
+        if(result.success){
+
+            err.style.color="#22c55e";
+
+            err.innerText="Account created";
+
+            err.classList.remove("hidden");
+
+        }else{
+
+            err.style.color="#ef4444";
+
+            err.innerText=result.message;
+
+            err.classList.remove("hidden");
+
+        }
+
+    },
+
+    nav(id,el){
+
+        document
+        .querySelectorAll(".view")
+        .forEach(v=>v.classList.remove("active"));
+
+        document
+        .querySelectorAll(".nav-link")
+        .forEach(v=>v.classList.remove("active"));
+
+        document
+        .getElementById("view-"+id)
+        .classList
+        .add("active");
+
+        el.classList.add("active");
+
+    },
+
+    renderGames(){
+
+        const grid=document.getElementById("game-grid");
+
+        if(api.games.length===0){
+
+            grid.innerHTML=`
+                <div style="color:var(--dim);">
+                    No games published yet.
+                </div>
+            `;
+
+            return;
+
+        }
+
+        grid.innerHTML=api.games.map(g=>`
+
+        <div class="game-card">
+
+            <div class="thumb"></div>
+
+            <div class="game-content">
+
+                <div class="game-title">
+                    ${g.title}
+                </div>
+
+                <div class="game-meta">
+                    Created by ${g.creator}
+                </div>
+
+                <button class="btn btn-blue">
+                    Play
+                </button>
+
+            </div>
+
+        </div>
+
+        `).join("");
+
+    },
+
+    publishGame(){
+
+        if(!api.currentUser){
+
+            alert("Login first");
+
+            return;
+
+        }
+
+        const title=document
+        .getElementById("game-title")
+        .value
+        .trim();
+
+        const description=document
+        .getElementById("game-description")
+        .value
+        .trim();
+
+        if(!title){
+
+            alert("Enter game title");
+
+            return;
+
+        }
+
+        const game={
+
+            id:Date.now(),
+
+            title:title,
+
+            description:description,
+
+            creator:api.currentUser.username
+
+        };
+
+        api.publish(game);
+
+        this.renderGames();
+
+        this.renderPublishedGames();
+
+        document.getElementById("game-title").value="";
+        document.getElementById("game-description").value="";
+
+    },
+
+    renderPublishedGames(){
+
+        const container=document
+        .getElementById("published-games");
+
+        if(!api.currentUser){
+
+            container.innerHTML=`
+                <div style="color:var(--dim);">
+                    Login to publish games.
+                </div>
+            `;
+
+            return;
+
+        }
+
+        const userGames=api.games.filter(
+            g=>g.creator===api.currentUser.username
+        );
+
+        if(userGames.length===0){
+
+            container.innerHTML=`
+                <div style="color:var(--dim);">
+                    No published games.
+                </div>
+            `;
+
+            return;
+
+        }
+
+        container.innerHTML=userGames.map(g=>`
+
+        <div class="game-item">
+
+            <div style="
+                font-size:18px;
+                font-weight:800;
+                margin-bottom:8px;
+            ">
+                ${g.title}
+            </div>
+
+            <div style="
+                color:var(--dim);
+                margin-bottom:10px;
+            ">
+                ${g.description || "No description"}
+            </div>
+
+            <div style="
+                color:#60a5fa;
+                font-size:13px;
+            ">
+                Creator: ${g.creator}
+            </div>
+
+        </div>
+
+        `).join("");
+
+    },
+
+    send(){
+
+        const input=document.getElementById("chat-in");
+
+        const box=document.getElementById("chat-box");
+
+        const msg=input.value.trim();
+
+        if(!msg) return;
+
+        const div=document.createElement("div");
+
+        div.className="msg";
+
+        div.innerHTML="<b>You:</b> ";
+
+        div.appendChild(
+            document.createTextNode(msg)
+        );
+
+        box.appendChild(div);
+
+        input.value="";
+
+        box.scrollTop=box.scrollHeight;
+
+    },
+
+    launchStudio(){
+
+        document
+        .getElementById("studio-ui")
+        .style
+        .display="block";
+
+        if(!this.renderer){
+            this.init3D();
+        }
+
+    },
+
+    init3D(){
+
+        const container=document.getElementById("studio-canvas");
+
+        container.innerHTML="";
+
+        this.scene=new THREE.Scene();
+
+        this.scene.background=new THREE.Color(0x0a0a0a);
+
+        this.camera=new THREE.PerspectiveCamera(
+            75,
+            container.clientWidth/container.clientHeight,
+            0.1,
+            1000
+        );
+
+        this.renderer=new THREE.WebGLRenderer({
+            antialias:true
+        });
+
+        this.renderer.setSize(
+            container.clientWidth,
+            container.clientHeight
+        );
+
+        container.appendChild(
+            this.renderer.domElement
+        );
+
+        const grid=new THREE.GridHelper(
+            100,
+            100,
+            0x444444,
+            0x222222
+        );
+
+        this.scene.add(grid);
+
+        const light=new THREE.DirectionalLight(
+            0xffffff,
+            1
+        );
+
+        light.position.set(5,10,5);
+
+        this.scene.add(light);
+
+        this.scene.add(
+            new THREE.AmbientLight(0x404040)
+        );
+
+        this.camera.position.set(8,8,8);
+
+        this.camera.lookAt(0,0,0);
+
+        this.animate();
+
+    },
+
+    animate(){
+
+        this.animationFrame=requestAnimationFrame(
+            this.animate.bind(this)
+        );
+
+        if(
+            this.renderer &&
+            this.scene &&
+            this.camera
+        ){
+
+            this.renderer.render(
+                this.scene,
+                this.camera
+            );
+
+        }
+
+    },
+
+    addCube(){
+
+        if(!this.scene) return;
+
+        const cube=new THREE.Mesh(
+
+            new THREE.BoxGeometry(2,2,2),
+
+            new THREE.MeshStandardMaterial({
+                color:0x1677ff
+            })
+
+        );
+
+        cube.position.set(
+            Math.random()*8-4,
+            1,
+            Math.random()*8-4
+        );
+
+        this.scene.add(cube);
+
+        const item=document.createElement("div");
+
+        item.className="explorer-item";
+
+        item.innerText="Part";
+
+        document
+        .getElementById("explorer-list")
+        .appendChild(item);
+
+    },
+
+    exitStudio(){
+
+        document
+        .getElementById("studio-ui")
+        .style
+        .display="none";
+
+        cancelAnimationFrame(this.animationFrame);
+
+        if(this.renderer){
+
+            this.renderer.dispose();
+
+            const canvas=this.renderer.domElement;
+
+            if(canvas.parentNode){
+                canvas.parentNode.removeChild(canvas);
+            }
+
+        }
+
+        this.scene=null;
+        this.renderer=null;
+        this.camera=null;
+
+    }
+
+};
+
+</script>
+
+</body>
+</html>
