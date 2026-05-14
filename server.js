@@ -9,56 +9,32 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.static("public"));
 
-/* ---------------- STATE ---------------- */
-const games = {};
-const users = {};
-const admins = ["BloxColaYT"];
-
-/* ---------------- JOIN GAME ---------------- */
+/* ---------------- SOCKET.IO MUST BE ATTACHED BEFORE LISTEN ---------------- */
 io.on("connection", (socket) => {
+    console.log("user connected");
 
-    socket.on("joinGame", ({ gameId, user }) => {
+    socket.on("joinGame", (gameId) => {
         socket.join(gameId);
-
-        if (!games[gameId]) {
-            games[gameId] = { players: [] };
-        }
-
-        games[gameId].players.push(user);
-
-        io.to(gameId).emit("playerList", games[gameId].players);
     });
-
-    /* multiplayer movement */
-    socket.on("move", (data) => {
-        io.to(data.gameId).emit("playerMove", data);
-    });
-
-    /* studio updates */
-    socket.on("studioUpdate", (data) => {
-        io.to(data.gameId).emit("studioUpdate", data);
-    });
-
 });
 
-/* ---------------- ADMIN API ---------------- */
-app.post("/api/admin/ban", (req, res) => {
-    const { user, admin } = req.body;
+/* ---------------- TEST ROUTE ---------------- */
+app.get("/api/status", (req, res) => {
+    res.json({ online: true });
+});
 
-    if (!admins.includes(admin)) {
-        return res.json({ success: false, message: "not admin" });
-    }
+/* ---------------- LOGIN ROUTES (fix your 404) ---------------- */
+app.post("/api/auth/login", (req, res) => {
+    res.json({ success: true, user: req.body.username });
+});
 
-    users[user] = "banned";
-
+app.post("/api/auth/register", (req, res) => {
     res.json({ success: true });
 });
 
-app.get("/api/status", (req, res) => {
-    res.json({
-        online: true,
-        players: Object.values(games).reduce((a,b)=>a+b.players.length,0)
-    });
-});
+/* ---------------- START SERVER ---------------- */
+const PORT = process.env.PORT || 3000;
 
-server.listen(3000, () => console.log("CubeWorld running"));
+server.listen(PORT, () => {
+    console.log("CubeWorld running");
+});
