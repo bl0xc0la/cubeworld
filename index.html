@@ -6,134 +6,165 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: #0f1115;
-    color: white;
+:root {
+    --bg:#0e1116;
+    --panel:#151a22;
+    --panel2:#11151c;
+    --text:#e6e6e6;
+    --muted:#8b8b8b;
+    --accent:#3b82f6;
+    --shadow:0 6px 18px rgba(0,0,0,0.35);
+    --radius:0.3rem;
 }
 
-/* TOP BAR */
-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 20px;
-    background: #161a20;
-    border-bottom: 1px solid #222;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
 }
 
 /* LAYOUT */
-#app {
-    display: none;
-    padding: 20px;
+.app{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    height:100vh;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
+/* SIDEBAR */
+.sidebar{
+    background:var(--panel);
+    padding:12px;
+    box-shadow:var(--shadow);
 }
 
-.card {
-    background: #161a20;
-    padding: 12px;
-    border-radius: 10px;
+.brand{
+    font-weight:bold;
+    margin-bottom:15px;
 }
 
-/* LOGIN */
-#auth {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #0b0d10;
+.nav button{
+    width:100%;
+    padding:10px;
+    margin-bottom:6px;
+    border:none;
+    background:var(--panel2);
+    color:var(--text);
+    border-radius:var(--radius);
+    cursor:pointer;
+    box-shadow:var(--shadow);
 }
 
-.box {
-    width: 300px;
-    background: #1a1f27;
-    padding: 20px;
-    border-radius: 10px;
+.nav button:hover{
+    background:#1a2230;
 }
 
-input {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    background: #111;
-    border: 1px solid #333;
-    color: white;
+/* MAIN */
+.main{
+    padding:18px;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    background: #2563eb;
-    border: none;
-    color: white;
-    cursor: pointer;
+/* CARD */
+.card{
+    background:var(--panel);
+    padding:12px;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    margin-bottom:12px;
 }
 
-.nav {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:10px;
 }
 
-.nav button {
-    width: auto;
-    padding: 8px 12px;
+/* INPUT */
+input{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    background:#0f141c;
+    border:1px solid #222;
+    color:white;
+    border-radius:var(--radius);
 }
 
-.hidden {
-    display: none;
+/* BUTTON */
+button{
+    padding:10px;
+    border:none;
+    background:var(--accent);
+    color:white;
+    border-radius:var(--radius);
+    cursor:pointer;
+    box-shadow:var(--shadow);
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+/* HIDDEN */
+.hidden{display:none}
+
+/* CHAT */
+.chatBox{
+    height:220px;
+    overflow:auto;
+    background:#0f141c;
+    padding:10px;
+    border-radius:var(--radius);
+    border:1px solid #222;
+}
+
+/* ADMIN */
+.admin{
+    border:1px solid #3b82f6;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="auth">
-    <div class="box">
-        <h2>CubeWorld</h2>
+<div class="app">
 
-        <input id="u" placeholder="username">
-        <input id="p" type="password" placeholder="password">
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="brand">CubeWorld v2</div>
 
-        <button onclick="login()">Login</button>
-
-        <p id="msg"></p>
+    <div class="nav">
+        <button onclick="show('home')">Home</button>
+        <button onclick="show('games')">Games</button>
+        <button onclick="show('friends')">Friends</button>
+        <button onclick="show('dm')">DMs</button>
+        <button onclick="show('admin')" id="adminBtn" class="hidden">Admin</button>
     </div>
 </div>
 
-<!-- APP -->
-<div id="app">
-
-<header>
-    <div>CubeWorld v2</div>
-    <div id="user"></div>
-</header>
-
-<div class="nav">
-    <button onclick="show('home')">Home</button>
-    <button onclick="show('games')">Games</button>
-    <button onclick="show('studio')">Studio</button>
-</div>
+<!-- MAIN -->
+<div class="main">
 
 <!-- HOME -->
-<div id="home">
-    <h2>Dashboard</h2>
+<div id="home" class="page">
     <div class="card">
-        Welcome to CubeWorld
+        Welcome to CubeWorld v2
+        <div id="userInfo"></div>
     </div>
 </div>
 
 <!-- GAMES -->
-<div id="games" class="hidden">
-    <h2>Games</h2>
+<div id="games" class="page hidden">
+    <div class="card">
+        Games
+    </div>
+
     <div class="grid">
         <div class="card">City Life</div>
         <div class="card">Sword Fight</div>
@@ -141,36 +172,123 @@ button {
     </div>
 </div>
 
-<!-- STUDIO -->
-<div id="studio" class="hidden">
-    <h2>Studio</h2>
+<!-- FRIENDS -->
+<div id="friends" class="page hidden">
     <div class="card">
-        Studio coming soon (save/load + multiplayer later)
+        Add Friend
+        <input id="friendName" placeholder="username">
+        <button onclick="addFriend()">Add</button>
+    </div>
+
+    <div class="card">
+        Friend List
+        <div id="friendList"></div>
+    </div>
+</div>
+
+<!-- DM -->
+<div id="dm" class="page hidden">
+    <div class="card">
+        DM System
+        <input id="dmUser" placeholder="user">
+        <input id="dmMsg" placeholder="message">
+        <button onclick="sendDM()">Send</button>
+    </div>
+
+    <div class="card">
+        Messages
+        <div id="dmBox" class="chatBox"></div>
+    </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="page hidden admin">
+    <div class="card">
+        Admin Panel (BloxColaYT)
+    </div>
+
+    <div class="card">
+        <button onclick="broadcast()">Send Global Message</button>
+        <button onclick="clearData()">Clear Local Data</button>
+    </div>
+
+    <div class="card">
+        Logs
+        <div id="logs" class="chatBox"></div>
     </div>
 </div>
 
 </div>
+</div>
 
 <script>
 
-function login() {
-    const username = document.getElementById("u").value;
+let user = prompt("Enter username:");
+let friends = [];
+let dms = [];
 
-    if (!username) return;
-
-    document.getElementById("auth").style.display = "none";
-    document.getElementById("app").style.display = "block";
-
-    document.getElementById("user").innerText = username;
+/* ADMIN CHECK */
+if(user === "BloxColaYT"){
+    document.getElementById("adminBtn").classList.remove("hidden");
 }
 
-function show(page) {
+/* UI INIT */
+document.getElementById("userInfo").innerText = "Logged in as: " + user;
 
-    document.getElementById("home").classList.add("hidden");
-    document.getElementById("games").classList.add("hidden");
-    document.getElementById("studio").classList.add("hidden");
-
+/* NAV */
+function show(page){
+    document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
     document.getElementById(page).classList.remove("hidden");
+}
+
+/* FRIENDS */
+function addFriend(){
+    let f = document.getElementById("friendName").value;
+    if(!f) return;
+
+    friends.push(f);
+    renderFriends();
+}
+
+function renderFriends(){
+    document.getElementById("friendList").innerHTML =
+    friends.map(f=>`<div class="card">${f}</div>`).join("");
+}
+
+/* DMS */
+function sendDM(){
+    let u = document.getElementById("dmUser").value;
+    let m = document.getElementById("dmMsg").value;
+
+    if(!u || !m) return;
+
+    dms.push({u,m});
+    renderDM();
+}
+
+function renderDM(){
+    document.getElementById("dmBox").innerHTML =
+    dms.map(d=>`<div><b>${d.u}:</b> ${d.m}</div>`).join("");
+}
+
+/* ADMIN */
+function broadcast(){
+    let msg = prompt("Global message:");
+
+    log("GLOBAL: " + msg);
+}
+
+function clearData(){
+    friends = [];
+    dms = [];
+    renderFriends();
+    renderDM();
+    log("DATA CLEARED");
+}
+
+function log(text){
+    document.getElementById("logs").innerHTML +=
+    `<div>${text}</div>`;
 }
 
 </script>
