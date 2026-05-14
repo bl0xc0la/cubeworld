@@ -1,85 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>CubeWorld</title>
+<title>CubeWorld v3</title>
+<script src="/socket.io/socket.io.js"></script>
 
 <style>
-:root{
-    --bg:#0b0f16;
-    --panel:#111827;
-    --panel2:#0f172a;
-    --accent:#3b82f6;
-    --shadow:0 10px 25px rgba(0,0,0,0.4);
-    --radius:10px;
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial;
-}
 
 body{
-    background:var(--bg);
+    margin:0;
+    font-family:Arial;
+    background:#0b0f16;
     color:white;
 }
 
-/* LOGIN */
-#loginScreen{
-    position:fixed;
-    inset:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:var(--bg);
-}
-
-.loginBox{
-    width:320px;
-    padding:20px;
-    background:var(--panel);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-}
-
-input{
-    width:100%;
-    padding:10px;
-    margin:6px 0;
-    border-radius:8px;
-    border:none;
-    background:var(--panel2);
-    color:white;
-}
-
-/* APP */
 .app{
     display:grid;
-    grid-template-columns:220px 1fr;
+    grid-template-columns:200px 1fr;
     height:100vh;
 }
 
 .sidebar{
-    background:var(--panel);
-    padding:12px;
+    background:#111827;
+    padding:10px;
 }
 
 button{
     width:100%;
+    margin:5px 0;
     padding:10px;
-    margin:6px 0;
     border:none;
-    border-radius:8px;
     background:#1f2937;
     color:white;
-    cursor:pointer;
-    box-shadow:var(--shadow);
+    border-radius:6px;
 }
 
 button:hover{
-    background:#273449;
+    background:#2b3a55;
 }
 
 .main{
@@ -87,15 +44,38 @@ button:hover{
 }
 
 .card{
-    background:var(--panel);
+    background:#111827;
     padding:12px;
-    border-radius:var(--radius);
+    border-radius:8px;
     margin-bottom:10px;
-    box-shadow:var(--shadow);
 }
 
-.hidden{
-    display:none;
+.hidden{display:none}
+
+/* LOGIN */
+#login{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#0b0f16;
+}
+
+.box{
+    width:300px;
+    padding:20px;
+    background:#111827;
+    border-radius:10px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border:none;
+    background:#0f172a;
+    color:white;
 }
 
 </style>
@@ -103,26 +83,23 @@ button:hover{
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-    <div class="loginBox">
-        <h2>CubeWorld Login</h2>
-
-        <input id="usernameInput" placeholder="username">
-        <input id="passwordInput" type="password" placeholder="password">
-
-        <button onclick="handleLogin()">Login</button>
-
-        <div id="errorText" style="color:red;margin-top:8px;"></div>
+<div id="login">
+    <div class="box">
+        <h3>CubeWorld Login</h3>
+        <input id="u" placeholder="username">
+        <input id="p" type="password" placeholder="password">
+        <input id="e" placeholder="email">
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+        <input id="code" placeholder="email code">
+        <button onclick="verify()">Verify Email</button>
     </div>
 </div>
 
-<!-- APP -->
 <div class="app hidden" id="app">
 
 <div class="sidebar">
     <button onclick="show('home')">Home</button>
-    <button onclick="show('games')">Games</button>
     <button onclick="show('studio')">Studio</button>
 </div>
 
@@ -130,16 +107,21 @@ button:hover{
 
 <div id="home">
     <div class="card">
-        Welcome <span id="userDisplay"></span>
+        Welcome <span id="user"></span>
+    </div>
+
+    <div class="card">
+        Join Studio Room
+        <input id="room">
+        <button onclick="joinRoom()">Join</button>
     </div>
 </div>
 
-<div id="games" class="hidden">
-    <div class="card">Games Section</div>
-</div>
-
 <div id="studio" class="hidden">
-    <div class="card">Studio (coming soon)</div>
+    <div class="card">
+        CubeWorld Studio
+        <button onclick="sendUpdate()">Add Block</button>
+    </div>
 </div>
 
 </div>
@@ -147,34 +129,79 @@ button:hover{
 
 <script>
 
-let currentUser = "";
+const socket = io();
+let user = "";
+let room = "";
 
-/* FIXED LOGIN (no DOM name collisions) */
-function handleLogin(){
+/* REGISTER */
+async function register(){
 
-    const username = document.getElementById("usernameInput").value;
-    const password = document.getElementById("passwordInput").value;
+    await fetch("/api/register",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            username:u.value,
+            password:p.value,
+            email:e.value
+        })
+    });
+}
 
-    if(!username || !password){
-        document.getElementById("errorText").innerText = "Missing fields";
-        return;
+/* VERIFY */
+async function verify(){
+
+    await fetch("/api/verify",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            email:e.value,
+            code:code.value
+        })
+    });
+}
+
+/* LOGIN */
+async function login(){
+
+    const res = await fetch("/api/login",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            username:u.value,
+            password:p.value
+        })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+
+        user = data.user;
+
+        login.style.display="none";
+        app.classList.remove("hidden");
+
+        document.getElementById("user").innerText = user;
     }
+}
 
-    currentUser = username;
+/* STUDIO */
+function joinRoom(){
+    room = document.getElementById("room").value;
+    socket.emit("join", room);
+    show('studio');
+}
 
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("app").classList.remove("hidden");
-
-    document.getElementById("userDisplay").innerText = currentUser;
+function sendUpdate(){
+    socket.emit("studioUpdate",{room,user,action:"block"});
 }
 
 /* NAV */
-function show(page){
-
+function show(id){
     document.querySelectorAll(".main > div")
-    .forEach(el => el.classList.add("hidden"));
+    .forEach(d=>d.classList.add("hidden"));
 
-    document.getElementById(page).classList.remove("hidden");
+    document.getElementById(id).classList.remove("hidden");
 }
 
 </script>
