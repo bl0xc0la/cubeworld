@@ -4,8 +4,26 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const { Server } = require("socket.io");
 
-const User = require("./models/User");
-const World = require("./models/World");
+const User = mongoose.model("User", new mongoose.Schema({
+        username: { type: String, required: true, unique: true },
+        email: String,
+        password: { type: String, required: true },
+        friends: [String],
+        dms: [{ from: String, message: String, time: Date }],
+        verified: { type: Boolean, default: false }
+    }));
+
+    const World = mongoose.model("World", new mongoose.Schema({
+        gameId: { type: String, required: true, unique: true },
+        owner: String,
+        data: Object,
+        updatedAt: { type: Date, default: Date.now }
+    }));
+    ```
+
+**Push that change to GitHub**, and Render will automatically try to redeploy. It should get past that error! 
+
+Are you seeing the `models` folder in your GitHub file list?
 
 const app = express();
 const server = http.createServer(app);
