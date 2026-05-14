@@ -4,19 +4,6 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const { Server } = require("socket.io");
 
-const User = mongoose.model("User", new mongoose.Schema({
-        username: { type: String, required: true, unique: true },
-        email: String,
-        password: { type: String, required: true },
-        friends: [String],
-        dms: [{ from: String, message: String, time: Date }],
-        verified: { type: Boolean, default: false }
-    }));
-
-**Push that change to GitHub**, and Render will automatically try to redeploy. It should get past that error! 
-
-Are you seeing the `models` folder in your GitHub file list?
-
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -24,111 +11,54 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.static("public"));
 
-/* ---------------- DB ---------------- */
+/* ---------------- DB CONNECTION ---------------- */
 mongoose.connect(process.env.MONGO_URL);
 
-/* ---------------- AUTH ---------------- */
+/* ---------------- MODELS ---------------- */
+const User = mongoose.model("User", new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    email: String,
+    password: { type: String, required: true },
+    friends: [String],
+    dms: [{ from: String, message: String, time: Date }],
+    verified: { type: Boolean, default: false }
+}));
+
+const World = mongoose.model("World", new mongoose.Schema({
+    gameId: { type: String, required: true, unique: true },
+    owner: String,
+    data: Object,
+    updatedAt: { type: Date, default: Date.now }
+}));
+
+/* ---------------- AUTH ROUTES ---------------- */
 app.post("/api/register", async (req, res) => {
-
-    const { username, email, password } = req.body;
-
-    const hashed = await bcrypt.hash(password, 10);
-
-    await User.create({
-        username,
-        email,
-        password: hashed,
-        friends: [],
-        dms: [],
-        verified: true
-    });
-
-    res.json({ success: true });
+    try {
+        const { username, email, password } = req.body;
+        const hashed = await bcrypt.hash(password, 10);
+        await User.create({ username, email, password: hashed, friends: [], dms: [], verified: true });
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
 });
 
 app.post("/api/login", async (req, res) => {
-
     const { username, password } = req.body;
-
     const user = await User.findOne({ username });
-
     if (!user) return res.json({ success: false });
-
     const ok = await bcrypt.compare(password, user.password);
-
-    if (!ok) return res.json({ success: false });
-
-    res.json({ success: true, user: user.username });
+    res.json({ success: ok, user: user.username });
 });
 
-/* ---------------- FRIENDS ---------------- */
-app.post("/api/friend/add", async (req, res) => {
-
-    const { user, friend } = req.body;
-
-    await User.updateOne(
-        { username: user },
-        { $addToSet: { friends: friend } }
-    );
-
-    res.json({ success: true });
-});
-
-/* ---------------- DMS ---------------- */
-app.post("/api/dm/send", async (req, res) => {
-
-    const { from, to, message } = req.body;
-
-    await User.updateOne(
-        { username: to },
-        {
-            $push: {
-                dms: {
-                    from,
-                    message,
-                    time: new Date()
-                }
-            }
-        }
-    );
-
-    res.json({ success: true });
-});
-
-/* ---------------- WORLD SAVE ---------------- */
+/* ---------------- WORLD & SOCKETS ---------------- */
 app.post("/api/world/save", async (req, res) => {
-
     const { gameId, owner, data } = req.body;
-
-    await World.findOneAndUpdate(
-        { gameId },
-        { owner, data, updatedAt: new Date() },
-        { upsert: true }
-    );
-
+    await World.findOneAndUpdate({ gameId }, { owner, data, updatedAt: new Date() }, { upsert: true });
     res.json({ success: true });
 });
 
-app.get("/api/world/:id", async (req, res) => {
-
-    const world = await World.findOne({ gameId: req.params.id });
-
-    res.json(world || {});
-});
-
-/* ---------------- MULTIPLAYER ---------------- */
 io.on("connection", (socket) => {
-
-    socket.on("join", (room) => {
-        socket.join(room);
-    });
-
-    socket.on("update", (data) => {
-        io.to(data.room).emit("update", data);
-    });
-
+    socket.on("join", (room) => socket.join(room));
+    socket.on("update", (data) => io.to(data.room).emit("update", data));
 });
 
-server.listen(process.env.PORT || 3000, () => {
-    console.log("CubeWorld v4 running");
-});
+server.listen(process.env.PORT || 3000, () => console.log("Running!"));
