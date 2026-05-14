@@ -1,19 +1,6 @@
 const mongoose = require("mongoose");
 
-const UserSchema = new mongoose.Schema({
-
-    username: {
-        type: String,
-        unique: true
-    },
-
-    password: String,
-
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-
-});
-
-module.exports = mongoose.model("User", UserSchema);
+module.exports = async function connectDB(){
+    await mongoose.connect(process.env.MONGO_URL);
+    console.log("DB connected");
+};
