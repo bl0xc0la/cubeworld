@@ -7,79 +7,58 @@ const path = require("path");
 const app = express();
 const server = http.createServer(app);
 
-// MIDDLEWARE
 app.use(express.json());
-// This line tells Express to look for your index.html inside the "public" folder
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ---------------- DATABASE SCHEMA ---------------- */
+/* ---------------- UPDATED DATABASE SCHEMA ---------------- */
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+    cubes: { type: Number, default: 100 }, // Our Currency
+    friends: { type: Array, default: [] },
+    items: { type: Array, default: ["Standard Head"] }, // Avatar Inventory
+    messages: [{ from: String, text: String, date: { type: Date, default: Date.now } }]
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 /* ---------------- DB CONNECTION ---------------- */
-// We connect without 'await' so the server starts even if the DB is slow
 mongoose.connect(process.env.MONGO_URL)
-    .then(() => console.log("✅ MongoDB Connected Successfully"))
-    .catch(err => console.log("❌ MongoDB Connection Error:", err.message));
+    .then(() => console.log("✅ CubeWorld Engine Connected"))
+    .catch(err => console.log("❌ DB Connection Failed:", err.message));
 
 /* ---------------- API ROUTES ---------------- */
 
-// REGISTER ROUTE
+// REGISTER
 app.post("/api/register", async (req, res) => {
     try {
         const { username, password } = req.body;
-        
-        if (!username || !password) {
-            return res.json({ success: false, msg: "Missing fields" });
-        }
-
-        // Check if user already exists
-        const existingUser = await User.findOne({ username });
-        if (existingUser) {
-            return res.json({ success: false, msg: "Username already taken" });
-        }
-
-        // Hash password and save
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword });
-        await newUser.save();
-
+        await User.create({ username, password: hashedPassword });
         res.json({ success: true });
-    } catch (error) {
-        console.error("Register Error:", error);
-        res.json({ success: false, msg: "Server error during registration" });
-    }
+    } catch (e) { res.json({ success: false, msg: "User exists" }); }
 });
 
-// LOGIN ROUTE
+// LOGIN (Returns Currency & Social Data)
 app.post("/api/login", async (req, res) => {
     try {
         const { username, password } = req.body;
-        
         const user = await User.findOne({ username });
-        if (!user) {
-            return res.json({ success: false, msg: "User not found" });
-        }
+        if (!user) return res.json({ success: false });
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (isMatch) {
-            res.json({ success: true, user: user.username });
+        const match = await bcrypt.compare(password, user.password);
+        if (match) {
+            res.json({ 
+                success: true, 
+                user: user.username, 
+                cubes: user.cubes, 
+                friends: user.friends.length 
+            });
         } else {
-            res.json({ success: false, msg: "Incorrect password" });
+            res.json({ success: false });
         }
-    } catch (error) {
-        console.error("Login Error:", error);
-        res.json({ success: false, msg: "Server error during login" });
-    }
+    } catch (e) { res.json({ success: false }); }
 });
 
-/* ---------------- START SERVER ---------------- */
 const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => {
-    console.log(`🚀 CubeWorld Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`🚀 Platform live on ${PORT}`));
