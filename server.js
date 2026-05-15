@@ -6,71 +6,48 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(express.json());
 app.use(express.static('public'));
 
-// IN-MEMORY DATA (In production, you'd use MongoDB)
+// Persistent data (In-memory for now)
 const bans = new Set();
 const publishedGames = [];
 
-// API: Login logic
+// Auth API
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ success: false });
 
-    // Admin bypass for you
-    if (username === "BloxColaYT" && password === "Ilikechips!1") {
-        return res.json({ success: true, user: "BloxColaYT", role: "Admin", cubes: 9999 });
+    // Admin check
+    if (username === "ColaAdmin" || username === "BloxColaYT") {
+        return res.json({ success: true, user: username, role: "Admin" });
     }
-
-    // Default guest login for testing
-    if (username && password) {
-        return res.json({ success: true, user: username, role: "User", cubes: 500 });
-    }
-
-    res.status(401).json({ success: false, message: "Invalid credentials" });
+    
+    res.json({ success: true, user: username, role: "User" });
 });
 
-// SOCKET.IO LOGIC
+// Socket.io Ecosystem
 io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
-
-    // Join a game world
-    socket.on("join-game", (data) => {
-        if (bans.has(data.username)) {
-            socket.emit("banned");
+    socket.on("join-main", (username) => {
+        if (bans.has(username)) {
+            socket.emit("banned_notice");
             return;
         }
-        socket.join(data.gameId);
-        io.to(data.gameId).emit("game-chat", { 
-            u: "SYSTEM", 
-            m: `${data.username} has entered the world.` 
-        });
+        console.log(`${username} joined.`);
     });
 
-    // Global Chat
-    socket.on("send-chat", (data) => {
-        io.emit("new-chat", data);
+    socket.on("send-global-chat", (data) => {
+        io.emit("receive-chat", data);
     });
 
-    // ADMIN: Global Notification
-    socket.on("admin-notify", (msg) => {
-        io.emit("global-alert", msg);
+    socket.on("admin-broadcast", (msg) => {
+        io.emit("global-notif", msg);
     });
 
-    // ADMIN: Ban logic
-    socket.on("admin-ban", (target) => {
+    socket.on("admin-ban-user", (target) => {
         bans.add(target);
-        io.emit("force-logout", target);
-        console.log(`User ${target} was banned.`);
-    });
-
-    socket.on("disconnect", () => {
-        console.log("User disconnected");
+        io.emit("kick-user", target);
     });
 });
 
-// Start Server
-http.listen(PORT, () => {
-    console.log(`CubeWorld Engine running on port ${PORT}`);
-});
+http.listen(PORT, () => console.log(`CubeWorld running on port ${PORT}`));
