@@ -1,253 +1,212 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>CubeWorld v4</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubeWorld | Dashboard</title>
+    <style>
+        /* Modern Roblox/Polytoria inspired Theme */
+        :root {
+            --bg-dark: #0a0b0d;
+            --card-bg: #1a1c20;
+            --main-blue: #00a2ff;
+            --btn-hover: #0077ff;
+            --text-dim: #adb5bd;
+            --error-red: #ff4d4d;
+            --success-green: #4dff88;
+        }
 
-<style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, #161b22 0%, #0a0b0d 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-:root{
-    --bg:#070707;
-    --panel:#0f0f0f;
-    --gold:#d4af37;
-    --gold2:#ffcc66;
-    --shadow:0 10px 30px rgba(0,0,0,0.6);
-    --radius:16px;
-}
+        /* The Dashboard Card */
+        .auth-card {
+            background: var(--card-bg);
+            width: 360px;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 162, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
 
-body{
-    margin:0;
-    font-family:Arial;
-    background:var(--bg);
-    color:white;
-}
+        h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            background: linear-gradient(to bottom right, #ffffff, var(--main-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
 
-/* LOGIN */
-#login{
-    position:fixed;
-    inset:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+        /* Inputs with Rounded Corners and Shadows */
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
 
-    background: radial-gradient(circle at top, #1a1a1a, #000);
-}
+        input {
+            width: 100%;
+            background: #0f1012;
+            border: 2px solid #2d3036;
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
 
-.box{
-    width:320px;
-    padding:20px;
-    background:linear-gradient(145deg,#111,#000);
-    border:1px solid #222;
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-}
+        input:focus {
+            outline: none;
+            border-color: var(--main-blue);
+            box-shadow: 0 0 10px rgba(0, 162, 255, 0.2);
+        }
 
-input{
-    width:100%;
-    padding:10px;
-    margin:6px 0;
-    border:none;
-    border-radius:12px;
-    background:#111;
-    color:white;
-    outline:none;
-}
+        /* Polytoria style Gradient Buttons */
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--main-blue), #0055ff);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 162, 255, 0.3);
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
 
-button{
-    width:100%;
-    padding:10px;
-    margin-top:6px;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 162, 255, 0.5);
+            background: linear-gradient(135deg, #2bb2ff, var(--btn-hover));
+        }
 
-    border:none;
-    border-radius:12px;
+        .btn-secondary {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            margin-top: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            display: block;
+            width: 100%;
+            transition: color 0.2s;
+        }
 
-    background:linear-gradient(145deg,var(--gold),var(--gold2));
-    color:black;
-    font-weight:bold;
+        .btn-secondary:hover {
+            color: white;
+            text-decoration: underline;
+        }
 
-    cursor:pointer;
+        /* Status Messages */
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            min-height: 20px;
+            font-weight: 500;
+        }
 
-    box-shadow:0 8px 20px rgba(212,175,55,0.3);
-}
+        .hidden { display: none; }
 
-button:hover{
-    transform:translateY(-1px);
-}
-
-/* APP */
-.app{
-    display:grid;
-    grid-template-columns:220px 1fr;
-    height:100vh;
-}
-
-.sidebar{
-    background:linear-gradient(180deg,#0a0a0a,#111);
-    border-right:1px solid #222;
-    padding:12px;
-}
-
-.navBtn{
-    background:#111;
-    color:white;
-    margin:6px 0;
-}
-
-.navBtn:hover{
-    border:1px solid var(--gold);
-}
-
-.main{
-    padding:16px;
-}
-
-/* CARDS */
-.card{
-    background:linear-gradient(145deg,#111,#0a0a0a);
-    border:1px solid #1f1f1f;
-    border-radius:var(--radius);
-    padding:14px;
-    box-shadow:var(--shadow);
-    margin-bottom:10px;
-}
-
-.goldText{
-    color:var(--gold);
-}
-
-.hidden{display:none}
-
-</style>
+        /* Welcome Screen Extras */
+        #user-display {
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+        }
+    </style>
 </head>
-
 <body>
 
-<div id="login">
-    <div class="box">
-        <h2 class="goldText">CubeWorld</h2>
+    <!-- Auth UI -->
+    <div id="login-screen" class="auth-card">
+        <h1>CubeWorld</h1>
+        
+        <div class="input-group">
+            <input type="text" id="u" placeholder="Username" autocomplete="off">
+        </div>
+        
+        <div class="input-group">
+            <input type="password" id="p" placeholder="Password">
+        </div>
 
-        <input id="u" placeholder="username">
-        <input id="p" type="password" placeholder="password">
-
-        <button onclick="login()">Login</button>
-        <button onclick="register()">Register</button>
+        <button class="btn-primary" onclick="handleAuth('login')">Login</button>
+        <button class="btn-secondary" onclick="handleAuth('register')">Don't have an account? Sign Up</button>
+        
+        <div id="status"></div>
     </div>
-</div>
 
-<div class="app hidden" id="app">
-
-<div class="sidebar">
-    <button class="navBtn" onclick="show('home')">Home</button>
-    <button class="navBtn" onclick="show('friends')">Friends</button>
-    <button class="navBtn" onclick="show('studio')">Studio</button>
-</div>
-
-<div class="main">
-
-<div id="home">
-    <div class="card">
-        Welcome <span id="user"></span>
+    <!-- Success / Game UI -->
+    <div id="app-screen" class="auth-card hidden">
+        <h1>Success!</h1>
+        <p style="color: var(--text-dim); margin-bottom: 30px;">
+            Authenticated as <span id="user-display" style="color: var(--main-blue);"></span>
+        </p>
+        
+        <button class="btn-primary" onclick="alert('Entering Studio...')">Launch Studio</button>
+        <button class="btn-secondary" onclick="location.reload()">Logout</button>
     </div>
-</div>
 
-<div id="friends" class="hidden">
-    <div class="card">
-        Add Friend
-        <input id="friend">
-        <button onclick="addFriend()">Add</button>
-    </div>
-</div>
+    <script>
+        async function handleAuth(type) {
+            const u = document.getElementById("u").value;
+            const p = document.getElementById("p").value;
+            const status = document.getElementById("status");
 
-<div id="studio" class="hidden">
-    <div class="card">
-        CubeWorld Studio
-        <button onclick="saveWorld()">Save World</button>
-    </div>
-</div>
+            // Reset status
+            status.style.color = "var(--error-red)";
+            status.innerText = "";
 
-</div>
-</div>
+            if (!u || !p) {
+                status.innerText = "Please fill in all fields.";
+                return;
+            }
 
-<script>
+            try {
+                status.style.color = "white";
+                status.innerText = type === 'login' ? "Logging in..." : "Creating account...";
 
-let user = "";
+                const response = await fetch(`/api/${type}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: u, password: p })
+                });
 
-async function register(){
+                const data = await response.json();
 
-    await fetch("/api/register",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            username:u.value,
-            email:"test@test.com",
-            password:p.value
-        })
-    });
-
-}
-
-async function login(){
-
-    const res = await fetch("/api/login",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            username:u.value,
-            password:p.value
-        })
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-        user = data.user;
-
-        login.style.display="none";
-        app.classList.remove("hidden");
-
-        document.getElementById("user").innerText = user;
-    }
-}
-
-/* FRIENDS */
-function addFriend(){
-
-    fetch("/api/friend/add",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            user,
-            friend:friend.value
-        })
-    });
-
-}
-
-/* WORLD */
-function saveWorld(){
-
-    fetch("/api/world/save",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            gameId:"main",
-            owner:user,
-            data:{blocks:1}
-        })
-    });
-
-}
-
-/* NAV */
-function show(id){
-
-    document.querySelectorAll(".main > div")
-    .forEach(d=>d.classList.add("hidden"));
-
-    document.getElementById(id).classList.remove("hidden");
-}
-
-</script>
-
+                if (data.success) {
+                    if (type === 'register') {
+                        status.style.color = "var(--success-green)";
+                        status.innerText = "Account created! You can now login.";
+                    } else {
+                        // Login successful
+                        document.getElementById("login-screen").classList.add("hidden");
+                        document.getElementById("app-screen").classList.remove("hidden");
+                        document.getElementById("user-display").innerText = data.user;
+                    }
+                } else {
+                    status.style.color = "var(--error-red)";
+                    status.innerText = data.msg || "Authentication failed.";
+                }
+            } catch (err) {
+                status.style.color = "var(--error-red)";
+                status.innerText = "Error: Could not connect to server.";
+            }
+        }
+    </script>
 </body>
 </html>
