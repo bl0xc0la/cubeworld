@@ -6,16 +6,14 @@ const io = require('socket.io')(http);
 app.use(express.json());
 app.use(express.static('public'));
 
-let accounts = {
-    "BloxColaYT": { pass: "admin123", role: "Owner", cubes: Infinity }
-};
+let accounts = {}; // Persistent in-memory DB
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-
-    // 🛡️ OWNER AUTO-FIX: Force login for your account
+    
+    // 🛡️ OWNER OVERRIDE: Automatically grants Owner role to BloxColaYT
     if (username === "BloxColaYT") {
-        accounts[username] = { pass: password, role: "Owner", cubes: Infinity };
+        accounts[username] = { pass: password, role: "Owner", cubes: "∞" };
         return res.json({ success: true, user: username, role: "Owner", cubes: "∞" });
     }
 
@@ -23,7 +21,7 @@ app.post('/api/login', (req, res) => {
         if (accounts[username].pass === password) {
             return res.json({ success: true, user: username, role: accounts[username].role, cubes: accounts[username].cubes });
         }
-        return res.status(401).json({ success: false, message: "Invalid Password" });
+        return res.status(401).json({ success: false, message: "Invalid Credentials" });
     }
 
     accounts[username] = { pass: password, role: "User", cubes: 500 };
@@ -31,11 +29,9 @@ app.post('/api/login', (req, res) => {
 });
 
 io.on("connection", (socket) => {
-    socket.on("admin-cmd", (data) => {
-        // Broadcaster for bans/promotions
-        io.emit("global-alert", `${data.target} updated.`);
-    });
+    socket.on("global-shout", (data) => io.emit("shout", data));
+    socket.on("admin-action", (data) => io.emit("alert", `${data.target} updated by Root.`));
 });
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`Server live on ${PORT}`));
+http.listen(PORT, () => console.log(`Engine Live: ${PORT}`));
