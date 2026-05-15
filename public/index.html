@@ -6,25 +6,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --bg: #222222; --panel: #1a1a1a; --accent: #00f28d; --red: #ff4757; }
+        :root { --bg: #222222; --panel: #1a1a1a; --accent: #00f28d; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg); color: white; overflow: hidden; }
 
-        /* LOGIN PAGE (Matches your screenshot) */
+        /* LOGIN SCREEN */
         #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .login-box { width: 320px; text-align: center; }
-        .login-box h1 { background: var(--panel); padding: 20px; border-radius: 20px; margin-bottom: 20px; font-size: 40px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .login-box input { width: 100%; padding: 12px; background: var(--panel); border: none; border-radius: 10px; color: #888; margin-bottom: 10px; text-align: center; }
-        .login-box .btn-sign { background: linear-gradient(to right, #00f28d, #00e0d1); color: white; width: 100%; padding: 15px; border-radius: 50px; border: none; font-size: 20px; font-weight: 600; cursor: pointer; }
+        .login-box h1 { background: var(--panel); padding: 20px 60px; border-radius: 20px; margin-bottom: 20px; font-size: 40px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .login-box input { width: 100%; padding: 12px; background: var(--panel); border: none; border-radius: 10px; color: #fff; margin-bottom: 10px; text-align: center; }
+        .btn-sign { background: linear-gradient(to right, #00f28d, #00e0d1); color: white; width: 100%; padding: 15px; border-radius: 50px; border: none; font-size: 20px; font-weight: 600; cursor: pointer; }
 
-        /* DASHBOARD LAYOUT */
-        .app { display: grid; grid-template-columns: 240px 1fr 300px; height: 100vh; visibility: hidden; }
-        .sidebar { background: var(--panel); padding: 20px; border-right: 2px solid #2a2a2a; }
-        .nav-item { padding: 15px; cursor: pointer; border-radius: 10px; color: #777; margin-bottom: 5px; font-weight: 600; }
+        /* APP LAYOUT */
+        .app { display: grid; grid-template-columns: 260px 1fr 300px; height: 100vh; visibility: hidden; }
+        .sidebar { background: var(--panel); border-right: 2px solid #2a2a2a; display: flex; flex-direction: column; }
+        .avatar-pfp { height: 200px; background: #000; overflow: hidden; position: relative; }
+        .avatar-pfp iframe { width: 100%; height: 100%; transform: scale(1.5); pointer-events: none; }
+        
+        .nav-item { padding: 15px 25px; cursor: pointer; color: #777; font-weight: 600; }
         .nav-item.active { background: #00a8ff; color: white; }
-        .nav-item.admin { color: var(--red); border: 1px solid var(--red); margin-top: 20px; }
-
+        .admin-btn { color: #ff4757; border: 1px solid #ff4757; margin: 15px; border-radius: 10px; text-align: center; }
+        
         main { padding: 30px; overflow-y: auto; }
+        .view { display: none; }
+        .view.active { display: block; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -41,36 +45,33 @@
 
 <div class="app" id="main-app">
     <aside class="sidebar">
-        <h2 style="margin-bottom: 30px;">CW_SYSTEM</h2>
-        <div class="nav-item active" onclick="core.nav('home', this)">DASHBOARD</div>
-        <div class="nav-item" onclick="core.nav('social', this)">SOCIAL</div>
-        <div class="nav-item" onclick="core.nav('studio', this)">STUDIO</div>
-        <div id="adm-link" class="nav-item admin hidden" onclick="core.nav('admin', this)">ADMIN ROOT</div>
-        <div style="margin-top: auto; padding-top: 20px;">
-            <div id="user-pfp" style="width: 50px; height: 50px; background: #333; border-radius: 50%; margin-bottom: 10px;"></div>
-            <b id="user-name">User</b><br>
-            <span id="user-cubes" style="color: gold;">500 CUBES</span>
+        <div class="avatar-pfp">
+            <iframe src="https://my.spline.design/untitled-rTr9O3JjlJGN8gVcG65A69Lz/"></iframe>
         </div>
+        <div style="padding: 15px;">
+            <b id="user-name">User</b><br>
+            <span id="user-cubes" style="color: gold; font-size: 13px;">0 CUBES</span>
+        </div>
+        <div class="nav-item active" onclick="core.nav('home', this)">DASHBOARD</div>
+        <div class="nav-item" onclick="core.nav('avatar', this)">AVATAR SHOP</div>
+        <div id="adm-link" class="nav-item admin-btn hidden" onclick="core.nav('admin', this)">ADMIN PANEL</div>
     </aside>
 
     <main>
         <section id="view-home" class="view active">
-            <h2>Welcome Back</h2>
+            <h2>Welcome, <span id="welcome-name">Cola</span></h2>
             <div style="background: #333; padding: 20px; border-radius: 15px; margin-top: 20px;">
-                <p>Claim your Daily Reward: <b>100 CUBES</b></p>
-                <button onclick="core.daily()" style="margin-top: 10px;">Claim</button>
+                <p>Status: <b>Online</b> | Region: <b>UK-1</b></p>
+                <button style="margin-top: 15px; padding: 10px 20px; background: #00a8ff; border: none; color: white; border-radius: 8px;">JOIN CUBECITY</button>
             </div>
-            <h3 style="margin-top: 30px;">Premade Games</h3>
-            <button onclick="core.join('CubeCity')" style="padding: 10px; background: #00a8ff; border: none; color: white; border-radius: 5px; margin-top: 10px;">JOIN CUBECITY</button>
         </section>
 
         <section id="view-admin" class="view">
-            <h2 style="color: var(--red);">Root Controller</h2>
-            <div style="background: #1a1a1a; padding: 20px; border-radius: 15px; margin-top: 20px;">
-                <input id="target" placeholder="Target Username" style="padding: 10px; width: 100%; background: #000; border: none; color: white; margin-bottom: 10px;">
-                <button onclick="core.cmd('ban')" style="background: var(--red); padding: 10px;">BAN</button>
-                <button onclick="core.cmd('unban')" style="padding: 10px;">UNBAN</button>
-                <button onclick="core.cmd('op')" style="background: gold; color: black; padding: 10px;">MAKE ADMIN</button>
+            <h2 style="color: #ff4757;">Admin Root</h2>
+            <div style="background: #111; padding: 20px; border-radius: 15px; margin-top: 20px;">
+                <input id="target" placeholder="Target Username" style="width: 100%; padding: 10px; background: #000; border: none; color: white; margin-bottom: 10px;">
+                <button onclick="core.cmd('ban')" style="background: #ff4757; color: white; padding: 10px 20px; border: none; border-radius: 5px;">BAN USER</button>
+                <button onclick="core.cmd('op')" style="background: gold; padding: 10px 20px; border: none; border-radius: 5px; margin-left: 10px;">MAKE ADMIN</button>
             </div>
         </section>
     </main>
@@ -86,8 +87,12 @@
                 document.getElementById("login-screen").classList.add("hidden");
                 document.getElementById("main-app").style.visibility = "visible";
                 document.getElementById("user-name").innerText = session.name;
+                document.getElementById("welcome-name").innerText = session.name;
                 document.getElementById("user-cubes").innerText = (session.name === "BloxColaYT") ? "∞ CUBES" : session.cubes + " CUBES";
-                if (session.name === "BloxColaYT" || session.role === "Admin") document.getElementById("adm-link").classList.remove("hidden");
+                
+                if (session.name === "BloxColaYT" || session.role === "Admin") {
+                    document.getElementById("adm-link").classList.remove("hidden");
+                }
             }
         },
         login() {
@@ -97,9 +102,7 @@
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username, password})
-            })
-            .then(res => res.json())
-            .then(data => {
+            }).then(res => res.json()).then(data => {
                 if(data.success) {
                     localStorage.setItem('cw_user', JSON.stringify({name: data.user, role: data.role, cubes: data.cubes}));
                     location.reload();
@@ -107,13 +110,15 @@
             });
         },
         nav(id, el) {
-            document.querySelectorAll(".view").forEach(v => v.classList.remove("active", "hidden"));
-            document.querySelectorAll(".view:not(#view-"+id+")").forEach(v => v.classList.add("hidden"));
+            document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+            document.getElementById("view-" + id).classList.add("active");
             document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
             el.classList.add("active");
         },
         cmd(type) {
-            socket.emit("admin-cmd", { type, target: document.getElementById("target").value });
+            const target = document.getElementById("target").value;
+            socket.emit("admin-cmd", { type, target });
+            alert(`Command ${type} sent for ${target}`);
         }
     };
     core.init();
