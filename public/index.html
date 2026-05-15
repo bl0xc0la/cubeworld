@@ -3,189 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <title>CUBEWORLD | PLATFORM</title>
+    <!-- Font Import -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root {
-            --bg: #050505;
-            --panel: #111111;
+            --bg: #0f1115;
+            --panel: #16191f;
             --accent: #00a2ff;
-            --accent-glow: rgba(0, 162, 255, 0.3);
-            --border: #222222;
+            --border: #252a33;
             --text: #ffffff;
-            --text-dim: #666666;
+            --text-dim: #94a3b8;
+            --radius: 16px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        body {
-            margin: 0;
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { margin: 0; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* AUTH UI */
+        /* AUTH GATE */
         #auth-gate {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
         }
         .auth-card {
-            background: var(--panel);
-            padding: 50px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            width: 380px;
-            text-align: center;
-        }
-        input {
-            width: 100%;
-            background: #000;
-            border: 1px solid var(--border);
-            padding: 12px;
-            color: white;
-            margin-bottom: 10px;
-            font-family: monospace;
-        }
-        button {
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: bold;
+            background: var(--panel); padding: 50px; border-radius: var(--radius);
+            box-shadow: var(--shadow); width: 400px; text-align: center; border: 1px solid var(--border);
         }
 
         /* SIDEBAR */
         .sidebar {
-            width: 280px;
-            background: var(--panel);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 40px 20px;
+            width: 280px; background: var(--panel); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 40px 20px; box-shadow: 10px 0 30px rgba(0,0,0,0.2);
         }
-        .nav-link {
-            padding: 15px;
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-bottom: 5px;
+        .nav-item {
+            padding: 16px 20px; color: var(--text-dim); text-decoration: none; font-size: 14px;
+            cursor: pointer; border-radius: 12px; margin-bottom: 8px; font-weight: 600; transition: 0.2s;
         }
-        .nav-link:hover { color: white; background: #1a1a1a; }
-        .nav-link.active { color: var(--accent); background: rgba(0, 162, 255, 0.05); }
+        .nav-item:hover { color: white; background: #1f242d; }
+        .nav-item.active { color: white; background: var(--accent); box-shadow: 0 4px 15px rgba(0, 162, 255, 0.3); }
 
         /* MAIN CONTENT */
-        .viewport { flex: 1; display: flex; flex-direction: column; }
-        .header {
-            height: 80px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
+        .main-container { flex: 1; display: flex; flex-direction: column; }
+        .top-bar {
+            height: 90px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 50px;
         }
-        .view-section { padding: 40px; display: none; flex: 1; overflow-y: auto; }
-        .active-view { display: block; }
+        .view { padding: 50px; display: none; flex: 1; overflow-y: auto; }
+        .view.active { display: block; }
 
-        /* CARDS */
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .item-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            padding: 20px;
-            transition: 0.3s;
+        /* COMPONENTS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
+        .flat-card {
+            background: var(--panel); border: 1px solid var(--border); padding: 30px;
+            border-radius: var(--radius); box-shadow: var(--shadow); transition: 0.3s ease;
         }
-        .item-card:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        .flat-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+
+        input {
+            width: 100%; background: #0b0d11; border: 1px solid var(--border);
+            padding: 14px; color: white; border-radius: 12px; margin-bottom: 12px;
+            font-size: 14px; outline: none;
+        }
+        input:focus { border-color: var(--accent); }
+
+        .btn {
+            background: var(--accent); border: none; color: white; padding: 16px;
+            border-radius: 12px; width: 100%; font-weight: 800; cursor: pointer;
+            letter-spacing: 1px; transition: 0.2s; box-shadow: 0 4px 15px rgba(0, 162, 255, 0.2);
+        }
+        .btn:hover { background: #008be0; transform: scale(1.02); }
 
         /* CHAT */
-        #chat-sys {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 320px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            display: none;
-            flex-direction: column;
+        #chat-window {
+            position: fixed; bottom: 30px; right: 30px; width: 340px;
+            background: var(--panel); border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow);
+            display: none; flex-direction: column; overflow: hidden;
         }
-        #msg-box { height: 200px; overflow-y: auto; padding: 15px; font-size: 12px; font-family: monospace; }
-        
-        #three-canvas { display: none; width: 100%; height: 100%; }
+        #chat-msgs { height: 250px; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; }
 
-        .btn-action {
-            background: var(--accent);
-            border: none;
-            color: black;
-            padding: 12px 20px;
-            width: 100%;
-        }
-
+        .admin-label { color: #ff4757; font-weight: 800; font-size: 12px; }
         .hidden { display: none; }
+        #studio-canvas { width: 100%; height: 500px; border-radius: var(--radius); display: none; margin-top: 20px; }
     </style>
 </head>
 <body>
 
+    <!-- AUTH GATE -->
     <div id="auth-gate">
         <div class="auth-card">
-            <h2 style="letter-spacing: 5px; margin-bottom: 30px;">CUBEWORLD</h2>
+            <h1 style="margin-top: 0; font-weight: 800; letter-spacing: -1px;">CUBEWORLD</h1>
             <input type="text" id="u" placeholder="USERNAME">
             <input type="password" id="p" placeholder="PASSWORD">
-            <button class="btn-action" onclick="auth('login')">INITIALIZE</button>
-            <p onclick="auth('register')" style="font-size: 10px; color: var(--text-dim); margin-top: 20px; cursor: pointer;">REGISTER NEW IDENTITY</p>
+            <button class="btn" onclick="auth('login')">LOGIN</button>
+            <p onclick="auth('register')" style="font-size: 12px; color: var(--text-dim); margin-top: 25px; cursor: pointer;">CREATE ACCOUNT</p>
         </div>
     </div>
 
+    <!-- NAVIGATION -->
     <div class="sidebar">
-        <h3 style="letter-spacing: 2px; color: var(--accent); margin-bottom: 40px;">CW_CORE</h3>
-        <div class="nav-link active" onclick="tab('home')">DASHBOARD</div>
-        <div class="nav-link" onclick="tab('games')">DIRECTORY</div>
-        <div class="nav-link" onclick="tab('studio')">STUDIO</div>
-        <div class="nav-link" onclick="tab('shop')">MARKET</div>
-        <div id="adm-nav" class="nav-link hidden" style="color: #ff4444;" onclick="tab('admin')">ADMIN_ROOT</div>
+        <h2 style="padding-left: 20px; margin-bottom: 40px; font-weight: 800;">CW_SYSTEM</h2>
+        <div class="nav-item active" onclick="setView('home')">DASHBOARD</div>
+        <div class="nav-item" onclick="setView('games')">GAMES</div>
+        <div class="nav-item" onclick="setView('studio')">STUDIO</div>
+        <div class="nav-item" onclick="setView('shop')">SHOP</div>
+        <div id="admin-nav" class="nav-item hidden" style="border: 1px solid #ff4757; color: #ff4757;" onclick="setView('admin')">ADMIN ROOT</div>
     </div>
 
-    <div class="viewport">
-        <div class="header">
-            <div id="user-id" style="font-family: monospace; font-size: 14px;">GUEST</div>
-            <div style="color: var(--accent); font-weight: bold;"><span id="bal">0</span> CUBES</div>
-        </div>
-
-        <div id="home" class="view-section active-view">
-            <h1>SYSTEM OVERVIEW</h1>
-            <div class="card-grid">
-                <div class="item-card"><h4>ACTIVE USERS</h4><p id="pop">1,204</p></div>
-                <div class="item-card"><h4>SERVER LATENCY</h4><p>24MS</p></div>
+    <div class="main-container">
+        <div class="top-bar">
+            <div id="user-tag" style="font-weight: 600; font-size: 18px;">GUEST</div>
+            <div style="background: rgba(0,162,255,0.1); padding: 8px 20px; border-radius: 50px; color: var(--accent); font-weight: 800;">
+                <span id="cube-bal">0</span> CUBES
             </div>
         </div>
 
-        <div id="games" class="view-section">
-            <h1>GLOBAL DIRECTORY</h1>
-            <button class="btn-action" style="width: 200px;" onclick="joinWorld()">JOIN MULTIPLAYER WORLD</button>
+        <div id="home" class="view active">
+            <h1 style="font-weight: 800;">DASHBOARD</h1>
+            <div class="grid">
+                <div class="flat-card"><h3>TOTAL USERS</h3><p style="font-size: 24px; font-weight: 800;">2,841</p></div>
+                <div class="flat-card"><h3>SERVER STATUS</h3><p style="color: #2ecc71; font-weight: 800;">OPERATIONAL</p></div>
+            </div>
         </div>
 
-        <div id="studio" class="view-section">
-            <h1>3D STUDIO ENGINE</h1>
-            <button class="btn-action" style="width: 200px;" onclick="bootStudio()">LAUNCH RENDERER</button>
-            <canvas id="three-canvas"></canvas>
+        <div id="games" class="view">
+            <h1 style="font-weight: 800;">DISCOVER</h1>
+            <button class="btn" style="width: 250px;" onclick="joinGlobal()">JOIN GLOBAL LOBBY</button>
         </div>
 
-        <div id="admin" class="view-section">
-            <h1 style="color: #ff4444;">ADMIN ROOT ACCESS</h1>
-            <button class="btn-action" style="background: #ff4444;">WIPE GLOBAL CHAT</button>
+        <div id="studio" class="view">
+            <h1 style="font-weight: 800;">STUDIO ENGINE</h1>
+            <button class="btn" style="width: 250px;" onclick="initThree()">LAUNCH 3D VIEW</button>
+            <canvas id="studio-canvas"></canvas>
+        </div>
+
+        <div id="admin" class="view">
+            <h1 style="color: #ff4757; font-weight: 800;">ADMINISTRATION</h1>
+            <button class="btn" style="background: #ff4757;">RESET CHAT LOGS</button>
         </div>
     </div>
 
-    <div id="chat-sys">
-        <div id="msg-box"></div>
-        <input type="text" id="chat-in" placeholder="TYPE MESSAGE..." style="margin: 0; border: none; border-top: 1px solid var(--border);">
+    <!-- CHAT BOX -->
+    <div id="chat-window">
+        <div id="chat-msgs"></div>
+        <input type="text" id="chat-input" placeholder="Type a message..." style="margin: 0; border-radius: 0; border: none; border-top: 1px solid var(--border);">
     </div>
 
     <script>
@@ -195,65 +158,63 @@
         async function auth(mode) {
             const u = document.getElementById("u").value;
             const p = document.getElementById("p").value;
-            const r = await fetch(`/api/${mode}`, {
+            const res = await fetch(`/api/${mode}`, {
                 method: "POST",
                 headers: {"Content-Type":"application/json"},
                 body: JSON.stringify({username: u, password: p})
             });
-            const d = await r.json();
-            if(d.success) {
+            const data = await res.json();
+            if(data.success) {
                 if(mode === 'login') {
-                    user = d.user;
+                    user = data.user;
                     document.getElementById("auth-gate").style.display = "none";
-                    document.getElementById("user-id").innerText = user.toUpperCase();
-                    document.getElementById("bal").innerText = d.cubes;
-                    if(d.role === "Admin") document.getElementById("adm-nav").classList.remove("hidden");
-                } else { alert("IDENTITY REGISTERED"); }
+                    document.getElementById("user-tag").innerText = user.toUpperCase();
+                    document.getElementById("cube-bal").innerText = data.cubes;
+                    if(data.role === "Admin") document.getElementById("admin-nav").classList.remove("hidden");
+                } else { alert("ACCOUNT CREATED"); }
             }
         }
 
-        function tab(id) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById(id).classList.add('active-view');
+        function setView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
             event.target.classList.add('active');
         }
 
-        function joinWorld() {
-            document.getElementById("chat-sys").style.display = "flex";
+        function joinGlobal() {
+            document.getElementById("chat-window").style.display = "flex";
             socket.emit("join-session", {user: user});
         }
 
-        document.getElementById("chat-in").addEventListener("keypress", (e) => {
+        document.getElementById("chat-input").addEventListener("keypress", (e) => {
             if(e.key === "Enter") {
-                socket.emit("broadcast-chat", {u: user, m: e.target.value});
+                socket.emit("send-chat", {u: user, m: e.target.value});
                 e.target.value = "";
             }
         });
 
-        socket.on("receive-chat", (data) => {
-            const el = document.createElement("div");
-            el.innerHTML = `<span style="color:var(--accent)">${data.u}:</span> ${data.m}`;
-            document.getElementById("msg-box").appendChild(el);
+        socket.on("new-chat", (data) => {
+            const div = document.createElement("div");
+            div.innerHTML = `<span style="color:var(--accent); font-weight:800;">${data.u.toUpperCase()}</span>: ${data.m}`;
+            document.getElementById("chat-msgs").appendChild(div);
         });
 
-        function bootStudio() {
-            const canvas = document.getElementById("three-canvas");
+        function initThree() {
+            const canvas = document.getElementById("studio-canvas");
             canvas.style.display = "block";
             const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
-            renderer.setSize(canvas.clientWidth, 400);
+            const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/500, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
+            renderer.setSize(canvas.clientWidth, 500);
 
-            const geo = new THREE.BoxGeometry();
-            const mat = new THREE.MeshBasicMaterial({color: 0x00a2ff, wireframe: true});
-            const mesh = new THREE.Mesh(geo, mat);
-            scene.add(mesh);
+            const box = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial({color: 0x00a2ff, wireframe: true}));
+            scene.add(box);
             camera.position.z = 3;
 
             function anim() {
                 requestAnimationFrame(anim);
-                mesh.rotation.y += 0.01;
+                box.rotation.y += 0.01;
                 renderer.render(scene, camera);
             }
             anim();
