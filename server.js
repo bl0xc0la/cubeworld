@@ -8,7 +8,16 @@ app.use(express.static('public'));
 
 let accounts = {}; 
 let publishedGames = [
-    { id: '1', name: "CubeCity Classic", creator: "System", logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150" }
+    { 
+        id: '1', 
+        name: "CubeCity Classic", 
+        creator: "System", 
+        logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150",
+        mapData: [
+            { x: -2, y: 0.5, z: -2, color: 0xff0000 },
+            { x: 2, y: 0.5, z: 2, color: 0x00ff00 }
+        ]
+    }
 ];
 
 app.post('/api/login', (req, res) => {
@@ -32,17 +41,23 @@ io.on("connection", (socket) => {
     socket.on("global-msg", (data) => io.emit("global-receive", data));
     socket.on("send-pm", (data) => io.emit("pm-receive", data));
 
-    // Studio Action: Only games built and pushed here go to the main feed
+    // Studio Action: Receives real 3D block placements from the builder canvas
     socket.on("publish-game", (data) => {
         const logoUrl = data.logo.trim() !== "" ? data.logo : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150";
-        publishedGames.push({ id: Date.now().toString(), name: data.name, creator: data.user, logo: logoUrl });
+        publishedGames.push({ 
+            id: Date.now().toString(), 
+            name: data.name, 
+            creator: data.user, 
+            logo: logoUrl,
+            mapData: data.mapData 
+        });
         io.emit("sync-games", publishedGames);
     });
 
-    // Game Room Server Connection
-    socket.on("join-room", (roomId) => {
-        socket.join(roomId);
-        io.to(roomId).emit("server-msg", { user: "SYSTEM", text: "Connected to game server. Chat is active!" });
+    // Handle positions for multiplayer movement
+    socket.on("join-room", (data) => {
+        socket.join(data.roomId);
+        io.to(data.roomId).emit("server-msg", { user: "SYSTEM", text: `${data.user} entered the server room.` });
     });
 
     socket.on("game-chat-send", (data) => {
