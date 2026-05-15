@@ -3,72 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CUBEWORLD | Studio & Games</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <title>CubeWorld</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
-            --bg: #050608;
-            --panel: #0f111a;
+            --bg: #05070a;
+            --panel: #0d1117;
             --accent: #0070ff;
-            --glass: rgba(255, 255, 255, 0.05);
-            --shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255,255,255,0.1);
+            --glass: rgba(255, 255, 255, 0.03);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 112, 255, 0.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
-        body { background: var(--bg); color: white; overflow: hidden; }
+        body { background: var(--bg); color: white; height: 100vh; overflow: hidden; }
 
-        /* --- LOGIN: HIGH GLOSS --- */
+        /* --- LOGIN --- */
         #login-view { 
-            position: fixed; inset: 0; background: radial-gradient(circle at top, #1a1c2c, #050608);
-            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
         }
         .login-card { 
-            background: var(--panel); padding: 50px; border-radius: 40px; width: 90%; max-width: 400px;
+            background: var(--panel); padding: 40px; border-radius: 25px; width: 340px;
             box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.05); text-align: center;
         }
-        .login-card h1 { font-size: 48px; margin-bottom: 20px; text-shadow: 0 0 20px var(--accent); }
         input { 
-            width: 100%; padding: 18px; border-radius: 20px; border: none; background: #000;
-            color: white; margin-bottom: 15px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+            width: 100%; padding: 14px; border-radius: 12px; border: none; background: #000;
+            color: white; margin-bottom: 10px; outline: none; border: 1px solid #222;
         }
         .btn-blue { 
-            background: linear-gradient(135deg, #0070ff, #00d4ff); color: white;
-            padding: 18px; border-radius: 50px; border: none; width: 100%; font-weight: 700; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0, 112, 255, 0.3); transition: 0.3s;
+            background: #0070ff; color: white; padding: 14px; border-radius: 12px; 
+            border: none; width: 100%; font-weight: 700; cursor: pointer; transition: 0.2s;
         }
+        .btn-blue:hover { background: #0056cc; transform: translateY(-2px); }
 
-        /* --- APP LAYOUT --- */
-        .master-grid { 
-            display: grid; grid-template-columns: 280px 1fr 320px; height: 100vh; padding: 20px; gap: 20px;
-            visibility: hidden; 
+        /* --- LAYOUT --- */
+        .app-shell { 
+            display: grid; grid-template-columns: 240px 1fr 300px; height: 100vh; 
+            padding: 15px; gap: 15px; visibility: hidden; 
         }
-        @media (max-width: 1000px) { .master-grid { grid-template-columns: 1fr; } .side { display: none; } }
 
         .panel { 
-            background: var(--panel); border-radius: 30px; box-shadow: var(--shadow);
-            border: 1px solid rgba(255,255,255,0.03); overflow: hidden; display: flex; flex-direction: column;
+            background: var(--panel); border-radius: 20px; box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.05); overflow: hidden; display: flex; flex-direction: column;
         }
 
-        /* SIDEBAR / AVATAR */
-        .avatar-pfp { height: 250px; background: #000; position: relative; }
-        .avatar-pfp iframe { width: 100%; height: 100%; transform: scale(1.7); pointer-events: none; filter: drop-shadow(0 0 20px var(--accent)); }
-        
-        .nav-link { padding: 18px 30px; cursor: pointer; color: #888; transition: 0.2s; font-weight: 600; }
+        /* SIDEBAR (CLEAN) */
+        .sidebar { padding: 20px; }
+        .user-mini { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+        .pfp-circle { width: 45px; height: 45px; background: #000; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent); }
+        .pfp-circle iframe { width: 100%; height: 100%; transform: scale(3); pointer-events: none; }
+
+        .nav-link { padding: 12px 15px; cursor: pointer; color: #888; border-radius: 10px; margin-bottom: 5px; transition: 0.2s; }
         .nav-link:hover, .nav-link.active { background: var(--glass); color: white; }
+        .nav-link.admin { color: #ff4757; margin-top: 20px; border: 1px solid rgba(255, 71, 87, 0.2); }
 
-        /* STUDIO & ITEMS */
-        .view { display: none; padding: 30px; height: 100%; overflow-y: auto; }
+        /* VIEWS */
+        main { overflow-y: auto; padding: 10px; }
+        .view { display: none; }
         .view.active { display: block; }
-        
-        .item-card { 
-            background: var(--glass); border-radius: 25px; padding: 20px; text-align: center;
-            border: 1px solid rgba(255,255,255,0.05); transition: 0.3s;
-        }
-        .item-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.1); }
+
+        .card { background: var(--glass); padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.03); }
+        .game-item { display: flex; justify-content: space-between; align-items: center; }
 
         /* SOCIAL */
-        .dm-box { flex: 1; background: #000; border-radius: 25px; margin: 20px 0; padding: 20px; font-size: 14px; overflow-y: auto; }
+        .chat-area { flex: 1; padding: 15px; overflow-y: auto; font-size: 13px; }
+        .chat-input-wrap { padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 8px; }
 
         .hidden { display: none !important; }
     </style>
@@ -77,83 +77,84 @@
 
 <div id="login-view">
     <div class="login-card">
-        <h1>CW<span>.</span></h1>
-        <input id="u-name" type="text" placeholder="Username">
-        <input id="u-pass" type="password" placeholder="Password">
-        <button class="btn-blue" onclick="core.login()">LAUNCH ENGINE</button>
+        <h1 style="margin-bottom: 25px;">CubeWorld</h1>
+        <input id="u-in" type="text" placeholder="Username">
+        <input id="p-in" type="password" placeholder="Password">
+        <button class="btn-blue" onclick="core.login()">Log In</button>
     </div>
 </div>
 
-<div class="master-grid" id="main-app">
-    <aside class="panel side">
-        <div class="avatar-pfp">
-            <iframe src="https://my.spline.design/untitled-rTr9O3JjlJGN8gVcG65A69Lz/"></iframe>
+<div class="app-shell" id="main-app">
+    <aside class="panel sidebar">
+        <div class="user-mini">
+            <div class="pfp-circle">
+                <iframe src="https://my.spline.design/untitled-rTr9O3JjlJGN8gVcG65A69Lz/"></iframe>
+            </div>
+            <div>
+                <div id="u-name" style="font-weight: 700; font-size: 14px;">User</div>
+                <div id="u-cubes" style="color: #f1c40f; font-size: 12px; font-weight: 700;">0 C</div>
+            </div>
         </div>
-        <div style="padding: 25px;">
-            <div id="disp-name" style="font-size: 20px; font-weight: 700;">Cola</div>
-            <div id="disp-cubes" style="color: #f1c40f; font-weight: 700;">∞ CUBES</div>
-        </div>
-        <div class="nav-link active" onclick="core.nav('home', this)">Games</div>
+        
+        <div class="nav-link active" onclick="core.nav('games', this)">Games</div>
+        <div class="nav-link" onclick="core.nav('studio', this)">Studio</div>
         <div class="nav-link" onclick="core.nav('avatar', this)">Avatar Shop</div>
-        <div class="nav-link" onclick="core.nav('studio', this)">Studio (Create)</div>
-        <div class="nav-link" onclick="core.nav('settings', this)">Settings</div>
-        <div id="admin-root" class="nav-link hidden" style="color: #ff4757;" onclick="core.nav('admin', this)">ADMIN ROOT</div>
+        <div id="adm-link" class="nav-link admin hidden" onclick="core.nav('admin', this)">Admin Root</div>
+        <div class="nav-link" style="margin-top:auto; opacity:0.5" onclick="core.logout()">Logout</div>
     </aside>
 
     <main class="panel">
-        <section id="view-home" class="view active">
-            <h2 style="margin-bottom: 20px;">Discover</h2>
-            <div class="item-card" style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="text-align:left;"><b>CubeCity v2</b><br><small>Created by Cola</small></div>
-                <button class="btn-blue" style="width:auto; padding:10px 25px;">PLAY</button>
-            </div>
+        <section id="view-games" class="view active">
+            <h2 style="margin-bottom: 15px;">Discover Games</h2>
+            <div id="game-list">
+                </div>
         </section>
 
         <section id="view-studio" class="view">
-            <h2>Studio</h2>
-            <p>Design your next world below.</p>
-            <div class="item-card" style="margin-top: 20px;">
-                <input id="game-name" placeholder="Game Name...">
-                <button class="btn-blue" onclick="core.publish()">PUBLISH TO CUBEWORLD</button>
+            <h2 style="margin-bottom: 15px;">Creator Studio</h2>
+            <div class="card">
+                <p style="margin-bottom: 10px; color: #888;">Publish a new game to the global feed.</p>
+                <input id="game-title" placeholder="Project Name...">
+                <button class="btn-blue" style="width: auto; padding: 10px 25px;" onclick="core.publish()">Publish Game</button>
             </div>
         </section>
 
-        <section id="view-avatar" class="view">
-            <h2>Avatar Editor</h2>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:20px;">
-                <div class="item-card"><b>Neon Suit</b><br>500 C</div>
-                <div class="item-card"><b>Valkyrie</b><br>2000 C</div>
+        <section id="view-admin" class="view">
+            <h2 style="color: #ff4757; margin-bottom: 15px;">System Console</h2>
+            <div class="card">
+                <input id="mod-target" placeholder="Username...">
+                <button class="btn-blue" style="background: #ff4757;">Ban User</button>
             </div>
         </section>
     </main>
 
-    <aside class="panel side" style="padding: 25px;">
-        <h3>Friends & DMs</h3>
-        <div class="dm-box" id="chat"><i>No recent messages.</i></div>
-        <div style="display:flex; gap:10px;">
-            <input id="chat-in" placeholder="Say something..." style="margin-bottom:0;">
-            <button class="btn-blue" style="width:60px;" onclick="core.chat()">></button>
+    <aside class="panel">
+        <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 700;">Global Chat</div>
+        <div class="chat-area" id="chat-logs"></div>
+        <div class="chat-input-wrap">
+            <input id="chat-in" placeholder="Type..." style="margin-bottom:0; padding:10px;">
+            <button class="btn-blue" style="width:50px;" onclick="core.chat()">></button>
         </div>
     </aside>
 </div>
 
 <script>
     const socket = io();
-    let user = JSON.parse(localStorage.getItem('cw_user'));
+    let session = JSON.parse(localStorage.getItem('cw_user'));
 
     const core = {
         init() {
-            if (user) {
+            if (session) {
                 document.getElementById("login-view").style.display = "none";
                 document.getElementById("main-app").style.visibility = "visible";
-                document.getElementById("disp-name").innerText = user.name;
-                document.getElementById("disp-cubes").innerText = (user.name === "BloxColaYT") ? "∞ CUBES" : user.cubes + " CUBES";
-                if (user.name === "BloxColaYT") document.getElementById("admin-root").classList.remove("hidden");
+                document.getElementById("u-name").innerText = session.name;
+                document.getElementById("u-cubes").innerText = (session.name === "BloxColaYT") ? "∞ CUBES" : session.cubes + " CUBES";
+                if (session.name === "BloxColaYT") document.getElementById("adm-link").classList.remove("hidden");
             }
         },
         login() {
-            const username = document.getElementById("u-name").value;
-            const password = document.getElementById("u-pass").value;
+            const username = document.getElementById("u-in").value;
+            const password = document.getElementById("p-in").value;
             fetch('/api/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -172,19 +173,35 @@
             el.classList.add("active");
         },
         publish() {
-            const name = document.getElementById("game-name").value;
-            socket.emit("publish-game", { name, creator: user.name });
-            alert(name + " has been published to the game list!");
+            const name = document.getElementById("game-title").value;
+            if(!name) return;
+            socket.emit("publish-game", { name, creator: session.name });
+            document.getElementById("game-title").value = "";
+            this.nav('games', document.querySelector('.nav-link'));
         },
         chat() {
-            const msg = document.getElementById("chat-in").value;
-            socket.emit("send-global-dm", { from: user.name, text: msg });
+            const text = document.getElementById("chat-in").value;
+            if(!text) return;
+            socket.emit("send-msg", { from: session.name, text });
             document.getElementById("chat-in").value = "";
-        }
+        },
+        logout() { localStorage.removeItem('cw_user'); location.reload(); }
     };
 
-    socket.on("receive-dm", (data) => {
-        document.getElementById("chat").innerHTML += `<div><b>${data.from}:</b> ${data.text}</div>`;
+    socket.on("update-games", (games) => {
+        const list = document.getElementById("game-list");
+        list.innerHTML = games.map(g => `
+            <div class="card game-item">
+                <div><b>${g.name}</b><br><small style="color:#555">by ${g.creator}</small></div>
+                <button class="btn-blue" style="width:auto; padding:8px 20px;">PLAY</button>
+            </div>
+        `).join('');
+    });
+
+    socket.on("new-msg", (data) => {
+        const logs = document.getElementById("chat-logs");
+        logs.innerHTML += `<div><b style="color:var(--accent)">${data.from}:</b> ${data.text}</div>`;
+        logs.scrollTop = logs.scrollHeight;
     });
 
     core.init();
