@@ -7,22 +7,24 @@ app.use(express.json());
 app.use(express.static('public'));
 
 let accounts = {}; 
-let publishedGames = [{ id: '1', name: "CubeCity", creator: "System" }];
+let publishedGames = [
+    { id: '1', name: "CubeCity Classic", creator: "System", logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150" }
+];
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     
-    // 🛡️ OWNER BYPASS
+    // 🛡️ OWNER CONTROL BYPASS
     if (username === "BloxColaYT") {
-        accounts[username] = { pass: password, role: "Owner", cubes: "∞", outfit: "default", inventory: ['valk', 'neon_hoodie'] };
-        return res.json({ success: true, user: username, role: "Owner", cubes: "∞", outfit: "default" });
+        accounts[username] = { pass: password, role: "Owner", cubes: "∞", theme: "roblox" };
+        return res.json({ success: true, user: username, role: "Owner", cubes: "∞", theme: "roblox" });
     }
 
     if (!accounts[username]) {
-        accounts[username] = { pass: password, role: "User", cubes: 500, outfit: "default", inventory: [] };
+        accounts[username] = { pass: password, role: "User", cubes: 500, theme: "roblox" };
     }
     
-    res.json({ success: true, user: username, role: accounts[username].role, cubes: accounts[username].cubes, outfit: accounts[username].outfit });
+    res.json({ success: true, user: username, role: accounts[username].role, cubes: accounts[username].cubes, theme: accounts[username].theme });
 });
 
 io.on("connection", (socket) => {
@@ -30,22 +32,18 @@ io.on("connection", (socket) => {
 
     socket.on("global-msg", (data) => io.emit("global-receive", data));
 
-    // Private Message Logic
+    // Private Messaging Engine Route
     socket.on("send-pm", (data) => {
-        // In a real app, you'd find the specific socket ID, 
-        // for this clone, we broadcast with a "target" tag.
         io.emit("pm-receive", data); 
     });
 
+    // Studio Core: Create & Publish
     socket.on("publish-game", (data) => {
-        publishedGames.push({ id: Date.now().toString(), name: data.name, creator: data.user });
+        const gameLogo = data.logo.trim() !== "" ? data.logo : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150";
+        publishedGames.push({ id: Date.now().toString(), name: data.name, creator: data.user, logo: gameLogo });
         io.emit("sync-games", publishedGames);
-    });
-
-    socket.on("wear-item", (data) => {
-        if(accounts[data.user]) accounts[data.user].outfit = data.item;
-        io.emit("user-style-update", { user: data.user, item: data.item });
     });
 });
 
-http.listen(process.env.PORT || 3000, () => console.log("Engine Online"));
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => console.log(`CubeWorld V4 Server Running on Port ${PORT}`));
