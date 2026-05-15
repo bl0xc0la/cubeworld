@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld V4</title>
+    <title>CubeWorld</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -51,12 +51,10 @@
         .pm-header { padding: 12px; font-weight: 700; display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); }
         .pm-logs { height: 160px; padding: 12px; font-size: 13px; overflow-y: auto; }
 
-        /* REALTIME GAME ENGINE VIEW LAYOUT */
         #game-screen { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
         #canvas-game-container { flex: 1; position: relative; width: 100%; height: 100%; }
         .game-room-chat { height: 220px; background: rgba(0,0,0,0.8); width: 380px; position: absolute; bottom: 20px; left: 20px; border-radius: 12px; padding: 15px; border: 1px solid #222; }
 
-        /* STUDIO WORKSPACE TOOLBAR */
         .studio-layout { display: flex; flex-direction: column; gap: 15px; height: 100%; }
         #studio-canvas { width: 100%; height: 350px; background: #111; border-radius: 12px; position: relative; border: 1px solid #333; }
         .studio-tools { display: flex; gap: 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; }
@@ -75,11 +73,11 @@
 
 <div id="game-screen">
     <div id="canvas-game-container">
-        <div style="position: absolute; top: 20px; left: 20px; font-weight:700; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px;">
+        <div style="position: absolute; top: 20px; left: 20px; font-weight:700; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; z-index: 10;">
             <span id="active-game-title">Game Workspace</span><br>
             <small style="font-weight:400; color:#00f28d">Controls: W, A, S, D / Arrows to Move</small>
         </div>
-        <button class="btn" style="position: absolute; top: 20px; right: 20px; width: auto; background: #ff4757; padding: 10px 20px;" onclick="core.leaveGame()">EXIT TO MENU</button>
+        <button class="btn" style="position: absolute; top: 20px; right: 20px; width: auto; background: #ff4757; padding: 10px 20px; z-index: 10;" onclick="core.leaveGame()">EXIT TO MENU</button>
     </div>
     <div class="game-room-chat">
         <div id="server-chat-logs" style="height: 140px; overflow-y: auto; font-size: 13px; margin-bottom: 8px; color:#ddd;"></div>
@@ -165,12 +163,9 @@
     let activePM = null;
     let currentRoomId = null;
 
-    // Game Client 3D Engine Variables
     let gameScene, gameCamera, gameRenderer, playerMesh;
     let moveKeys = { w: false, a: false, s: false, d: false };
-    let currentLevelBlocks = [];
 
-    // Studio Engine Variables
     let studioScene, studioCamera, studioRenderer;
     let studioBlocksData = [];
 
@@ -195,11 +190,10 @@
         animate();
     }
 
-    // STUDIO COMPILING ENGINE
     const studio = {
         init() {
             const container = document.getElementById("studio-canvas");
-            if (container.children.length > 0) return; // Prevent duplicating
+            if (container.children.length > 0) return;
 
             studioScene = new THREE.Scene();
             studioScene.background = new THREE.Color(0x1a1a24);
@@ -208,7 +202,6 @@
             studioRenderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(studioRenderer.domElement);
 
-            // Studio Grid Base Floor Plate
             const grid = new THREE.GridHelper(20, 20, 0x0070ff, 0x444455);
             studioScene.add(grid);
 
@@ -227,7 +220,6 @@
             renderStudio();
         },
         addBlock(colorHex) {
-            // Generates coordinates random enough for workspace building
             const x = (Math.floor(Math.random() * 5) - 2) * 1.5;
             const z = (Math.floor(Math.random() * 5) - 2) * 1.5;
             const y = 0.5;
@@ -252,28 +244,28 @@
         }
     };
 
-    // ACTIVE WORLD RENDERING WORKSPACE
     function runGameWorldEngine(mapData) {
         const holder = document.getElementById("canvas-game-container");
         
-        // Clean old canvas elements out completely
         const oldCanvas = holder.querySelector('canvas');
         if(oldCanvas) oldCanvas.remove();
 
         gameScene = new THREE.Scene();
-        gameScene.background = new THREE.Color(0xa0b0d0); // Sky color skybox style
+        gameScene.background = new THREE.Color(0xa0b0d0);
 
         gameCamera = new THREE.PerspectiveCamera(60, holder.clientWidth / holder.clientHeight, 0.1, 1000);
         gameRenderer = new THREE.WebGLRenderer({ antialias: true });
         gameRenderer.setSize(holder.clientWidth, holder.clientHeight);
         holder.appendChild(gameRenderer.domElement);
 
-        // Build green base ground arena floorplate
-        const floor = new THREE.Mesh(new THREE.PlainGeometry || new THREE.BoxGeometry(50, 0.2, 50), new THREE.MeshStandardMaterial({ color: 0x347a40 }));
-        floor.position.y = -0.1;
+        // FIX: Changed from PlainGeometry to PlaneGeometry, and rotated it correctly
+        const floorGeo = new THREE.PlaneGeometry(50, 50);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x347a40, side: THREE.DoubleSide });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = Math.PI / 2;
+        floor.position.y = 0;
         gameScene.add(floor);
 
-        // Generate published bricks data structures straight from studio save points
         if (mapData && mapData.length > 0) {
             mapData.forEach(b => {
                 const block = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: b.color }));
@@ -282,12 +274,10 @@
             });
         }
 
-        // Spawn interactive physical player rig
         playerMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
         playerMesh.position.set(0, 1, 0);
         gameScene.add(playerMesh);
 
-        // Lighting
         gameScene.add(new THREE.AmbientLight(0xffffff, 0.6));
         const sun = new THREE.DirectionalLight(0xffffff, 0.8);
         sun.position.set(10, 30, 15);
@@ -295,18 +285,15 @@
 
         gameCamera.position.set(0, 6, 10);
 
-        // Render gameplay run-loop inside layout frame viewport
         function loop() {
-            if (!currentRoomId) return; // Terminate engine if left game scene
+            if (!currentRoomId) return;
             requestAnimationFrame(loop);
 
-            // Movement velocities engine rules logic
             if (moveKeys.w) playerMesh.position.z -= 0.1;
             if (moveKeys.s) playerMesh.position.z += 0.1;
             if (moveKeys.a) playerMesh.position.x -= 0.1;
             if (moveKeys.d) playerMesh.position.x += 0.1;
 
-            // Smooth camera attachment layout tracing character steps
             gameCamera.position.x = playerMesh.position.x;
             gameCamera.position.z = playerMesh.position.z + 8;
             gameCamera.lookAt(playerMesh.position);
@@ -316,18 +303,23 @@
         loop();
     }
 
-    // Monitor input vectors directly across window
+    // FIX: Checked if e.key exists and handle string conversions cleanly to avoid .toLowerCase() crash
     window.addEventListener('keydown', (e) => {
-        if(e.key.toLowerCase() === 'w' || e.key === 'ArrowUp') moveKeys.w = true;
-        if(e.key.toLowerCase() === 's' || e.key === 'ArrowDown') moveKeys.s = true;
-        if(e.key.toLowerCase() === 'a' || e.key === 'ArrowLeft') moveKeys.a = true;
-        if(e.key.toLowerCase() === 'd' || e.key === 'ArrowRight') moveKeys.d = true;
+        if (!e.key) return;
+        const key = e.key.toLowerCase();
+        if(key === 'w' || key === 'arrowup') moveKeys.w = true;
+        if(key === 's' || key === 'arrowdown') moveKeys.s = true;
+        if(key === 'a' || key === 'arrowleft') moveKeys.a = true;
+        if(key === 'd' || key === 'arrowright') moveKeys.d = true;
     });
+    
     window.addEventListener('keyup', (e) => {
-        if(e.key.toLowerCase() === 'w' || e.key === 'ArrowUp') moveKeys.w = false;
-        if(e.key.toLowerCase() === 's' || e.key === 'ArrowDown') moveKeys.s = false;
-        if(e.key.toLowerCase() === 'a' || e.key === 'ArrowLeft') moveKeys.a = false;
-        if(e.key.toLowerCase() === 'd' || e.key === 'ArrowRight') moveKeys.d = false;
+        if (!e.key) return;
+        const key = e.key.toLowerCase();
+        if(key === 'w' || key === 'arrowup') moveKeys.w = false;
+        if(key === 's' || key === 'arrowdown') moveKeys.s = false;
+        if(key === 'a' || key === 'arrowleft') moveKeys.a = false;
+        if(key === 'd' || key === 'arrowright') moveKeys.d = false;
     });
 
     const core = {
@@ -363,9 +355,8 @@
         publish() {
             const name = document.getElementById("new-game-name").value;
             const logo = document.getElementById("new-game-logo").value;
-            if(!name) return alert("Please specify a name first inside the Studio panel!");
+            if(!name) return alert("Please type a name in the Studio panel first!");
             
-            // Compiles and sends map data straight from studio variables
             socket.emit("publish-game", { 
                 name, 
                 logo, 
