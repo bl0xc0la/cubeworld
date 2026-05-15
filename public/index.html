@@ -1,138 +1,162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>CubeWorld</title>
+    <title>CubeWorld Platform</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root {
-            --bg: #0a0b0d; --card: #16181d; --blue: #00a2ff; --dark-blue: #0066ff;
-            --text: #ffffff; --dim: #888; --grad: linear-gradient(135deg, #00a2ff, #0066ff);
-        }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-
-        /* AUTH SCREEN */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .auth-box { background: var(--card); padding: 40px; border-radius: 25px; width: 340px; text-align: center; border: 1px solid #222; }
-
-        /* DASHBOARD LAYOUT */
-        .sidebar { width: 260px; background: var(--card); border-right: 1px solid #222; padding: 30px 15px; display: flex; flex-direction: column; }
-        .nav-btn { padding: 12px 20px; margin: 4px 0; border-radius: 12px; cursor: pointer; color: var(--dim); font-weight: 600; transition: 0.2s; }
-        .nav-btn:hover { background: #222; color: #fff; }
-        .nav-btn.active { background: var(--blue); color: #fff; }
-
-        .content { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .top-bar { height: 70px; background: var(--card); border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; }
+        :root { --blue: #00a2ff; --bg: #0a0b0d; --card: #16181d; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; overflow: hidden; height: 100vh; }
         
-        .currency-badge { background: rgba(0,162,255,0.15); color: var(--blue); border: 1px solid var(--blue); padding: 6px 15px; border-radius: 50px; font-weight: 800; font-size: 14px; }
+        /* UI Panels */
+        .sidebar { width: 250px; background: var(--card); padding: 20px; border-right: 1px solid #222; }
+        .main { flex: 1; position: relative; }
+        .view { display: none; padding: 40px; height: 100%; overflow-y: auto; }
+        .active { display: block; }
         
-        .view { padding: 40px; overflow-y: auto; flex: 1; display: none; }
-        .view.active { display: block; }
-
-        /* GRID COMPONENTS */
-        .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border-radius: 18px; border: 1px solid #222; overflow: hidden; transition: 0.3s; cursor: pointer; }
-        .card:hover { transform: translateY(-5px); border-color: var(--blue); }
-        .card-img { height: 120px; background: #222; display: flex; align-items: center; justify-content: center; font-size: 40px; }
-        .card-info { padding: 15px; }
-
-        input { width: 100%; background: #000; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white; margin-bottom: 10px; }
-        button.primary { background: var(--grad); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
-
+        /* 3D Canvas */
+        #studio-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
+        
+        /* Chat Box */
+        #chat-area { position: fixed; bottom: 20px; left: 270px; width: 300px; height: 200px; background: rgba(0,0,0,0.5); border-radius: 10px; display: none; flex-direction: column; }
+        #messages { flex: 1; overflow-y: auto; padding: 10px; font-size: 13px; }
+        
+        .admin-tag { background: red; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-right: 5px; }
+        .nav-btn { padding: 12px; cursor: pointer; border-radius: 8px; margin: 5px 0; transition: 0.2s; }
+        .nav-btn:hover { background: #222; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN/REGISTER -->
-    <div id="auth-screen">
-        <div class="auth-box">
-            <h1 style="margin-top:0; letter-spacing:-1px;">CubeWorld</h1>
-            <input type="text" id="u" placeholder="Username">
-            <input type="password" id="p" placeholder="Password">
-            <button class="primary" onclick="handleAuth('login')">Login</button>
-            <p style="font-size:12px; color:var(--dim); cursor:pointer; margin-top:20px;" onclick="handleAuth('register')">Need an account? Click here.</p>
+    <!-- AUTH -->
+    <div id="auth-screen" style="position:fixed; inset:0; background:var(--bg); z-index:1000; display:flex; align-items:center; justify-content:center;">
+        <div style="background:var(--card); padding:40px; border-radius:20px; text-align:center;">
+            <h1>CubeWorld</h1>
+            <input type="text" id="u" placeholder="Username" style="display:block; width:200px; margin:10px auto; padding:10px;">
+            <input type="password" id="p" placeholder="Password" style="display:block; width:200px; margin:10px auto; padding:10px;">
+            <button onclick="login()" style="background:var(--blue); border:none; color:white; padding:10px 20px; border-radius:5px; cursor:pointer;">Login</button>
         </div>
     </div>
 
-    <!-- MAIN PLATFORM -->
+    <!-- SIDEBAR -->
     <div class="sidebar">
-        <h2 style="margin:0 0 30px 15px; color:var(--blue)">CW</h2>
-        <div class="nav-btn active" onclick="showView('home')">🏠 Home</div>
-        <div class="nav-btn" onclick="showView('games')">🎮 Games</div>
-        <div class="nav-btn" onclick="showView('shop')">💎 Avatar Shop</div>
-        <div class="nav-btn" onclick="showView('studio')">🛠️ Studio</div>
-        <div class="nav-btn" onclick="showView('social')">💬 Messages</div>
+        <h2 style="color:var(--blue)">CW Engine</h2>
+        <div class="nav-btn" onclick="openTab('home')">🏠 Home</div>
+        <div class="nav-btn" onclick="openTab('games')">🎮 Join Games</div>
+        <div class="nav-btn" onclick="openTab('studio')">🛠️ Studio (3D)</div>
+        <div id="admin-btn" class="nav-btn hidden" style="color:red" onclick="openTab('admin')">🛡️ Admin Panel</div>
     </div>
 
-    <div class="content">
-        <div class="top-bar">
-            <h4 id="user-display">Guest</h4>
-            <div class="currency-badge"><span id="cube-bal">0</span> CUBES</div>
-        </div>
-
-        <!-- HOME VIEW -->
+    <div class="main">
         <div id="home" class="view active">
-            <h1>Welcome back!</h1>
-            <p style="color:var(--dim)">Check out the latest creations in CubeWorld.</p>
-            <div class="item-grid">
-                <div class="card"><div class="card-img">⚔️</div><div class="card-info"><b>Combat Arena</b><br><small>2.4k Players</small></div></div>
-                <div class="card"><div class="card-img">🏎️</div><div class="card-info"><b>Turbo Racers</b><br><small>800 Players</small></div></div>
-            </div>
+            <h1>Welcome, <span id="display-name"></span></h1>
+            <p>You have <b id="cube-bal">0</b> Cubes</p>
         </div>
 
-        <!-- SHOP VIEW -->
-        <div id="shop" class="view">
-            <h1>Avatar Shop</h1>
-            <div class="item-grid">
-                <div class="card"><div class="card-img">👑</div><div class="card-info"><b>Gold Crown</b><br><span style="color:var(--blue)">50 Cubes</span></div></div>
-                <div class="card"><div class="card-img">🕶️</div><div class="card-info"><b>Shadow Visor</b><br><span style="color:var(--blue)">25 Cubes</span></div></div>
-            </div>
+        <div id="games" class="view">
+            <h1>Active Games</h1>
+            <button onclick="joinGame()" style="padding:20px; background:var(--card); color:white; border:1px solid var(--blue); cursor:pointer;">Join Multi-User World</button>
         </div>
 
-        <!-- STUDIO VIEW -->
         <div id="studio" class="view">
-            <h1>CubeWorld Studio</h1>
-            <div style="background:var(--card); padding:40px; border-radius:20px; text-align:center; border:2px dashed #333;">
-                <h2 style="margin-top:0">Create New Game</h2>
-                <p>Build 3D worlds and earn Cubes from players.</p>
-                <button class="primary" style="width:200px;">Launch Engine</button>
-            </div>
+            <h1>3D Studio</h1>
+            <p>Use WASD to fly. Click to place blocks.</p>
+            <button onclick="start3D()" class="nav-btn" style="background:var(--blue); color:white;">Open 3D Editor</button>
         </div>
+        
+        <div id="admin" class="view">
+            <h1>🛡️ Admin Panel (BloxColaYT Only)</h1>
+            <p>Server Status: Online</p>
+            <button onclick="alert('All servers cleared!')">Restart All Servers</button>
+        </div>
+
+        <!-- 3D Engine Surface -->
+        <canvas id="three-canvas"></canvas>
+    </div>
+
+    <!-- Chat Overlay -->
+    <div id="chat-area">
+        <div id="messages"></div>
+        <input type="text" id="chat-input" placeholder="Press Enter to chat..." style="background:transparent; border:none; color:white; padding:10px;">
     </div>
 
     <script>
-        function showView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            event.target.classList.add('active');
-        }
+        const socket = io();
+        let currentUser = "";
+        let isAdmin = false;
 
-        async function handleAuth(type) {
+        async function login() {
             const u = document.getElementById("u").value;
             const p = document.getElementById("p").value;
-            if(!u || !p) return alert("Fill in info");
-
-            const res = await fetch(`/api/${type}`, {
+            const res = await fetch("/api/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: u, password: p })
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({username: u, password: p})
             });
             const data = await res.json();
-
             if(data.success) {
-                if(type === 'login') {
-                    document.getElementById("auth-screen").classList.add("hidden");
-                    document.getElementById("user-display").innerText = data.user;
-                    document.getElementById("cube-bal").innerText = data.cubes;
-                } else {
-                    alert("Account Created! You can login now.");
-                }
-            } else {
-                alert("Auth Failed: Check credentials");
+                currentUser = data.user;
+                document.getElementById("auth-screen").style.display = "none";
+                document.getElementById("display-name").innerText = u;
+                document.getElementById("cube-bal").innerText = data.cubes;
+                if(data.role === "Admin") document.getElementById("admin-btn").classList.remove("hidden");
             }
         }
+
+        function openTab(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById("three-canvas").style.display = "none";
+        }
+
+        // --- 3D ENGINE (Three.js) ---
+        function start3D() {
+            document.getElementById("three-canvas").style.display = "block";
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({canvas: document.getElementById("three-canvas")});
+            renderer.setSize(window.innerWidth - 250, window.innerHeight);
+
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshBasicMaterial({ color: 0x00a2ff, wireframe: true });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            camera.position.z = 5;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                cube.rotation.x += 0.01; cube.rotation.y += 0.01;
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // --- MULTIPLAYER CHAT ---
+        function joinGame() {
+            document.getElementById("chat-area").style.display = "flex";
+            socket.emit("join-game", {user: currentUser});
+        }
+
+        document.getElementById("chat-input").addEventListener("keypress", (e) => {
+            if(e.key === "Enter") {
+                socket.emit("chat-msg", {user: currentUser, text: e.target.value});
+                e.target.value = "";
+            }
+        });
+
+        socket.on("chat-msg", (data) => {
+            const div = document.createElement("div");
+            div.innerHTML = `<b>${data.user}:</b> ${data.text}`;
+            document.getElementById("messages").appendChild(div);
+        });
+
+        socket.on("system-msg", (text) => {
+            const div = document.createElement("div");
+            div.style.color = "var(--blue)";
+            div.innerText = text;
+            document.getElementById("messages").appendChild(div);
+        });
     </script>
 </body>
 </html>
