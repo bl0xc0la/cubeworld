@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld</title>
+    <title>CubeWorld V4</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -34,8 +34,8 @@
         .nav-item { padding: 14px; cursor: pointer; border-radius: 12px; margin-bottom: 6px; color: #64748b; font-weight: 600; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.03); color: var(--text); }
 
-        main { background: var(--panel); border-radius: var(--radius); padding: 35px; overflow-y: auto; }
-        .view { display: none; }
+        main { background: var(--panel); border-radius: var(--radius); padding: 35px; overflow-y: auto; position: relative; }
+        .view { display: none; height: 100%; }
         .view.active { display: block; }
 
         .game-card { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 16px; margin-bottom: 12px; }
@@ -51,10 +51,15 @@
         .pm-header { padding: 12px; font-weight: 700; display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); }
         .pm-logs { height: 160px; padding: 12px; font-size: 13px; overflow-y: auto; }
 
-        /* WORKING GAME PLAY OVERLAY SCREEN */
+        /* REALTIME GAME ENGINE VIEW LAYOUT */
         #game-screen { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
-        .game-world { flex: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #152238 0%, #000 100%); }
-        .game-room-chat { height: 200px; background: rgba(0,0,0,0.85); width: 400px; position: absolute; bottom: 20px; left: 20px; border-radius: 12px; padding: 15px; border: 1px solid #333; }
+        #canvas-game-container { flex: 1; position: relative; width: 100%; height: 100%; }
+        .game-room-chat { height: 220px; background: rgba(0,0,0,0.8); width: 380px; position: absolute; bottom: 20px; left: 20px; border-radius: 12px; padding: 15px; border: 1px solid #222; }
+
+        /* STUDIO WORKSPACE TOOLBAR */
+        .studio-layout { display: flex; flex-direction: column; gap: 15px; height: 100%; }
+        #studio-canvas { width: 100%; height: 350px; background: #111; border-radius: 12px; position: relative; border: 1px solid #333; }
+        .studio-tools { display: flex; gap: 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body class="theme-roblox">
@@ -69,13 +74,16 @@
 </div>
 
 <div id="game-screen">
-    <div class="game-world">
-        <h1 id="active-game-title" style="font-size: 42px;">Playing Game</h1>
-        <button class="btn" style="position: absolute; top: 20px; right: 20px; width: auto; background: #ff4757;" onclick="core.leaveGame()">LEAVE SERVER</button>
+    <div id="canvas-game-container">
+        <div style="position: absolute; top: 20px; left: 20px; font-weight:700; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px;">
+            <span id="active-game-title">Game Workspace</span><br>
+            <small style="font-weight:400; color:#00f28d">Controls: W, A, S, D / Arrows to Move</small>
+        </div>
+        <button class="btn" style="position: absolute; top: 20px; right: 20px; width: auto; background: #ff4757; padding: 10px 20px;" onclick="core.leaveGame()">EXIT TO MENU</button>
     </div>
     <div class="game-room-chat">
-        <div id="server-chat-logs" style="height: 130px; overflow-y: auto; font-size: 13px; margin-bottom: 5px; color:#aaa;"></div>
-        <input id="server-chat-in" placeholder="Type to chat with players..." style="margin-bottom:0; padding:8px;">
+        <div id="server-chat-logs" style="height: 140px; overflow-y: auto; font-size: 13px; margin-bottom: 8px; color:#ddd;"></div>
+        <input id="server-chat-in" placeholder="Press Enter to send chat room message..." style="margin-bottom:0; padding:8px;">
     </div>
 </div>
 
@@ -87,7 +95,7 @@
             <div id="disp-cubes" style="font-size: 13px; color: #f1c40f; font-weight: 700;">0 Cubes</div>
         </div>
         <div class="nav-item active" onclick="core.nav('games', this)">Games</div>
-        <div class="nav-item" onclick="core.nav('studio', this)">Studio Workspace</div>
+        <div class="nav-item" onclick="core.nav('studio', this); studio.init();">Studio Workspace</div>
         <div class="nav-item" onclick="core.nav('settings', this)">Settings</div>
         <div class="nav-item" style="margin-top:auto; opacity: 0.5;" onclick="location.reload()">Logout</div>
     </aside>
@@ -99,12 +107,23 @@
         </section>
 
         <section id="view-studio" class="view">
-            <h2>Studio Workspace</h2>
-            <p style="color: #64748b; margin-bottom: 15px;">Create and test your custom game builds here to publish them.</p>
-            <div style="background: rgba(255,255,255,0.01); padding: 20px; border-radius: 12px;">
-                <input id="new-game-name" placeholder="Game Title...">
-                <input id="new-game-logo" placeholder="Logo Image URL...">
-                <button class="btn" onclick="core.publish()">Publish to Feed</button>
+            <div class="studio-layout">
+                <div>
+                    <h2>Roblox Style Engine Studio</h2>
+                    <p style="color: #64748b; font-size:13px;">Place block structures visually before compiling your game instance.</p>
+                </div>
+                <div class="studio-tools">
+                    <button class="btn" style="width:auto; padding:5px 15px; background:#ef4444;" onclick="studio.addBlock(0xff0000)">+ Red Brick</button>
+                    <button class="btn" style="width:auto; padding:5px 15px; background:#10b981;" onclick="studio.addBlock(0x10b981)">+ Green Brick</button>
+                    <button class="btn" style="width:auto; padding:5px 15px; background:#0070ff;" onclick="studio.addBlock(0x0070ff)">+ Blue Brick</button>
+                    <button class="btn" style="width:auto; padding:5px 15px; background:#7c3aed;" onclick="studio.clear()">Clear Studio</button>
+                </div>
+                <div id="studio-canvas"></div>
+                <div style="background: rgba(255,255,255,0.01); padding: 15px; border-radius: 12px; display:flex; gap:10px;">
+                    <input id="new-game-name" placeholder="Game Title..." style="margin-bottom:0;">
+                    <input id="new-game-logo" placeholder="Logo Link..." style="margin-bottom:0;">
+                    <button class="btn" style="width:200px;" onclick="core.publish()">Publish to Feed</button>
+                </div>
             </div>
         </section>
 
@@ -146,7 +165,16 @@
     let activePM = null;
     let currentRoomId = null;
 
-    function initThreeJS() {
+    // Game Client 3D Engine Variables
+    let gameScene, gameCamera, gameRenderer, playerMesh;
+    let moveKeys = { w: false, a: false, s: false, d: false };
+    let currentLevelBlocks = [];
+
+    // Studio Engine Variables
+    let studioScene, studioCamera, studioRenderer;
+    let studioBlocksData = [];
+
+    function initMenuAvatar() {
         const container = document.getElementById("avatar-box");
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
@@ -154,30 +182,153 @@
         renderer.setSize(80, 80);
         container.appendChild(renderer.domElement);
 
-        const geometry = new THREE.BoxGeometry(2, 2, 2);
-        const material = new THREE.MeshStandardMaterial({ color: 0x0070ff });
-        const cube = new THREE.Mesh(geometry, material);
+        const cube = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ color: 0x0070ff }));
         scene.add(cube);
-
-        const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff }));
-        cube.add(line);
-
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const light = new THREE.DirectionalLight(0xffffff, 0.8);
-        light.position.set(5, 5, 5);
-        scene.add(light);
-
-        camera.position.z = 4;
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        camera.position.z = 3.5;
 
         function animate() {
             requestAnimationFrame(animate);
             cube.rotation.y += 0.01;
-            cube.rotation.x += 0.005;
             renderer.render(scene, camera);
         }
         animate();
     }
+
+    // STUDIO COMPILING ENGINE
+    const studio = {
+        init() {
+            const container = document.getElementById("studio-canvas");
+            if (container.children.length > 0) return; // Prevent duplicating
+
+            studioScene = new THREE.Scene();
+            studioScene.background = new THREE.Color(0x1a1a24);
+            studioCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            studioRenderer = new THREE.WebGLRenderer({ antialias: true });
+            studioRenderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(studioRenderer.domElement);
+
+            // Studio Grid Base Floor Plate
+            const grid = new THREE.GridHelper(20, 20, 0x0070ff, 0x444455);
+            studioScene.add(grid);
+
+            studioScene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            const light = new THREE.DirectionalLight(0xffffff, 0.6);
+            light.position.set(10, 20, 10);
+            studioScene.add(light);
+
+            studioCamera.position.set(0, 8, 12);
+            studioCamera.lookAt(0, 0, 0);
+
+            function renderStudio() {
+                requestAnimationFrame(renderStudio);
+                studioRenderer.render(studioScene, studioCamera);
+            }
+            renderStudio();
+        },
+        addBlock(colorHex) {
+            // Generates coordinates random enough for workspace building
+            const x = (Math.floor(Math.random() * 5) - 2) * 1.5;
+            const z = (Math.floor(Math.random() * 5) - 2) * 1.5;
+            const y = 0.5;
+
+            const boxGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+            const boxMat = new THREE.MeshStandardMaterial({ color: colorHex });
+            const mesh = new THREE.Mesh(boxGeo, boxMat);
+            mesh.position.set(x, y, z);
+            studioScene.add(mesh);
+
+            studioBlocksData.push({ x, y, z, color: colorHex });
+        },
+        clear() {
+            studioBlocksData = [];
+            if(studioScene) {
+                while(studioScene.children.length > 0){ 
+                    studioScene.remove(studioScene.children[0]); 
+                }
+                studioScene.add(new THREE.GridHelper(20, 20, 0x0070ff, 0x444455));
+                studioScene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            }
+        }
+    };
+
+    // ACTIVE WORLD RENDERING WORKSPACE
+    function runGameWorldEngine(mapData) {
+        const holder = document.getElementById("canvas-game-container");
+        
+        // Clean old canvas elements out completely
+        const oldCanvas = holder.querySelector('canvas');
+        if(oldCanvas) oldCanvas.remove();
+
+        gameScene = new THREE.Scene();
+        gameScene.background = new THREE.Color(0xa0b0d0); // Sky color skybox style
+
+        gameCamera = new THREE.PerspectiveCamera(60, holder.clientWidth / holder.clientHeight, 0.1, 1000);
+        gameRenderer = new THREE.WebGLRenderer({ antialias: true });
+        gameRenderer.setSize(holder.clientWidth, holder.clientHeight);
+        holder.appendChild(gameRenderer.domElement);
+
+        // Build green base ground arena floorplate
+        const floor = new THREE.Mesh(new THREE.PlainGeometry || new THREE.BoxGeometry(50, 0.2, 50), new THREE.MeshStandardMaterial({ color: 0x347a40 }));
+        floor.position.y = -0.1;
+        gameScene.add(floor);
+
+        // Generate published bricks data structures straight from studio save points
+        if (mapData && mapData.length > 0) {
+            mapData.forEach(b => {
+                const block = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: b.color }));
+                block.position.set(b.x, b.y, b.z);
+                gameScene.add(block);
+            });
+        }
+
+        // Spawn interactive physical player rig
+        playerMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
+        playerMesh.position.set(0, 1, 0);
+        gameScene.add(playerMesh);
+
+        // Lighting
+        gameScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+        sun.position.set(10, 30, 15);
+        gameScene.add(sun);
+
+        gameCamera.position.set(0, 6, 10);
+
+        // Render gameplay run-loop inside layout frame viewport
+        function loop() {
+            if (!currentRoomId) return; // Terminate engine if left game scene
+            requestAnimationFrame(loop);
+
+            // Movement velocities engine rules logic
+            if (moveKeys.w) playerMesh.position.z -= 0.1;
+            if (moveKeys.s) playerMesh.position.z += 0.1;
+            if (moveKeys.a) playerMesh.position.x -= 0.1;
+            if (moveKeys.d) playerMesh.position.x += 0.1;
+
+            // Smooth camera attachment layout tracing character steps
+            gameCamera.position.x = playerMesh.position.x;
+            gameCamera.position.z = playerMesh.position.z + 8;
+            gameCamera.lookAt(playerMesh.position);
+
+            gameRenderer.render(gameScene, gameCamera);
+        }
+        loop();
+    }
+
+    // Monitor input vectors directly across window
+    window.addEventListener('keydown', (e) => {
+        if(e.key.toLowerCase() === 'w' || e.key === 'ArrowUp') moveKeys.w = true;
+        if(e.key.toLowerCase() === 's' || e.key === 'ArrowDown') moveKeys.s = true;
+        if(e.key.toLowerCase() === 'a' || e.key === 'ArrowLeft') moveKeys.a = true;
+        if(e.key.toLowerCase() === 'd' || e.key === 'ArrowRight') moveKeys.d = true;
+    });
+    window.addEventListener('keyup', (e) => {
+        if(e.key.toLowerCase() === 'w' || e.key === 'ArrowUp') moveKeys.w = false;
+        if(e.key.toLowerCase() === 's' || e.key === 'ArrowDown') moveKeys.s = false;
+        if(e.key.toLowerCase() === 'a' || e.key === 'ArrowLeft') moveKeys.a = false;
+        if(e.key.toLowerCase() === 'd' || e.key === 'ArrowRight') moveKeys.d = false;
+    });
 
     const core = {
         init() {
@@ -186,7 +337,7 @@
                 document.getElementById("main-ui").style.visibility = "visible";
                 document.getElementById("disp-user").innerText = user.name;
                 document.getElementById("disp-cubes").innerText = (user.name === "BloxColaYT") ? "∞ CUBES" : user.cubes + " CUBES";
-                initThreeJS();
+                initMenuAvatar();
             }
         },
         login() {
@@ -212,18 +363,31 @@
         publish() {
             const name = document.getElementById("new-game-name").value;
             const logo = document.getElementById("new-game-logo").value;
-            if(!name) return;
-            socket.emit("publish-game", { name, logo, user: user.name });
+            if(!name) return alert("Please specify a name first inside the Studio panel!");
+            
+            // Compiles and sends map data straight from studio variables
+            socket.emit("publish-game", { 
+                name, 
+                logo, 
+                user: user.name, 
+                mapData: studioBlocksData 
+            });
+
             document.getElementById("new-game-name").value = "";
             document.getElementById("new-game-logo").value = "";
+            studio.clear();
             this.nav('games', document.querySelectorAll('.nav-item')[0]);
         },
-        joinGame(id, name) {
+        joinGame(id, name, mapDataString) {
             currentRoomId = id;
             document.getElementById("active-game-title").innerText = name;
             document.getElementById("game-screen").style.display = "flex";
             document.getElementById("server-chat-logs").innerHTML = "";
-            socket.emit("join-room", id);
+            
+            socket.emit("join-room", { roomId: id, user: user.name });
+
+            const parsedBlocks = JSON.parse(decodeURIComponent(mapDataString));
+            setTimeout(() => runGameWorldEngine(parsedBlocks), 200);
         },
         leaveGame() {
             document.getElementById("game-screen").style.display = "none";
@@ -252,15 +416,18 @@
     };
 
     socket.on("sync-games", (games) => {
-        document.getElementById("game-list").innerHTML = games.map(g => `
-            <div class="game-card">
-                <div style="display:flex; align-items:center;">
-                    <img class="game-logo" src="${g.logo}">
-                    <div><b>${g.name}</b><br><small style="color:#64748b">by ${g.creator}</small></div>
+        document.getElementById("game-list").innerHTML = games.map(g => {
+            const mapDataString = encodeURIComponent(JSON.stringify(g.mapData || []));
+            return `
+                <div class="game-card">
+                    <div style="display:flex; align-items:center;">
+                        <img class="game-logo" src="${g.logo}">
+                        <div><b>${g.name}</b><br><small style="color:#64748b">by ${g.creator}</small></div>
+                    </div>
+                    <button class="btn" style="width: auto; padding: 8px 16px;" onclick="core.joinGame('${g.id}', '${g.name}', '${mapDataString}')">Play</button>
                 </div>
-                <button class="btn" style="width: auto; padding: 8px 16px;" onclick="core.joinGame('${g.id}', '${g.name}')">Play</button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     });
 
     socket.on("global-receive", (data) => {
