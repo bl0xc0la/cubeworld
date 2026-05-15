@@ -23,8 +23,8 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 mongoose.connect(process.env.MONGO_URL)
-    .then(() => console.log("CORE ENGINE ONLINE"))
-    .catch(err => console.log("DATABASE OFFLINE:", err.message));
+    .then(() => console.log("SYSTEM: CORE ENGINE ONLINE"))
+    .catch(err => console.log("SYSTEM: DB FAILURE:", err.message));
 
 app.post("/api/login", async (req, res) => {
     try {
@@ -45,19 +45,18 @@ app.post("/api/register", async (req, res) => {
         const hashed = await bcrypt.hash(password, 10);
         await User.create({ username, password: hashed });
         res.json({ success: true });
-    } catch (e) { res.json({ success: false, msg: "Account exists" }); }
+    } catch (e) { res.json({ success: false, msg: "IDENT_EXISTS" }); }
 });
 
 io.on("connection", (socket) => {
     socket.on("join-session", (data) => {
-        socket.join("global_lobby");
-        io.to("global_lobby").emit("system-log", `${data.user.toUpperCase()} HAS CONNECTED`);
+        socket.join("main_hub");
+        io.to("main_hub").emit("sys-log", `${data.user.toUpperCase()} CONNECTED`);
     });
-
-    socket.on("broadcast-chat", (data) => {
-        io.to("global_lobby").emit("receive-chat", data);
+    socket.on("send-chat", (data) => {
+        io.to("main_hub").emit("new-chat", data);
     });
 });
 
 const PORT = process.env.PORT || 10000;
-httpServer.listen(PORT, () => console.log(`SYSTEM ACTIVE ON PORT ${PORT}`));
+httpServer.listen(PORT, () => console.log(`CUBEWORLD LIVE ON ${PORT}`));
