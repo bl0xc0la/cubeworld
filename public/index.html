@@ -3,156 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <title>CUBEWORLD | V4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
-            --bg: #060810;
-            --panel: #0d111d;
+            --bg: #0a0b10;
+            --side: #12141c;
             --accent: #0070ff;
-            --glass: rgba(255, 255, 255, 0.03);
-            --shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 112, 255, 0.08);
-            --radius: 24px;
+            --text: #ffffff;
+            --shadow: 0 8px 30px rgba(0,0,0,0.5);
         }
 
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit', sans-serif; }
-        body { background: var(--bg); color: white; height: 100vh; overflow: hidden; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
+        body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
 
-        /* --- CREDENTIAL SCREEN --- */
-        #login-view { position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; }
-        .login-card { background: var(--panel); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow); width: 340px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        
-        input { width:100%; padding:14px; border-radius:12px; border:none; background:#000; color:white; margin-bottom:12px; outline:none; border: 1px solid #1a2238; font-size: 14px; }
-        input:focus { border-color: var(--accent); }
-        .btn { background:var(--accent); color:white; border:none; padding:12px 25px; border-radius:12px; cursor:pointer; font-weight:700; transition:0.2s; display: inline-block; text-align: center; }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        /* --- LOGIN --- */
+        #login-overlay { position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; }
+        .login-box { background: var(--side); padding: 40px; border-radius: 20px; box-shadow: var(--shadow); width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #222; background: #000; color: #fff; outline: none; }
+        .btn { background: var(--accent); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; }
 
-        /* --- DASHBOARD SHELL --- */
-        .app-grid { display: grid; grid-template-columns: 260px 1fr 320px; height: 100vh; padding: 20px; gap: 20px; visibility: hidden; }
-        .sidebar { background: var(--panel); border-radius: var(--radius); padding: 25px; display: flex; flex-direction: column; box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.03); }
-        
-        .nav-link { padding: 14px 18px; cursor: pointer; color: #6c7a9c; border-radius: 14px; margin-bottom: 6px; font-weight: 600; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { background: var(--glass); color: white; }
-        .nav-link.admin { color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.1); margin-top: 15px; }
+        /* --- LAYOUT --- */
+        .wrapper { display: grid; grid-template-columns: 250px 1fr 300px; height: 100vh; visibility: hidden; }
+        .sidebar { background: var(--side); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid #1f222e; }
+        .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; color: #888; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.05); color: #fff; }
 
-        main.main-content { background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.03); overflow: hidden; display: flex; flex-direction: column; }
-        .view { display: none; padding: 35px; height: 100%; overflow-y: auto; }
+        main { padding: 30px; overflow-y: auto; }
+        .view { display: none; }
         .view.active { display: block; }
 
-        /* --- GAME ENGINE SIMULATION VIEW --- */
-        #game-overlay { position: fixed; inset: 0; background: #020408; z-index: 5000; display: none; flex-direction: column; }
-        .game-canvas { flex: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #111b30 0%, #020408 100%); }
-        .game-chat { height: 240px; background: rgba(5, 7, 13, 0.95); width: 450px; position: absolute; bottom: 20px; left: 20px; border-radius: 16px; padding: 15px; box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.05); }
+        .card { background: #161922; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: var(--shadow); }
 
-        /* --- MARKETPLACE / CARDS --- */
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 20px; }
-        .ui-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 20px; text-align: center; position: relative; }
-        .asset-icon-box { height: 100px; background: #000; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--accent); }
+        /* --- AVATAR SHOP --- */
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .item-box { background: #000; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #222; }
+        .item-icon { font-size: 30px; margin-bottom: 10px; }
 
-        .hidden { display: none !important; }
+        /* --- CHAT SECTIONS --- */
+        .chat-wrap { background: var(--side); display: flex; flex-direction: column; border-left: 1px solid #1f222e; }
+        .chat-logs { flex: 1; padding: 15px; overflow-y: auto; font-size: 13px; }
+        .chat-input { padding: 15px; border-top: 1px solid #1f222e; display: flex; gap: 5px; }
+
+        /* --- PM WINDOW --- */
+        #pm-window { position: fixed; bottom: 20px; right: 330px; width: 250px; background: var(--accent); border-radius: 10px; display: none; box-shadow: var(--shadow); }
+        .pm-header { padding: 10px; font-weight: 700; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-<div id="login-view">
-    <div class="login-card">
-        <h1 style="font-weight:900; font-size:36px; margin-bottom:5px; letter-spacing:-1px;">CUBE<span style="color:var(--accent);">WORLD</span></h1>
-        <p style="color:#56668d; font-size:14px; margin-bottom:25px;">Engine Deployment Workspace</p>
+<div id="login-overlay">
+    <div class="login-box">
+        <h1 style="margin-bottom: 20px;">CubeWorld</h1>
         <input id="u-in" type="text" placeholder="Username">
         <input id="p-in" type="password" placeholder="Password">
-        <button class="btn" style="width: 100%; margin-top: 5px;" onclick="core.login()">LAUNCH CORE</button>
+        <button class="btn" onclick="core.login()">Log In</button>
     </div>
 </div>
 
-<div id="game-overlay">
-    <div class="game-canvas">
-        <div style="text-align: center;">
-            <h1 id="playing-title" style="font-size: 48px; font-weight: 900; margin-bottom: 10px;">Connecting...</h1>
-            <p style="color: var(--accent); font-weight: 600;">Multiplayer Server Active | Latency: 12ms</p>
-        </div>
-        <button class="btn" style="position: absolute; top: 30px; right: 30px; background: #ff4757;" onclick="core.leaveGame()">DISCONNECT</button>
-    </div>
-    <div class="game-chat">
-        <div id="server-logs" style="height: 160px; overflow-y: auto; font-size: 13px; margin-bottom: 10px; color: #a3b2cc;"></div>
-        <input id="server-in" placeholder="Press Enter to send in-game chat..." style="margin-bottom: 0; padding: 10px;">
-    </div>
-</div>
-
-<div class="app-grid" id="main-app">
+<div class="wrapper" id="main-ui">
     <aside class="sidebar">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 35px; background: rgba(255,255,255,0.01); padding: 12px; border-radius: 16px;">
-            <div style="width: 40px; height: 40px; background: #000; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent);">
-                <iframe src="https://my.spline.design/untitled-rTr9O3JjlJGN8gVcG65A69Lz/" style="width:100%; height:100%; transform:scale(3.5); pointer-events:none;"></iframe>
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="width:60px; height:60px; background:#000; border-radius:50%; margin: 0 auto 10px; border:2px solid var(--accent); overflow:hidden;">
+                <iframe id="rig-preview" src="https://my.spline.design/untitled-rTr9O3JjlJGN8gVcG65A69Lz/" style="width:100%; height:100%; transform:scale(4); pointer-events:none;"></iframe>
             </div>
-            <div>
-                <div id="u-name" style="font-weight: 700; font-size: 15px;">Developer</div>
-                <div id="u-cubes" style="color: #f1c40f; font-size: 13px; font-weight: 700;">0 CUBES</div>
-            </div>
+            <div id="disp-user" style="font-weight: 800;">User</div>
+            <div id="disp-cubes" style="font-size: 12px; color: #f1c40f;">0 Cubes</div>
         </div>
-        
-        <div class="nav-link active" onclick="core.nav('games', this)">Discover</div>
-        <div class="nav-link" onclick="core.nav('studio', this)">Studio</div>
-        <div class="nav-link" onclick="core.nav('shop', this)">Avatar Shop</div>
-        <div class="nav-link" onclick="core.nav('customizer', this)">Customizer</div>
-        
-        <div id="adm-link" class="nav-link admin hidden" onclick="core.nav('admin', this)">System Control</div>
-        <div class="nav-link" style="margin-top: auto; opacity: 0.4; font-size: 14px;" onclick="core.logout()">Sign Out</div>
+        <div class="nav-item active" onclick="core.nav('games', this)">Games</div>
+        <div class="nav-item" onclick="core.nav('studio', this)">Studio</div>
+        <div class="nav-item" onclick="core.nav('shop', this)">Avatar Shop</div>
+        <div class="nav-item" style="margin-top:auto;" onclick="location.reload()">Log Out</div>
     </aside>
 
-    <main class="main-content">
+    <main>
         <section id="view-games" class="view active">
-            <h2 style="font-weight: 800; font-size: 28px;">Active Experiences</h2>
-            <p style="color: #56668d; font-size: 14px; margin-bottom: 20px;">Join live structural shards hosted on Render.</p>
-            <div id="game-list"></div>
+            <h2>Discover Games</h2>
+            <div id="game-list" style="margin-top: 20px;"></div>
         </section>
 
         <section id="view-studio" class="view">
-            <h2 style="font-weight: 800; font-size: 28px;">Developer Engine Workspace</h2>
-            <p style="color: #56668d; font-size: 14px; margin-bottom: 20px;">Construct and deploy runtime shards directly to the platform index.</p>
-            <div style="background: rgba(0,0,0,0.2); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.02);">
-                <input id="studio-title" placeholder="Project Workspace Identifier...">
-                <button class="btn" onclick="core.publish()">DEPLOY INTERFACE</button>
+            <h2>Creator Studio</h2>
+            <div class="card">
+                <p style="margin-bottom: 10px; color: #888;">Name your new world:</p>
+                <input id="new-game-name" placeholder="Island Life...">
+                <button class="btn" onclick="core.publish()">Publish Game</button>
             </div>
         </section>
 
         <section id="view-shop" class="view">
-            <h2 style="font-weight: 800; font-size: 28px;">Avatar Asset Catalog</h2>
-            <p style="color: #56668d; font-size: 14px; margin-bottom: 20px;">Acquire cosmetic assets to compile onto your 3D visual framework.</p>
-            <div class="grid-container" id="shop-list"></div>
-        </section>
-
-        <section id="view-customizer" class="view">
-            <h2 style="font-weight: 800; font-size: 28px;">Rig Assembly & Customization</h2>
-            <p style="color: #56668d; font-size: 14px; margin-bottom: 20px;">Equip items from your collection onto your system identity avatar.</p>
-            <div class="grid-container" id="inventory-list"></div>
+            <h2>Avatar Shop</h2>
+            <div class="shop-grid" style="margin-top: 20px;">
+                <div class="item-box">
+                    <div class="item-icon">🎩</div>
+                    <b>Valkyrie</b><br>
+                    <button class="btn" style="padding:5px; margin-top:5px; font-size:12px;" onclick="core.wear('valk')">Wear Item</button>
+                </div>
+                <div class="item-box">
+                    <div class="item-icon">👕</div>
+                    <b>Neon Hoodie</b><br>
+                    <button class="btn" style="padding:5px; margin-top:5px; font-size:12px;" onclick="core.wear('neon')">Wear Item</button>
+                </div>
+            </div>
         </section>
     </main>
 
-    <aside class="sidebar">
-        <h3 style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 15px; color: #56668d;">Global Communications</h3>
-        <div id="global-logs" style="flex: 1; overflow-y: auto; font-size: 14px; padding-right: 5px; color: #cbd5e1;"></div>
-        <div style="display: flex; gap: 8px; margin-top: 15px;">
-            <input id="global-in" placeholder="Message broadcast..." style="margin-bottom: 0; padding: 12px; border-radius: 12px;">
-            <button class="btn" style="padding: 12px 18px;" onclick="core.globalChat()">></button>
+    <aside class="chat-wrap">
+        <div style="padding: 15px; font-weight: 800; border-bottom: 1px solid #1f222e;">Global Chat</div>
+        <div class="chat-logs" id="global-chat"></div>
+        <div class="chat-input">
+            <input id="chat-in" placeholder="Say something..." style="margin-bottom:0;">
+            <button class="btn" style="width: 50px;" onclick="core.sendGlobal()">></button>
         </div>
     </aside>
 </div>
 
+<div id="pm-window">
+    <div class="pm-header">
+        <span id="pm-target">User</span>
+        <span onclick="document.getElementById('pm-window').style.display='none'" style="cursor:pointer;">×</span>
+    </div>
+    <div id="pm-logs" style="height: 150px; background: #000; padding: 10px; font-size: 11px; overflow-y: auto;"></div>
+    <div style="padding: 5px; display: flex; gap: 2px;">
+        <input id="pm-in" placeholder="DM..." style="margin-bottom:0; font-size: 12px; padding: 5px;">
+        <button class="btn" style="width: 40px; padding: 5px;" onclick="core.sendPM()">></button>
+    </div>
+</div>
+
 <script>
     const socket = io();
-    let session = JSON.parse(localStorage.getItem('cw_v4_session'));
-    let currentGameId = null;
+    let user = JSON.parse(localStorage.getItem('cw_user'));
+    let activePM = null;
 
     const core = {
         init() {
-            if (session) {
-                document.getElementById("login-view").style.display = "none";
-                document.getElementById("main-app").style.visibility = "visible";
-                document.getElementById("u-name").innerText = session.name;
-                document.getElementById("u-cubes").innerText = (session.name === "BloxColaYT") ? "∞ CUBES" : session.cubes + " CUBES";
-                if (session.name === "BloxColaYT") document.getElementById("adm-link").classList.remove("hidden");
-                this.renderInventory();
+            if (user) {
+                document.getElementById("login-overlay").style.display = "none";
+                document.getElementById("main-ui").style.visibility = "visible";
+                document.getElementById("disp-user").innerText = user.name;
+                document.getElementById("disp-cubes").innerText = (user.name === "BloxColaYT") ? "∞ CUBES" : user.cubes + " CUBES";
             }
         },
         login() {
@@ -164,97 +154,66 @@
                 body: JSON.stringify({username, password})
             }).then(res => res.json()).then(data => {
                 if(data.success) {
-                    localStorage.setItem('cw_v4_session', JSON.stringify({name: data.user, cubes: data.cubes, inventory: data.inventory || []}));
+                    localStorage.setItem('cw_user', JSON.stringify({name: data.user, cubes: data.cubes}));
                     location.reload();
                 }
             });
         },
         nav(id, el) {
             document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-            document.querySelectorAll(".nav-link").forEach(n => n.classList.remove("active"));
+            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
             document.getElementById("view-" + id).classList.add("active");
             el.classList.add("active");
         },
         publish() {
-            const name = document.getElementById("studio-title").value;
-            if(!name) return;
-            socket.emit("publish", { name, user: session.name });
-            document.getElementById("studio-title").value = "";
-            this.nav('games', document.querySelectorAll('.nav-link')[0]);
+            const name = document.getElementById("new-game-name").value;
+            socket.emit("publish-game", { name, user: user.name });
+            alert("Game published!");
         },
-        join(id, name) {
-            currentGameId = id;
-            document.getElementById("playing-title").innerText = name;
-            document.getElementById("game-overlay").style.display = "flex";
-            socket.emit("join-server", id);
+        wear(item) {
+            socket.emit("wear-item", { user: user.name, item });
+            alert("Now wearing: " + item);
         },
-        leaveGame() { 
-            document.getElementById("game-overlay").style.display = "none"; 
-            currentGameId = null;
+        sendGlobal() {
+            const text = document.getElementById("chat-in").value;
+            socket.emit("global-msg", { from: user.name, text });
+            document.getElementById("chat-in").value = "";
         },
-        globalChat() {
-            const text = document.getElementById("global-in").value;
-            if(!text) return;
-            socket.emit("global-send", { from: session.name, text });
-            document.getElementById("global-in").value = "";
+        openPM(target) {
+            if(target === user.name) return;
+            activePM = target;
+            document.getElementById("pm-target").innerText = target;
+            document.getElementById("pm-window").style.display = "block";
+            document.getElementById("pm-logs").innerHTML = "";
         },
-        buyItem(id, price) {
-            alert("Asset compiled and injected successfully into assembly module!");
-            if(session.name !== "BloxColaYT") return; 
-            session.inventory.push(id);
-            localStorage.setItem('cw_v4_session', JSON.stringify(session));
-            this.renderInventory();
-        },
-        renderInventory() {
-            const container = document.getElementById("inventory-list");
-            if(!container) return;
-            if(!session.inventory || session.inventory.length === 0) {
-                container.innerHTML = `<p style="color:#56668d; font-size:14px;">No custom rig modifications present.</p>`;
-                return;
-            }
-            container.innerHTML = session.inventory.map(item => `
-                <div class="ui-card">
-                    <div class="asset-icon-box">🛡️</div>
-                    <b>Module Active</b><br><small style="color:#56668d">${item}</small>
-                </div>
-            `).join('');
-        },
-        logout() { localStorage.removeItem('cw_v4_session'); location.reload(); }
+        sendPM() {
+            const text = document.getElementById("pm-in").value;
+            socket.emit("send-pm", { from: user.name, to: activePM, text });
+            document.getElementById("pm-in").value = "";
+        }
     };
 
-    // SOCKET DATA PIPE CHANNELS
     socket.on("sync-games", (games) => {
         document.getElementById("game-list").innerHTML = games.map(g => `
-            <div class="ui-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; text-align:left;">
-                <div><b style="font-size:17px;">${g.name}</b><br><small style="color:#56668d">Infrastructure Node by ${g.creator}</small></div>
-                <button class="btn" onclick="core.join('${g.id}', '${g.name}')">LAUNCH INSTANCE</button>
-            </div>
-        `).join('');
-    });
-
-    socket.on("sync-catalog", (catalog) => {
-        document.getElementById("shop-list").innerHTML = catalog.map(item => `
-            <div class="ui-card">
-                <div class="asset-icon-box">👑</div>
-                <b style="font-size:15px;">${item.name}</b><br>
-                <span style="color:#f1c40f; font-size:13px; font-weight:700;">${item.price} C</span><br>
-                <button class="btn" style="padding:6px 12px; font-size:12px; margin-top:10px; width:100%" onclick="core.buyItem('${item.id}', ${item.price})">ACQUIRE</button>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div><b>${g.name}</b><br><small>by ${g.creator}</small></div>
+                <button class="btn" style="width: auto; padding: 8px 15px;">Join Game</button>
             </div>
         `).join('');
     });
 
     socket.on("global-receive", (data) => {
-        document.getElementById("global-logs").innerHTML += `<div style="margin-bottom:8px;"><b style="color:var(--accent)">${data.from}:</b> ${data.text}</div>`;
+        document.getElementById("global-chat").innerHTML += `
+            <div style="margin-bottom:8px;">
+                <b onclick="core.openPM('${data.from}')" style="color:var(--accent); cursor:pointer;">${data.from}:</b> ${data.text}
+            </div>`;
     });
 
-    socket.on("server-msg", (data) => {
-        document.getElementById("server-logs").innerHTML += `<div><b style="color:#00f28d">${data.user}:</b> ${data.text}</div>`;
-    });
-
-    document.getElementById("server-in").addEventListener("keypress", (e) => {
-        if(e.key === "Enter" && e.target.value) {
-            socket.emit("game-chat-send", { gameId: currentGameId, user: session.name, text: e.target.value });
-            e.target.value = "";
+    socket.on("pm-receive", (data) => {
+        if(data.to === user.name || data.from === user.name) {
+            if(activePM === data.from || activePM === data.to) {
+                document.getElementById("pm-logs").innerHTML += `<div><b>${data.from}:</b> ${data.text}</div>`;
+            }
         }
     });
 
