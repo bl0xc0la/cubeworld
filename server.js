@@ -7,6 +7,8 @@ app.use(express.json());
 app.use(express.static('public'));
 
 let accounts = {}; 
+let friendsList = {}; // stores username -> array of friend names
+let gameServers = {}; // tracks players inside active game rooms
 let publishedGames = [
     { 
         id: '1', 
@@ -14,8 +16,8 @@ let publishedGames = [
         creator: "System", 
         logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150",
         mapData: [
-            { x: -2, y: 0.5, z: -2, color: 0xff0000 },
-            { x: 2, y: 0.5, z: 2, color: 0x00ff00 }
+            { x: -2, y: 0.6, z: -2, sx: 1.2, sy: 1.2, sz: 1.2, color: "#ff0000" },
+            { x: 2, y: 0.6, z: 2, sx: 1.2, sy: 1.2, sz: 1.2, color: "#00ff00" }
         ]
     }
 ];
@@ -36,12 +38,33 @@ app.post('/api/login', (req, res) => {
 });
 
 io.on("connection", (socket) => {
+    let currentRoom = null;
+    let currentUser = null;
+
     socket.emit("sync-games", publishedGames);
 
     socket.on("global-msg", (data) => io.emit("global-receive", data));
     socket.on("send-pm", (data) => io.emit("pm-receive", data));
 
-    // Studio Action: Receives real 3D block placements from the builder canvas
+    // Friend System Events
+    socket.on("add-friend", (data) => {
+        if (!friendsList[data.user]) friendsList[data.user] = [];
+        if (!friendsList[data.user].includes(data.target)) {
+            friendsList[data.user].push(data.target);
+        }
+        socket.emit("sync-friends", friendsList[data.user]);
+    });
+
+    // Admin Panel Trigger Events
+    socket.on("admin-announcement", (msg) => {
+        io.emit("global-receive", { from: "SYSTEM ALERT", text: msg });
+    });
+
+    socket.on("admin-give-cubes", (data) => {
+        io.emit("global-receive", { from: "SYSTEM", text: `Admin awarded ${data.amount} Cubes to ${data.target}!` });
+    });
+
+    // Studio Save Execution
     socket.on("publish-game", (data) => {
         const logoUrl = data.logo.trim() !== "" ? data.logo : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150";
         publishedGames.push({ 
@@ -54,14 +77,44 @@ io.on("connection", (socket) => {
         io.emit("sync-games", publishedGames);
     });
 
-    // Handle positions for multiplayer movement
+    // Multiplayer Room Logic
     socket.on("join-room", (data) => {
-        socket.join(data.roomId);
-        io.to(data.roomId).emit("server-msg", { user: "SYSTEM", text: `${data.user} entered the server room.` });
+        currentRoom = data.roomId;
+        currentUser = data.user;
+        socket.join(currentRoom);
+
+        if (!gameServers[currentRoom]) gameServers[currentRoom] = {};
+        
+        // Save player details
+        gameServers[currentRoom][socket.id] = {
+            id: socket.id,
+            name: currentUser,
+            x: 0, y: 1, z: 0
+        };
+
+        io.to(currentRoom).emit("room-players-update", Object.values(gameServers[currentRoom]));
+        io.to(currentRoom).emit("server-msg", { user: "SYSTEM", text: `${currentUser} connected.` });
+    });
+
+    socket.on("move-player", (data) => {
+        if (gameServers[currentRoom] && gameServers[currentRoom][socket.id]) {
+            gameServers[currentRoom][socket.id].x = data.x;
+            gameServers[currentRoom][socket.id].y = data.y;
+            gameServers[currentRoom][socket.id].z = data.z;
+            socket.to(currentRoom).emit("player-moved", gameServers[currentRoom][socket.id]);
+        }
     });
 
     socket.on("game-chat-send", (data) => {
         io.to(data.roomId).emit("server-msg", { user: data.user, text: data.text });
+    });
+
+    socket.on("disconnect", () => {
+        if (currentRoom && gameServers[currentRoom] && gameServers[currentRoom][socket.id]) {
+            delete gameServers[currentRoom][socket.id];
+            io.to(currentRoom).emit("room-players-update", Object.values(gameServers[currentRoom]));
+            io.to(currentRoom).emit("player-left", socket.id);
+        }
     });
 });
 
