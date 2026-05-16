@@ -5,60 +5,69 @@ const io = require('socket.io')(http);
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// 1. DATABASE CONNECTION
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/cubeworld';
-mongoose.connect(MONGO_URI)
-    .then(() => console.log("📦 Database Connected!"))
-    .catch(err => console.error("❌ DB Error:", err));
+// 1. DATABASE CONNECTION (With Safety Timeout)
+const MONGO_URI = process.env.MONGO_URI;
 
-// 2. SCHEMAS (Data Structures)
-const UserSchema = new mongoose.Schema({
-    username: { type: String, unique: true, required: true },
-    password: { type: String, required: true },
+if (!MONGO_URI) {
+    console.error("❌ ERROR: MONGO_URI is missing in Render Environment Variables!");
+}
+
+mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 5000 
+})
+.then(() => console.log("📦 Connected to MongoDB Successfully!"))
+.catch(err => console.error("❌ MongoDB Connection Failed:", err.message));
+
+// 2. DATA MODELS
+const User = mongoose.model('User', new mongoose.Schema({
+    username: { type: String, unique: true },
     cubes: { type: Number, default: 500 },
     friends: [String],
-    inventory: [String] // Store items like 'Red Cap'
-});
-const User = mongoose.model('User', UserSchema);
+    messages: [{ from: String, text: String, date: { type: Date, default: Date.now } }]
+}));
 
-const GameSchema = new mongoose.Schema({
+const Game = mongoose.model('Game', new mongoose.Schema({
     name: String,
     creator: String,
-    logo: { type: String, default: "https://via.placeholder.com/150" },
-    mapData: Array // The advanced block data
-});
-const Game = mongoose.model('Game', GameSchema);
+    mapData: Array
+}));
 
-const MessageSchema = new mongoose.Schema({
-    from: String,
-    to: String,
-    text: String,
-    time: { type: Date, default: Date.now }
-});
-const Message = mongoose.model('Message', MessageSchema);
-
-// 3. SERVER CONFIG
+// 3. MIDDLEWARE
 app.use(express.json());
 app.use(express.static('public'));
 
-// 4. API ROUTES
+// 4. API ROUTES (The Login Fix)
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
-    let account = await User.findOne({ username });
-    if (!account) {
-        account = new User({ username, password });
-        await account.save();
+    try {
+        const { username } = req.body;
+        if (!username) return res.status(400).json({ error: "Username required" });
+
+        let account = await User.findOne({ username });
+        if (!account) {
+            account = new User({ username });
+            await account.save();
+            console.log(`✨ New Account Created: ${username}`);
+        }
+        res.json({ success: true, user: account });
+    } catch (err) {
+        console.error("Login API Error:", err);
+        res.status(500).json({ error: "Database not responding" });
     }
-    res.json({ success: true, user: account });
 });
 
-// 5. SOCKET ENGINE (Real-time Friends, DMs, & Multiplayer)
-io.on("connection", async (socket) => {
-    // Initial Sync
-    const games = await Game.find({});
-    socket.emit("sync-games", games);
+// 5. SOCKET.IO (Friends, DMs, & Studio)
+io.on("connection", (socket) => {
+    console.log("A user connected");
 
-    // Friend System
+    // Send games to the user when they connect
+    Game.find({}).then(games => socket.emit("sync-games", games));
+
+    // Global Chat
+    socket.on("global-msg", (data) => {
+        io.emit("chat-update", data);
+    });
+
+    // Friend Request / Add
     socket.on("add-friend", async ({ user, target }) => {
         const me = await User.findOne({ username: user });
         if (me && !me.friends.includes(target)) {
@@ -68,38 +77,24 @@ io.on("connection", async (socket) => {
         }
     });
 
-    // Private Messaging (DMs)
-    socket.on("send-dm", async (data) => {
-        const msg = new Message(data);
-        await msg.save();
-        io.emit(`dm-receive-${data.to}`, data);
+    // Send DM
+    socket.on("send-dm", async ({ from, to, text }) => {
+        const recipient = await User.findOne({ username: to });
+        if (recipient) {
+            recipient.messages.push({ from, text });
+            await recipient.save();
+            io.emit(`dm-receive-${to}`, { from, text });
+        }
     });
 
-    // Fetch DM History
-    socket.on("get-dms", async ({ user, target }) => {
-        const history = await Message.find({
-            $or: [
-                { from: user, to: target },
-                { from: target, to: user }
-            ]
-        }).sort({ time: 1 });
-        socket.emit("dm-history", history);
-    });
-
-    // Studio Publishing
+    // Publish from Studio
     socket.on("publish-game", async (data) => {
         const newGame = new Game(data);
         await newGame.save();
-        const allGames = await Game.find({});
-        io.emit("sync-games", allGames);
-    });
-
-    // Multiplayer Sync
-    socket.on("join-room", (room) => socket.join(room));
-    socket.on("move-player", (data) => {
-        socket.to(data.room).emit("player-moved", data);
+        const all = await Game.find({});
+        io.emit("sync-games", all);
     });
 });
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`🚀 Cubeworld Live on ${PORT}`));
+http.listen(PORT, () => console.log(`🚀 Cubeworld running on port ${PORT}`));
