@@ -1,46 +1,202 @@
-// --- THE THREE.JS CAP ACCESSORY ---
-function createCap(color = 0xff0000) {
-    const capGroup = new THREE.Group();
-    // The top part
-    const dome = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.4, 0.45, 0.3, 12),
-        new THREE.MeshStandardMaterial({ color: color })
-    );
-    // The brim (bill)
-    const brim = new THREE.Mesh(
-        new THREE.BoxGeometry(0.6, 0.05, 0.5),
-        new THREE.MeshStandardMaterial({ color: color })
-    );
-    brim.position.set(0, -0.1, 0.3);
-    capGroup.add(dome, brim);
-    capGroup.position.y = 1.1; // Place on head
-    return capGroup;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubeWorld | Advanced Engine</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #0070ff; --bg: #0b0e14; --panel: #161b26; --text: #ffffff; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); overflow: hidden; }
 
-// --- ADVANCED STUDIO GRID SNAPPING ---
-const GRID_SIZE = 1.0; 
-function getSnappedPos(val) {
-    return Math.round(val / GRID_SIZE) * GRID_SIZE;
-}
+        /* Login & UI Layout */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .box { background: var(--panel); padding: 30px; border-radius: 15px; width: 320px; text-align: center; border: 1px solid #2d3446; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #000; color: #fff; }
+        .btn { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+        
+        .main-wrapper { display: grid; grid-template-columns: 240px 1fr 300px; height: 100vh; padding: 15px; gap: 15px; }
+        aside, main { background: var(--panel); border-radius: 15px; padding: 20px; border: 1px solid #2d3446; overflow-y: auto; }
 
-// When placing a block in your Studio logic:
-function placeBlock(x, y, z, color) {
-    const block = new THREE.Mesh(
-        new THREE.BoxGeometry(GRID_SIZE, GRID_SIZE, GRID_SIZE),
-        new THREE.MeshStandardMaterial({ color: color })
-    );
-    block.position.set(getSnappedPos(x), getSnappedPos(y), getSnappedPos(z));
-    studioScene.add(block);
-}
+        /* Studio & Game Screen */
+        #studio-viewport { width: 100%; height: 400px; background: #000; border-radius: 10px; position: relative; }
+        #game-overlay { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; }
+        
+        /* Social */
+        .dm-window { position: fixed; bottom: 20px; right: 330px; width: 280px; background: var(--panel); border: 2px solid var(--accent); border-radius: 10px; display: none; }
+        .dm-header { padding: 10px; background: rgba(255,255,255,0.05); font-weight: bold; display: flex; justify-content: space-between; }
+        #dm-logs { height: 200px; overflow-y: auto; padding: 10px; font-size: 13px; }
+    </style>
+</head>
+<body>
 
-// --- SOCIAL SYSTEM UI LOGIC ---
-function openDM(target) {
-    activeDM = target;
-    socket.emit("get-dms", { user: currentUser.name, target: target });
-    document.getElementById("dm-window").style.display = "block";
-}
+<div id="auth-screen">
+    <div class="box">
+        <h1>CubeWorld</h1>
+        <input id="u-name" type="text" placeholder="Username">
+        <input id="u-pass" type="password" placeholder="Password">
+        <button class="btn" onclick="app.login()">Enter World</button>
+    </div>
+</div>
 
-socket.on("dm-history", (history) => {
-    const container = document.getElementById("dm-logs");
-    container.innerHTML = history.map(m => `<div><b>${m.from}:</b> ${m.text}</div>`).join('');
-});
+<div class="main-wrapper">
+    <aside>
+        <div id="pfp" style="width:80px; height:80px; background:#000; border-radius:50%; margin:0 auto 10px; border:2px solid var(--accent);"></div>
+        <h3 id="display-name" style="text-align:center">User</h3>
+        <p id="display-cubes" style="text-align:center; color:#f1c40f; font-size:14px;">500 Cubes</p>
+        <hr style="margin:20px 0; opacity:0.1">
+        <div class="btn" style="background:#2d3446; margin-bottom:10px" onclick="app.view('games')">Games</div>
+        <div class="btn" style="background:#2d3446; margin-bottom:10px" onclick="app.view('studio'); studio.init()">Studio</div>
+        <div class="btn" style="background:#2d3446" onclick="app.view('social')">Friends</div>
+    </aside>
+
+    <main>
+        <section id="view-games" class="content">
+            <h2>Featured Games</h2>
+            <div id="game-list"></div>
+        </section>
+
+        <section id="view-studio" class="content" style="display:none">
+            <h2>Advanced Studio (Grid Snapping)</h2>
+            <div id="studio-viewport"></div>
+            <div style="margin-top:15px; display:flex; gap:10px">
+                <input id="game-title" placeholder="Game Name..." style="margin:0">
+                <button class="btn" style="width:150px" onclick="studio.save()">Publish</button>
+            </div>
+        </section>
+
+        <section id="view-social" class="content" style="display:none">
+            <h2>Friends & DMs</h2>
+            <div id="friend-list"></div>
+        </section>
+    </main>
+
+    <aside>
+        <h3>Global Chat</h3>
+        <div id="global-logs" style="height:calc(100% - 100px); overflow-y:auto; font-size:13px; margin:15px 0"></div>
+        <input id="global-in" placeholder="Say something..." onkeypress="if(e.key==='Enter') app.sendChat()">
+    </aside>
+</div>
+
+<div id="dm-window" class="dm-window">
+    <div class="dm-header"><span id="dm-target-name">Chat</span> <span onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer">×</span></div>
+    <div id="dm-logs"></div>
+    <input id="dm-in" placeholder="Message..." style="border-radius:0">
+</div>
+
+<script>
+    const socket = io();
+    let currentUser = null;
+    let activeDM = null;
+
+    // --- AVATAR SYSTEM (3D CAP) ---
+    function createPlayerMesh(color = 0x0070ff, hasCap = true) {
+        const group = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshStandardMaterial({color}));
+        group.add(body);
+
+        if(hasCap) {
+            const cap = new THREE.Group();
+            const dome = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.3, 12), new THREE.MeshStandardMaterial({color: 0xff0000}));
+            const brim = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.5), new THREE.MeshStandardMaterial({color: 0xff0000}));
+            brim.position.set(0, -0.1, 0.3);
+            cap.add(dome, brim);
+            cap.position.y = 1.1; 
+            group.add(cap);
+        }
+        return group;
+    }
+
+    // --- STUDIO SYSTEM (GRID SNAPPING) ---
+    const studio = {
+        scene: null, cam: null, renderer: null, blocks: [],
+        init() {
+            if(this.scene) return;
+            const el = document.getElementById('studio-viewport');
+            this.scene = new THREE.Scene();
+            this.cam = new THREE.PerspectiveCamera(75, el.clientWidth/el.clientHeight, 0.1, 1000);
+            this.renderer = new THREE.WebGLRenderer();
+            this.renderer.setSize(el.clientWidth, el.clientHeight);
+            el.appendChild(this.renderer.domElement);
+            
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 10, 5);
+            this.scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
+            this.scene.add(new THREE.GridHelper(20, 20));
+            this.cam.position.set(5, 5, 5);
+            this.cam.lookAt(0,0,0);
+
+            el.onclick = () => this.addBlock();
+            this.animate();
+        },
+        addBlock() {
+            const size = 1.0; // GRID SIZE
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshStandardMaterial({color: Math.random() * 0xffffff}));
+            // Snapping logic
+            mesh.position.set(
+                Math.round((Math.random() * 5) / size) * size,
+                size/2,
+                Math.round((Math.random() * 5) / size) * size
+            );
+            this.scene.add(mesh);
+            this.blocks.push({ x: mesh.position.x, y: mesh.position.y, z: mesh.position.z, color: mesh.material.color.getHex() });
+        },
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            this.renderer.render(this.scene, this.cam);
+        },
+        save() {
+            const name = document.getElementById('game-title').value || "Untitled Game";
+            socket.emit('publish-game', { name, creator: currentUser.username, mapData: this.blocks });
+            alert("Game Published Successfully!");
+        }
+    };
+
+    // --- CORE APP LOGIC ---
+    const app = {
+        login() {
+            const username = document.getElementById('u-name').value;
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password: 'pw'})
+            }).then(r => r.json()).then(data => {
+                currentUser = data.user;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('display-name').innerText = currentUser.username;
+                document.getElementById('display-cubes').innerText = `${currentUser.cubes} Cubes`;
+            });
+        },
+        view(id) {
+            document.querySelectorAll('.content').forEach(s => s.style.display = 'none');
+            document.getElementById('view-' + id).style.display = 'block';
+        },
+        sendChat() {
+            const input = document.getElementById('global-in');
+            socket.emit('global-msg', { from: currentUser.username, text: input.value });
+            input.value = '';
+        }
+    };
+
+    // --- SOCKET LISTENERS (DMs & FRIENDS) ---
+    socket.on('sync-games', (games) => {
+        const list = document.getElementById('game-list');
+        list.innerHTML = games.map(g => `
+            <div class="box" style="width:100%; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center">
+                <span><b>${g.name}</b> by ${g.creator}</span>
+                <button class="btn" style="width:80px">Play</button>
+            </div>
+        `).join('');
+    });
+
+    socket.on(`dm-receive-${currentUser?.username}`, (data) => {
+        if(activeDM === data.from) {
+            document.getElementById('dm-logs').innerHTML += `<div><b>${data.from}:</b> ${data.text}</div>`;
+        }
+    });
+</script>
+</body>
+</html>
