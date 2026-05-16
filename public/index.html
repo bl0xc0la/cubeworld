@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld Multiplayer Pro</title>
+    <title>CubeWorld V5</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -14,27 +14,40 @@
             --accent: #0070ff;
             --text: #ffffff;
             --radius: 20px;
+            --border: rgba(255,255,255,0.05);
         }
 
-        body.theme-roblox { --bg: #06080f; --panel: #0d121f; --accent: #0070ff; }
-        body.theme-neon { --bg: #000; --panel: #111; --accent: #00f28d; }
-        body.theme-dark { --bg: #121212; --panel: #1e1e1e; --accent: #fff; }
+        body.theme-roblox { --bg: #06080f; --panel: #0d121f; --accent: #0070ff; --text: #ffffff; --border: rgba(255,255,255,0.05); }
+        body.theme-neon { --bg: #000; --panel: #111; --accent: #00f28d; --text: #ffffff; --border: #222; }
+        body.theme-dark { --bg: #121212; --panel: #1e1e1e; --accent: #fff; --text: #ffffff; --border: #333; }
+        
+        /* WHITE MODE */
+        body.theme-white { 
+            --bg: #f0f2f5; 
+            --panel: #ffffff; 
+            --accent: #0066ff; 
+            --text: #1a1f2c; 
+            --border: #e2e8f0; 
+        }
+        body.theme-white input, body.theme-white select { background: #f8fafc; color: #1a1f2c; border: 1px solid #cbd5e1; }
+        body.theme-white .nav-item:hover, body.theme-white .nav-item.active { background: #f1f5f9; color: #0066ff; }
+        body.theme-white .game-card { background: #f8fafc; border: 1px solid #e2e8f0; }
 
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
-        body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+        body { background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; transition: background 0.2s, color 0.2s; }
 
         #login-overlay { position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; }
-        .login-box { background: var(--panel); padding: 40px; border-radius: var(--radius); width: 350px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .login-box { background: var(--panel); padding: 40px; border-radius: var(--radius); width: 350px; text-align: center; border: 1px solid var(--border); }
         input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: 1px solid #222; background: #000; color: #fff; outline: none; }
         .btn { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; }
 
         .wrapper { display: grid; grid-template-columns: 260px 1fr 320px; height: 100vh; padding: 20px; gap: 20px; visibility: hidden; }
-        .sidebar { background: var(--panel); border-radius: var(--radius); padding: 25px; display: flex; flex-direction: column; }
+        .sidebar { background: var(--panel); border-radius: var(--radius); padding: 25px; display: flex; flex-direction: column; border: 1px solid var(--border); }
         
         .nav-item { padding: 14px; cursor: pointer; border-radius: 12px; margin-bottom: 6px; color: #64748b; font-weight: 600; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.03); color: var(--text); }
 
-        main { background: var(--panel); border-radius: var(--radius); padding: 35px; overflow-y: auto; position: relative; }
+        main { background: var(--panel); border-radius: var(--radius); padding: 35px; overflow-y: auto; position: relative; border: 1px solid var(--border); }
         .view { display: none; height: 100%; }
         .view.active { display: block; }
 
@@ -43,7 +56,7 @@
 
         #avatar-box { width: 80px; height: 80px; background: #000; border-radius: 50%; margin: 0 auto 12px; border: 2px solid var(--accent); overflow: hidden; }
 
-        .chat-wrap { background: var(--panel); border-radius: var(--radius); display: flex; flex-direction: column; padding: 25px; }
+        .chat-wrap { background: var(--panel); border-radius: var(--radius); display: flex; flex-direction: column; padding: 25px; border: 1px solid var(--border); }
         .chat-logs { flex: 1; overflow-y: auto; font-size: 14px; }
         .chat-input { display: flex; gap: 8px; margin-top: 15px; }
 
@@ -51,20 +64,21 @@
         .pm-header { padding: 12px; font-weight: 700; display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); }
         .pm-logs { height: 160px; padding: 12px; font-size: 13px; overflow-y: auto; }
 
-        /* LIVE GAME LAYOUT */
         #game-screen { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
         #canvas-game-container { flex: 1; position: relative; width: 100%; height: 100%; }
         .game-room-chat { height: 220px; background: rgba(0,0,0,0.8); width: 380px; position: absolute; bottom: 20px; left: 20px; border-radius: 12px; padding: 15px; border: 1px solid #222; }
-        
-        /* MULTIPLAYER PLAYER LIST OVERLAY */
-        .room-player-list { position: absolute; top: 20px; right: 200px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 12px; border: 1px solid #333; width: 220px; max-height: 250px; overflow-y: auto; }
+        .room-player-list { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 12px; border: 1px solid #333; width: 220px; max-height: 250px; overflow-y: auto; color: #fff; }
 
-        /* ADVANCED ROBLOX STUDIO TOOL PANEL */
         .studio-layout { display: grid; grid-template-columns: 1fr 300px; gap: 15px; height: 100%; }
-        #studio-canvas { width: 100%; height: 420px; background: #111; border-radius: 12px; position: relative; border: 1px solid #333; }
+        #studio-canvas { width: 100%; height: 420px; background: #111; border-radius: 12px; position: relative; border: 1px solid #333; cursor: grab; }
+        #studio-canvas:active { cursor: grabbing; }
         .studio-sidebar-tools { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; height: 420px;}
         .num-row { display: flex; gap: 5px; }
         .num-row input { padding: 8px; margin-bottom: 0; }
+
+        /* USER PROFILE MODAL */
+        #profile-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 8000; display: none; align-items: center; justify-content:center; }
+        .profile-card { background: var(--panel); border: 2px solid var(--accent); padding: 30px; border-radius: var(--radius); width: 320px; text-align: center; position: relative; }
     </style>
 </head>
 <body class="theme-roblox">
@@ -78,13 +92,27 @@
     </div>
 </div>
 
+<div id="profile-modal">
+    <div class="profile-card">
+        <span onclick="document.getElementById('profile-modal').style.display='none'" style="position:absolute; top:15px; right:20px; cursor:pointer; font-size:20px; color:#ff4757; font-weight:700;">&times;</span>
+        <div style="width:70px; height:70px; background:#000; border-radius:50%; margin:0 auto 10px; border:2px solid var(--accent);"></div>
+        <h3 id="prof-name">Username</h3>
+        <p id="prof-role" style="color:var(--accent); font-weight:700; font-size:14px; margin-bottom:15px;">Rank</p>
+        <div style="background:rgba(0,0,0,0.1); padding:10px; border-radius:10px; margin-bottom:15px; text-align:left; font-size:13px;">
+            <div>💰 Balance: <span id="prof-cubes" style="color:#f1c40f; font-weight:700;">0</span></div>
+            <div>👥 Connections: <span id="prof-friends">0 Friends</span></div>
+        </div>
+        <button id="prof-add-btn" class="btn" style="padding:8px;">Send Friend Request</button>
+    </div>
+</div>
+
 <div id="game-screen">
     <div id="canvas-game-container">
-        <div style="position: absolute; top: 20px; left: 20px; font-weight:700; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; z-index: 10;">
+        <div style="position: absolute; top: 20px; left: 20px; font-weight:700; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; z-index: 10; color:#fff;">
             <span id="active-game-title">Game Workspace</span><br>
             <small style="font-weight:400; color:#00f28d">Controls: W, A, S, D / Arrows to Move</small>
         </div>
-        <button class="btn" style="position: absolute; top: 20px; right: 20px; width: auto; background: #ff4757; padding: 10px 20px; z-index: 10;" onclick="core.leaveGame()">EXIT TO MENU</button>
+        <button class="btn" style="position: absolute; top: 20px; right: 260px; width: auto; background: #ff4757; padding: 10px 20px; z-index: 10;" onclick="core.leaveGame()">EXIT TO MENU</button>
         
         <div class="room-player-list">
             <h4 style="margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px;">Server Players</h4>
@@ -118,41 +146,35 @@
         </section>
 
         <section id="view-studio" class="view">
-            <h2>Roblox Style Engine Studio V2</h2>
-            <p style="color: #64748b; font-size:13px; margin-bottom:10px;">Configure part sizing, positions, lighting properties and color selection map spaces.</p>
+            <h2>Roblox Style Engine Studio V3</h2>
+            <p style="color: #64748b; font-size:13px; margin-bottom:10px;">Click & Drag parts directly inside the window workspace viewport viewport frame to position them!</p>
             <div class="studio-layout">
                 <div id="studio-canvas"></div>
                 <div class="studio-sidebar-tools">
-                    <h4 style="color:var(--accent)">Part Properties</h4>
+                    <h4 style="color:var(--accent)" id="studio-sel-title">No Part Selected</h4>
                     
-                    <label style="font-size: 12px;">Position Vector (X / Y / Z)</label>
+                    <label style="font-size: 12px;">Scale (Width / Height / Depth)</label>
                     <div class="num-row">
-                        <input id="p-x" type="number" value="0" step="0.5">
-                        <input id="p-y" type="number" value="0.5" step="0.5">
-                        <input id="p-z" type="number" value="0" step="0.5">
+                        <input id="s-x" type="number" value="1.5" step="0.1" oninput="studio.updateSelectedTransform()">
+                        <input id="s-y" type="number" value="1.5" step="0.1" oninput="studio.updateSelectedTransform()">
+                        <input id="s-z" type="number" value="1.5" step="0.1" oninput="studio.updateSelectedTransform()">
                     </div>
 
-                    <label style="font-size: 12px;">Scale Transform (Width / Height / Depth)</label>
-                    <div class="num-row">
-                        <input id="s-x" type="number" value="1.5" step="0.1">
-                        <input id="s-y" type="number" value="1.5" step="0.1">
-                        <input id="s-z" type="number" value="1.5" step="0.1">
-                    </div>
+                    <label style="font-size: 12px;">Color Assignment Map</label>
+                    <input id="part-color-picker" type="color" value="#0070ff" style="padding:0; height:40px; cursor:pointer;" oninput="studio.updateSelectedColor(this.value)">
 
-                    <label style="font-size: 12px;">Color Picker / Palette</label>
-                    <input id="part-color-picker" type="color" value="#0070ff" style="padding:0; height:40px; cursor:pointer;">
+                    <button class="btn" style="padding: 8px;" onclick="studio.spawnPart()">Spawn New Part</button>
+                    <hr style="border-color:var(--border); margin:5px 0;">
 
-                    <button class="btn" style="padding: 8px;" onclick="studio.spawnCustomPart()">Spawn Custom Part</button>
-                    <hr style="border-color:#222; margin:5px 0;">
+                    <h4 style="color:var(--accent)">Lighting Engine Engine</h4>
+                    <label style="font-size: 12px;">Sun Intensity</label>
+                    <input id="light-intensity" type="range" min="1" max="15" value="7" oninput="studio.updateLighting(this.value)">
 
-                    <h4 style="color:var(--accent)">World Environment Lighting</h4>
-                    <label style="font-size: 12px;">Ambient Brightness</label>
-                    <input id="light-intensity" type="range" min="1" max="10" value="7" oninput="studio.updateLighting(this.value)">
-
+                    <button class="btn" style="padding: 8px; background:#ff4757;" onclick="studio.deleteSelected()">Delete Selected Part</button>
                     <button class="btn" style="padding: 8px; background:#7c3aed;" onclick="studio.clear()">Clear Workspace</button>
                 </div>
             </div>
-            <div style="background: rgba(255,255,255,0.01); padding: 15px; border-radius: 12px; display:flex; gap:10px; margin-top:15px;">
+            <div style="background: rgba(255,255,255,0.01); padding: 15px; border-radius: 12px; display:flex; gap:10px; margin-top:15px; border:1px solid var(--border);">
                 <input id="new-game-name" placeholder="Game Title..." style="margin-bottom:0;">
                 <input id="new-game-logo" placeholder="Logo Link (URL)..." style="margin-bottom:0;">
                 <button class="btn" style="width:200px;" onclick="core.publish()">Publish to Feed</button>
@@ -161,23 +183,17 @@
 
         <section id="view-admin" class="view">
             <h2>👑 System Owner Dashboard</h2>
-            <p style="color: #64748b; margin-bottom: 20px;">Welcome back, BloxColaYT. Management tools are live.</p>
-            <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 16px; margin-bottom: 15px;">
+            <p style="color: #64748b; margin-bottom: 20px;">Welcome back, BloxColaYT.</p>
+            <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 16px; margin-bottom: 15px; border:1px solid var(--border);">
                 <h4>Broadcast Server Announcement Notification</h4>
                 <input id="admin-notice-input" placeholder="Type global system banner alert text here..." style="margin-top:10px;">
                 <button class="btn" onclick="core.sendAdminNotice()">Send Banner Alert</button>
-            </div>
-            <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 16px;">
-                <h4>Award Cubes Transaction Tool</h4>
-                <input id="admin-cube-target" placeholder="Target Player Username" style="margin-top:10px;">
-                <input id="admin-cube-amount" type="number" placeholder="Cubes Quantity" style="margin-top:5px;">
-                <button class="btn" style="background:#f1c40f; color:#000;" onclick="core.sendAdminCubes()">Grant Cubes Package</button>
             </div>
         </section>
 
         <section id="view-settings" class="view">
             <h2>Friends Tracker & Settings</h2>
-            <div style="margin-top:15px; background: rgba(255,255,255,0.02); padding:20px; border-radius:12px;">
+            <div style="margin-top:15px; background: rgba(255,255,255,0.02); padding:20px; border-radius:12px; border:1px solid var(--border);">
                 <h4>Your Friend Contacts</h4>
                 <ul id="friends-list-container" style="margin-top:10px; list-style:inside square; color:#00f28d;"></ul>
             </div>
@@ -186,6 +202,7 @@
                 <button class="btn" style="background:#0070ff" onclick="core.setTheme('roblox')">Roblox Blue</button>
                 <button class="btn" style="background:#00f28d; color:#000" onclick="core.setTheme('neon')">Neon Green</button>
                 <button class="btn" style="background:#333" onclick="core.setTheme('dark')">Dark Mode</button>
+                <button class="btn" style="background:#ffffff; color:#000; border:1px solid #ccc;" onclick="core.setTheme('white')">White Mode ☀️</button>
             </div>
         </section>
     </main>
@@ -218,14 +235,18 @@
     let activePM = null;
     let currentRoomId = null;
 
-    // Game Client Engine Arrays
     let gameScene, gameCamera, gameRenderer, playerMesh;
     let moveKeys = { w: false, a: false, s: false, d: false };
     let otherPlayers = {}; 
 
-    // Studio Engine Objects
-    let studioScene, studioCamera, studioRenderer, studioAmbientLight;
-    let studioBlocksData = [];
+    // Advanced interactive Studio variables
+    let studioScene, studioCamera, studioRenderer, studioSunLight;
+    let selectedMesh = null;
+    let studioRaycaster = new THREE.Raycaster();
+    let studioMouse = new THREE.Vector2();
+    let isDraggingPart = false;
+    let dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    let intersectionVec = new THREE.Vector3();
 
     function initMenuAvatar() {
         const container = document.getElementById("avatar-box");
@@ -234,42 +255,29 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(80, 80);
         container.appendChild(renderer.domElement);
-
         const cube = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ color: 0x0070ff }));
         scene.add(cube);
         scene.add(new THREE.AmbientLight(0xffffff, 0.8));
         camera.position.z = 3.5;
-
-        function animate() {
-            requestAnimationFrame(animate);
-            cube.rotation.y += 0.01;
-            renderer.render(scene, camera);
-        }
+        function animate() { requestAnimationFrame(animate); cube.rotation.y += 0.01; renderer.render(scene, camera); }
         animate();
     }
 
-    // CREATE BLOCK HEAD FACES WITH EYES AND MOUTH
-    function attachRobloxFaceMesh(parentMesh, itemColorHex) {
-        // Left Eye
+    function attachRobloxFaceMesh(parentMesh) {
         const eyeGeo = new THREE.BoxGeometry(0.15, 0.2, 0.1);
         const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-        leftEye.position.set(-0.2, 0.3, 0.51); // Position directly on the front wall facet face
+        leftEye.position.set(-0.2, 0.3, 0.61);
         parentMesh.add(leftEye);
-
-        // Right Eye
         const rightEye = leftEye.clone();
         rightEye.position.x = 0.2;
         parentMesh.add(rightEye);
-
-        // Smile Mouth
-        const mouthGeo = new THREE.BoxGeometry(0.3, 0.08, 0.1);
-        const mouthMesh = new THREE.Mesh(mouthGeo, eyeMat);
-        mouthMesh.position.set(0, -0.2, 0.51);
+        const mouthMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.1), eyeMat);
+        mouthMesh.position.set(0, -0.2, 0.61);
         parentMesh.add(mouthMesh);
     }
 
-    // EXTENDED MODEL CREATOR VISUALIZER STUDIO
+    // STUDIO ENGINE WITH INTERACTIVE DRAG AND PICKING
     const studio = {
         init() {
             const container = document.getElementById("studio-canvas");
@@ -282,18 +290,20 @@
             studioRenderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(studioRenderer.domElement);
 
-            const grid = new THREE.GridHelper(25, 25, 0x0070ff, 0x444455);
-            studioScene.add(grid);
-
-            studioAmbientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            studioScene.add(studioAmbientLight);
+            studioScene.add(new THREE.GridHelper(30, 30, 0x0070ff, 0x444455));
+            studioScene.add(new THREE.AmbientLight(0xffffff, 0.5));
             
-            const light = new THREE.DirectionalLight(0xffffff, 0.6);
-            light.position.set(10, 25, 10);
-            studioScene.add(light);
+            studioSunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            studioSunLight.position.set(10, 25, 10);
+            studioScene.add(studioSunLight);
 
-            studioCamera.position.set(0, 10, 15);
+            studioCamera.position.set(0, 12, 18);
             studioCamera.lookAt(0, 0, 0);
+
+            // Hook up dragging pointer physics listeners straight to structural workspace canvas
+            container.addEventListener('pointerdown', studio.onPointerDown);
+            container.addEventListener('pointermove', studio.onPointerMove);
+            window.addEventListener('pointerup', () => { isDraggingPart = false; });
 
             function renderStudio() {
                 requestAnimationFrame(renderStudio);
@@ -301,44 +311,82 @@
             }
             renderStudio();
         },
-        spawnCustomPart() {
-            // Extracts precise numeric parameters and Hex strings right out of panel DOM
-            const px = parseFloat(document.getElementById("p-x").value) || 0;
-            const py = parseFloat(document.getElementById("p-y").value) || 0.5;
-            const pz = parseFloat(document.getElementById("p-z").value) || 0;
+        spawnPart() {
+            const boxGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const boxMat = new THREE.MeshStandardMaterial({ color: 0x0070ff });
+            const mesh = new THREE.Mesh(boxGeo, boxMat);
+            mesh.position.set((Math.random() - 0.5) * 5, 0.75, (Math.random() - 0.5) * 5);
+            mesh.isWorkspaceBlock = true; // identification flag
+            studioScene.add(mesh);
+            studio.selectPart(mesh);
+        },
+        selectPart(mesh) {
+            if (selectedMesh && selectedMesh.material.emissive) selectedMesh.material.emissive.setHex(0x000000);
+            selectedMesh = mesh;
+            document.getElementById("studio-sel-title").innerText = "Active Selection";
+            selectedMesh.material.emissive.setHex(0x222222);
 
+            document.getElementById("s-x").value = mesh.scale.x * 1.5;
+            document.getElementById("s-y").value = mesh.scale.y * 1.5;
+            document.getElementById("s-z").value = mesh.scale.z * 1.5;
+            document.getElementById("part-color-picker").value = "#" + mesh.material.color.getHexString();
+        },
+        updateSelectedTransform() {
+            if (!selectedMesh) return;
             const sx = parseFloat(document.getElementById("s-x").value) || 1;
             const sy = parseFloat(document.getElementById("s-y").value) || 1;
             const sz = parseFloat(document.getElementById("s-z").value) || 1;
-
-            const colorHex = document.getElementById("part-color-picker").value;
-
-            const boxGeo = new THREE.BoxGeometry(sx, sy, sz);
-            const boxMat = new THREE.MeshStandardMaterial({ color: colorHex });
-            const mesh = new THREE.Mesh(boxGeo, boxMat);
-            mesh.position.set(px, py, pz);
-            studioScene.add(mesh);
-
-            studioBlocksData.push({ x: px, y: py, z: pz, sx, sy, sz, color: colorHex });
+            selectedMesh.scale.set(sx / 1.5, sy / 1.5, sz / 1.5);
+            selectedMesh.position.y = sy / 2; // Auto Snap bounding level right up to flat plane
+        },
+        updateSelectedColor(hex) {
+            if (!selectedMesh) return;
+            selectedMesh.material.color.set(hex);
+        },
+        deleteSelected() {
+            if (!selectedMesh) return;
+            studioScene.remove(selectedMesh);
+            selectedMesh = null;
+            document.getElementById("studio-sel-title").innerText = "No Part Selected";
         },
         updateLighting(val) {
-            if (studioAmbientLight) {
-                studioAmbientLight.intensity = val / 10;
+            if (studioSunLight) studioSunLight.intensity = val / 10;
+        },
+        onPointerDown(e) {
+            const rect = studioRenderer.domElement.getBoundingClientRect();
+            studioMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            studioMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            studioRaycaster.setFromCamera(studioMouse, studioCamera);
+            const targets = studioScene.children.filter(c => c.isWorkspaceBlock);
+            const hits = studioRaycaster.intersectObjects(targets);
+
+            if (hits.length > 0) {
+                studio.selectPart(hits[0].object);
+                isDraggingPart = true;
+            }
+        },
+        onPointerMove(e) {
+            if (!isDraggingPart || !selectedMesh) return;
+            const rect = studioRenderer.domElement.getBoundingClientRect();
+            studioMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            studioMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            studioRaycaster.setFromCamera(studioMouse, studioCamera);
+            if (studioRaycaster.ray.intersectPlane(dragPlane, intersectionVec)) {
+                selectedMesh.position.x = Math.round(intersectionVec.x * 2) / 2; // Smooth grid snapping physics mechanics
+                selectedMesh.position.z = Math.round(intersectionVec.z * 2) / 2;
             }
         },
         clear() {
-            studioBlocksData = [];
-            if(studioScene) {
-                while(studioScene.children.length > 0){ 
-                    studioScene.remove(studioScene.children[0]); 
-                }
-                studioScene.add(new THREE.GridHelper(25, 25, 0x0070ff, 0x444455));
-                studioScene.add(studioAmbientLight);
-            }
+            if(!studioScene) return;
+            studioScene.children.filter(c => c.isWorkspaceBlock).forEach(c => studioScene.remove(c));
+            selectedMesh = null;
+            document.getElementById("studio-sel-title").innerText = "No Part Selected";
         }
     };
 
-    // ACTIVE CLIENT MULTIPLAYER PIPELINE RUNNER
+    // ACTIVE WORLD PIPELINE RUNNER
     function runGameWorldEngine(mapData) {
         const holder = document.getElementById("canvas-game-container");
         const oldCanvas = holder.querySelector('canvas');
@@ -352,17 +400,14 @@
         gameRenderer.setSize(holder.clientWidth, holder.clientHeight);
         holder.appendChild(gameRenderer.domElement);
 
-        const floorGeo = new THREE.PlaneGeometry(100, 100);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x27ae60, side: THREE.DoubleSide });
-        const floor = new THREE.Mesh(floorGeo, floorMat);
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x27ae60, side: THREE.DoubleSide }));
         floor.rotation.x = Math.PI / 2;
         gameScene.add(floor);
 
-        // Load custom sizes maps structures
         if (mapData && mapData.length > 0) {
             mapData.forEach(b => {
                 const block = new THREE.Mesh(
-                    new THREE.BoxGeometry(b.sx || 1.2, b.sy || 1.2, b.sz || 1.2), 
+                    new THREE.BoxGeometry(b.sx || 1.5, b.sy || 1.5, b.sz || 1.5), 
                     new THREE.MeshStandardMaterial({ color: b.color })
                 );
                 block.position.set(b.x, b.y, b.z);
@@ -370,13 +415,12 @@
             });
         }
 
-        // Generate Character Box Rig
         playerMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2, 1.2), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
         playerMesh.position.set(Math.random() * 4, 1, Math.random() * 4);
         gameScene.add(playerMesh);
-        attachRobloxFaceMesh(playerMesh); // Slaps classic block face onto client body mesh!
+        attachRobloxFaceMesh(playerMesh);
 
-        gameScene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        gameScene.add(new THREE.AmbientLight(0xffffff, 0.6));
         const sun = new THREE.DirectionalLight(0xffffff, 0.8);
         sun.position.set(10, 40, 20);
         gameScene.add(sun);
@@ -394,7 +438,6 @@
             if (moveKeys.d) { playerMesh.position.x += 0.15; moved = true; }
 
             if (moved) {
-                // Emits transformation vectors directly down standard sockets pipeline links
                 socket.emit("move-player", { x: playerMesh.position.x, y: playerMesh.position.y, z: playerMesh.position.z });
             }
 
@@ -431,7 +474,6 @@
                 document.getElementById("main-ui").style.visibility = "visible";
                 document.getElementById("disp-user").innerText = user.name;
                 
-                // Admin Toggle Verification Check
                 if (user.name === "BloxColaYT") {
                     document.querySelector(".id-admin-nav").style.display = "block";
                     document.getElementById("disp-cubes").innerText = "∞ CUBES";
@@ -461,6 +503,9 @@
             document.getElementById("view-" + id).classList.add("active");
             el.classList.add("active");
         },
+        viewProfile(name) {
+            socket.emit("get-profile-data", name);
+        },
         addFriend(name) {
             socket.emit("add-friend", { user: user.name, target: name });
         },
@@ -469,24 +514,21 @@
             if(msg) socket.emit("admin-announcement", msg);
             document.getElementById("admin-notice-input").value = "";
         },
-        sendAdminCubes() {
-            const target = document.getElementById("admin-cube-target").value;
-            const amount = document.getElementById("admin-cube-amount").value;
-            if(target && amount) socket.emit("admin-give-cubes", { target, amount });
-            document.getElementById("admin-cube-target").value = "";
-            document.getElementById("admin-cube-amount").value = "";
-        },
         publish() {
             const name = document.getElementById("new-game-name").value;
             const logo = document.getElementById("new-game-logo").value;
-            if(!name) return alert("Please name your map build first!");
+            if(!name) return alert("Please type an instance map name structure!");
             
-            socket.emit("publish-game", { 
-                name, logo, 
-                user: user.name, 
-                mapData: studioBlocksData 
+            const compilerMapData = [];
+            studioScene.children.filter(c => c.isWorkspaceBlock).forEach(c => {
+                compilerMapData.push({
+                    x: c.position.x, y: c.position.y, z: c.position.z,
+                    sx: c.scale.x * 1.5, sy: c.scale.y * 1.5, sz: c.scale.z * 1.5,
+                    color: "#" + c.material.color.getHexString()
+                });
             });
 
+            socket.emit("publish-game", { name, logo, user: user.name, mapData: compilerMapData });
             document.getElementById("new-game-name").value = "";
             document.getElementById("new-game-logo").value = "";
             studio.clear();
@@ -499,14 +541,12 @@
             document.getElementById("server-chat-logs").innerHTML = "";
             
             socket.emit("join-room", { roomId: id, user: user.name });
-
             const parsedBlocks = JSON.parse(decodeURIComponent(mapDataString));
             setTimeout(() => runGameWorldEngine(parsedBlocks), 200);
         },
         leaveGame() {
             document.getElementById("game-screen").style.display = "none";
             currentRoomId = null;
-            // Purge other avatars out completely
             Object.values(otherPlayers).forEach(p => gameScene.remove(p.mesh));
             otherPlayers = {};
         },
@@ -539,7 +579,7 @@
                 <div class="game-card">
                     <div style="display:flex; align-items:center;">
                         <img class="game-logo" src="${g.logo}">
-                        <div><b>${g.name}</b><br><small style="color:#64748b">by ${g.creator}</small></div>
+                        <div><b>${g.name}</b><br><small style="color:#64748b">by <span style="text-decoration:underline; cursor:pointer;" onclick="core.viewProfile('${g.creator}')">${g.creator}</span></small></div>
                     </div>
                     <button class="btn" style="width: auto; padding: 8px 16px;" onclick="core.joinGame('${g.id}', '${g.name}', '${mapDataString}')">Play</button>
                 </div>
@@ -547,16 +587,43 @@
         }).join('');
     });
 
-    // Handle incoming client movement vectors and spawn alternative players
-    socket.on("player-moved", (data) => {
+    // POPOULATE LIVE USER PROFILE RESPONSES FROM PIPELINE Sockets
+    socket.on("profile-data-response", (data) => {
+        document.getElementById("prof-name").innerText = data.username;
+        document.getElementById("prof-role").innerText = data.role.toUpperCase();
+        document.getElementById("prof-cubes").innerText = data.cubes;
+        document.getElementById("prof-friends").innerText = data.friends + " Friends";
+        document.getElementById("prof-add-btn").setAttribute("onclick", `core.addFriend('${data.username}')`);
+        document.getElementById("profile-modal").style.display = "flex";
+    });
+
+    // FULL MULTIPLAYER STATE SYNC HANDLING
+    socket.on("current-room-state", (playersList) => {
         if (!gameScene) return;
-        if (!otherPlayers[data.id]) {
-            const m = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2, 1.2), new THREE.MeshStandardMaterial({ color: 0x00f28d }));
-            gameScene.add(m);
-            attachRobloxFaceMesh(m);
-            otherPlayers[data.id] = { mesh: m };
+        playersList.forEach(p => {
+            if (p.id !== socket.id && !otherPlayers[p.id]) {
+                const m = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2, 1.2), new THREE.MeshStandardMaterial({ color: 0x00f28d }));
+                m.position.set(p.x, p.y, p.z);
+                gameScene.add(m);
+                attachRobloxFaceMesh(m);
+                otherPlayers[p.id] = { mesh: m };
+            }
+        });
+    });
+
+    socket.on("player-joined-server", (p) => {
+        if (!gameScene || otherPlayers[p.id]) return;
+        const m = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2, 1.2), new THREE.MeshStandardMaterial({ color: 0x00f28d }));
+        m.position.set(p.x, p.y, p.z);
+        gameScene.add(m);
+        attachRobloxFaceMesh(m);
+        otherPlayers[p.id] = { mesh: m };
+    });
+
+    socket.on("player-moved", (data) => {
+        if (otherPlayers[data.id]) {
+            otherPlayers[data.id].mesh.position.set(data.x, data.y, data.z);
         }
-        otherPlayers[data.id].mesh.position.set(data.x, data.y, data.z);
     });
 
     socket.on("player-left", (id) => {
@@ -566,11 +633,10 @@
         }
     });
 
-    // Populate the Player List interface panel frame container
     socket.on("room-players-update", (list) => {
         document.getElementById("active-room-players").innerHTML = list.map(p => `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px;">
-                <span>👤 ${p.name}</span>
+                <span style="cursor:pointer; text-decoration:underline;" onclick="core.viewProfile('${p.name}')">👤 ${p.name}</span>
                 ${p.name !== user.name ? `<button class="btn" style="width:auto; padding:2px 6px; font-size:10px;" onclick="core.addFriend('${p.name}')">Friend</button>` : ''}
             </div>
         `).join('');
@@ -584,6 +650,7 @@
         document.getElementById("global-chat").innerHTML += `
             <div style="margin-bottom:8px;">
                 <b onclick="core.openPM('${data.from}')" style="color:var(--accent); cursor:pointer;">${data.from}:</b> ${data.text}
+                <small style="color:#64748b; font-size:10px; margin-left:5px; cursor:pointer;" onclick="core.viewProfile('${data.from}')">[View Profile]</small>
             </div>`;
         document.getElementById("global-chat").scrollTop = document.getElementById("global-chat").scrollHeight;
     });
