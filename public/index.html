@@ -1,202 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>CubeWorld V3</title>
+    <title>CubeWorld V3 Professional</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
     <style>
-        :root {
-            --bg: #0b0e14;
-            --panel: #12161f;
-            --sidebar: #0f121a;
-            --accent: #3b82f6;
-            --text: #ffffff;
-            --border: #1e293b;
-        }
+        :root { --bg: #0b0e14; --panel: #12161f; --accent: #3b82f6; --text: #fff; --border: #1e293b; }
+        .neon-theme { --bg: #001a00; --panel: #002b00; --accent: #00ff00; --border: #00ff00; }
+        .white-theme { --bg: #f0f2f5; --panel: #fff; --accent: #0070ff; --text: #000; --border: #ddd; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--text); overflow: hidden; display: flex; height: 100vh; padding: 20px; gap: 20px; }
-
-        /* Sidebar Navigation */
-        #sidebar { width: 260px; background: var(--sidebar); border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px; }
-        .profile-section { text-align: center; margin-bottom: 40px; }
-        .avatar-circle { width: 80px; height: 80px; background: var(--accent); border-radius: 50%; margin: 0 auto 15px; border: 4px solid var(--border); }
-        .nav-item { padding: 15px 20px; border-radius: 12px; cursor: pointer; color: #94a3b8; margin-bottom: 10px; transition: 0.2s; font-weight: 600; }
-        .nav-item:hover, .nav-item.active { background: var(--panel); color: #fff; }
-
-        /* Main Workspace Container */
-        main { flex: 1; background: var(--panel); border-radius: 25px; border: 1px solid var(--border); padding: 40px; position: relative; overflow-y: auto; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; padding: 15px; gap: 15px; }
+        
+        #sidebar { width: 250px; background: var(--panel); border-radius: 15px; padding: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; }
+        main { flex: 1; background: var(--panel); border-radius: 20px; padding: 30px; border: 1px solid var(--border); overflow-y: auto; position: relative; }
+        
         .page { display: none; }
-        .active-page { display: block; }
+        .active { display: block; }
+        .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; color: #888; }
+        .nav-item:hover, .active-nav { background: rgba(255,255,255,0.05); color: #fff; }
 
-        /* Studio Panel Styles */
-        .studio-container { display: flex; gap: 20px; height: 100%; }
-        #viewport { flex: 3; background: #000; border-radius: 15px; border: 1px solid var(--border); height: 500px; }
-        .controls-panel { flex: 1; background: var(--sidebar); border-radius: 15px; padding: 20px; border: 1px solid var(--border); }
+        /* STUDIO */
+        #viewport { width: 100%; height: 400px; background: #000; border-radius: 10px; margin-top: 15px; }
+        #script-editor { width: 100%; height: 150px; background: #050505; color: #00ff00; font-family: monospace; padding: 10px; border: 1px solid var(--border); margin-top: 10px; }
         
-        .prop-group { margin-bottom: 20px; }
-        .prop-label { font-size: 11px; color: #64748b; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; display: block; }
-        .scale-inputs { display: flex; gap: 5px; }
-        .input-box { background: #000; border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; width: 100%; outline: none; }
-        
-        /* Right Side Global Chat */
-        #right-panel { width: 320px; background: var(--sidebar); border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; }
-        #chat-history { flex: 1; padding: 20px; overflow-y: auto; font-size: 14px; color: #94a3b8; }
-        .chat-input-area { padding: 20px; display: flex; gap: 10px; }
+        /* SHOP */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .item-card { background: var(--bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
 
-        /* UI Buttons */
-        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
-        .btn:hover { filter: brightness(1.1); }
-        .btn-danger { background: #ef4444; margin-top: 10px; }
-        .btn-purple { background: #7c3aed; margin-top: 10px; }
+        .btn { background: var(--accent); color: #fff; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; }
     </style>
 </head>
-<body>
+<body id="body">
 
 <div id="sidebar">
-    <div class="profile-section">
-        <div class="avatar-circle"></div>
-        <h3 id="side-username">BloxColaYT</h3>
-        <p style="color: #fbbf24; font-size: 12px; font-weight: 800; margin-top: 5px;">INFINITY CUBES</p>
-    </div>
-    <div id="nav-games" class="nav-item active" onclick="nav('games')">Games</div>
-    <div id="nav-studio" class="nav-item" onclick="nav('studio')">Studio Workspace</div>
-    <div id="nav-admin" class="nav-item" onclick="nav('admin')">Admin Panel</div>
-    <div id="nav-settings" class="nav-item" onclick="nav('settings')">Settings & Friends</div>
-    <div style="margin-top: auto;" class="nav-item">Logout</div>
+    <h2 style="margin-bottom:20px">CUBEWORLD</h2>
+    <div class="nav-item active-nav" onclick="nav('games')">Games</div>
+    <div class="nav-item" onclick="nav('studio')">Studio Workspace</div>
+    <div class="nav-item" onclick="nav('shop')">Avatar Shop</div>
+    <div class="nav-item" onclick="nav('admin')">Admin Panel</div>
+    <div class="nav-item" onclick="nav('settings')">Settings</div>
+    <div style="margin-top:auto">Cubes: <span id="cubes">0</span></div>
 </div>
 
 <main>
-    <div id="page-games" class="page active-page">
+    <div id="page-games" class="page active">
         <h1>Discover Games</h1>
-        <div id="game-list" style="margin-top: 30px;">
-            <p style="color: #64748b;">Loading active servers...</p>
-        </div>
+        <div id="game-list"></div>
     </div>
 
     <div id="page-studio" class="page">
-        <h2 style="margin-bottom: 5px;">Roblox Style Engine Studio V3</h2>
-        <p style="color: #64748b; font-size: 13px; margin-bottom: 25px;">Click & Drag parts directly inside the window workspace viewport frame to position them!</p>
-        
-        <div class="studio-container">
-            <div id="viewport"></div>
-            <div class="controls-panel">
-                <div class="prop-group">
-                    <span class="prop-label" id="selection-status">No Part Selected</span>
-                    <span class="prop-label">Scale (Width / Height / Depth)</span>
-                    <div class="scale-inputs">
-                        <input id="scale-x" class="input-box" value="1.5">
-                        <input id="scale-y" class="input-box" value="1.5">
-                        <input id="scale-z" class="input-box" value="1.5">
-                    </div>
-                </div>
-                <div class="prop-group">
-                    <span class="prop-label">Color Assignment Map</span>
-                    <input type="color" id="part-color" value="#3b82f6" style="width:100%; height:35px; border:none; background:none; cursor:pointer;">
-                </div>
-                <button class="btn" onclick="studio.spawn()">Spawn New Part</button>
-                <div class="prop-group" style="margin-top: 30px;">
-                    <span class="prop-label">Lighting Engine</span>
-                    <span class="prop-label">Sun Intensity</span>
-                    <input type="range" min="0" max="100" value="50" style="width:100%;" oninput="studio.setSun(this.value/50)">
-                </div>
-                <button class="btn btn-danger" onclick="studio.deleteSelected()">Delete Selected Part</button>
-                <button class="btn btn-purple" onclick="studio.publish()">Publish Game</button>
+        <h2>Studio V3</h2>
+        <div id="viewport"></div>
+        <div style="display:flex; gap:10px; margin-top:10px">
+            <input id="sx" placeholder="X Scale" value="1.5" style="width:60px">
+            <input id="sy" placeholder="Y Scale" value="1.5" style="width:60px">
+            <input id="sz" placeholder="Z Scale" value="1.5" style="width:60px">
+            <input type="color" id="pcol" value="#3b82f6">
+            <button onclick="studio.spawn()" style="flex:1">Spawn Part</button>
+        </div>
+        <textarea id="script-editor">-- Luau Scripting
+print("Hello Cubeworld!")
+local part = getSelectedPart()
+part.Color = Color3.fromRGB(255, 0, 0)</textarea>
+    </div>
+
+    <div id="page-shop" class="page">
+        <h1>Avatar Shop</h1>
+        <div class="shop-grid">
+            <div class="item-card">
+                <h3>Red Classic Cap</h3>
+                <p>150 Cubes</p>
+                <button class="btn" onclick="buy('red_cap')">Buy Now</button>
             </div>
         </div>
     </div>
 
-    <div id="page-admin" class="page">
-        <h1>Admin Panel</h1>
-        <p style="color: #64748b; margin-top: 10px;">Authorized Access Only.</p>
+    <div id="page-settings" class="page">
+        <h1>Themes</h1>
+        <button class="btn" onclick="setTheme('dark')">Dark Mode</button>
+        <button class="btn" style="background:#238636" onclick="setTheme('neon')">Neon Green</button>
+        <button class="btn" style="background:#fff; color:#000" onclick="setTheme('white')">White Mode</button>
     </div>
 
-    <div id="page-settings" class="page">
-        <h1>Friends Tracker & Settings</h1>
-        <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid var(--border);">
-            <p>Your Friend Contacts</p>
-        </div>
+    <div id="page-admin" class="page">
+        <h1>Admin Panel</h1>
+        <div id="admin-content">Access Granted. Welcome, Admin.</div>
     </div>
 </main>
 
-<div id="right-panel">
-    <div style="padding: 25px; border-bottom: 1px solid var(--border);"><h3>Global Chat</h3></div>
-    <div id="chat-history"></div>
-    <div class="chat-input-area">
-        <input id="chat-in" class="input-box" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()">
-        <button class="btn" style="width: 50px;" onclick="sendChat()">></button>
-    </div>
-</div>
-
 <script>
     const socket = io();
-    let currentUser = "BloxColaYT";
+    let user = "BloxColaYT";
+    let selectedPart = null;
 
     function nav(id) {
-        // Find the target page
-        const targetPage = document.getElementById('page-' + id);
-        if (!targetPage) return; // Safety check
-
-        // Toggle active classes
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        
-        targetPage.classList.add('active-page');
-        document.getElementById('nav-' + id).classList.add('active');
-
-        // Initialize Studio if needed
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-'+id).classList.add('active');
         if(id === 'studio') studio.init();
     }
 
+    function setTheme(t) {
+        document.getElementById('body').className = t + '-theme';
+    }
+
     const studio = {
-        scene: null, cam: null, renderer: null, objects: [], selected: null,
+        scene: new THREE.Scene(), objects: [],
         init() {
             if(this.renderer) return;
-            const container = document.getElementById('viewport');
-            this.scene = new THREE.Scene();
-            this.cam = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
+            const div = document.getElementById('viewport');
+            this.cam = new THREE.PerspectiveCamera(75, div.clientWidth/div.clientHeight, 0.1, 1000);
             this.renderer = new THREE.WebGLRenderer({ antialias: true });
-            this.renderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(this.renderer.domElement);
+            this.renderer.setSize(div.clientWidth, div.clientHeight);
+            div.appendChild(this.renderer.domElement);
             
-            this.scene.add(new THREE.GridHelper(30, 30, 0x1e293b, 0x1e293b));
-            this.sun = new THREE.DirectionalLight(0xffffff, 1);
-            this.sun.position.set(5, 10, 7);
-            this.scene.add(this.sun, new THREE.AmbientLight(0xffffff, 0.4));
-            
-            this.cam.position.set(8, 8, 8);
+            this.scene.add(new THREE.GridHelper(20, 20, 0x444444, 0x222222));
+            this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            this.cam.position.set(5, 5, 5);
             this.cam.lookAt(0,0,0);
 
-            this.controls = new THREE.DragControls(this.objects, this.cam, this.renderer.domElement);
+            // X, Y, Z ARROWS (Gizmos)
+            this.gizmo = new THREE.TransformControls(this.cam, this.renderer.domElement);
+            this.scene.add(this.gizmo);
+
             this.render();
         },
         spawn() {
-            const sx = parseFloat(document.getElementById('scale-x').value) || 1;
-            const sy = parseFloat(document.getElementById('scale-y').value) || 1;
-            const sz = parseFloat(document.getElementById('scale-z').value) || 1;
-            
-            const mesh = new THREE.Mesh(
-                new THREE.BoxGeometry(sx, sy, sz),
-                new THREE.MeshStandardMaterial({ color: document.getElementById('part-color').value })
-            );
-            mesh.position.y = sy / 2;
+            const x = parseFloat(document.getElementById('sx').value);
+            const y = parseFloat(document.getElementById('sy').value);
+            const z = parseFloat(document.getElementById('sz').value);
+            const col = document.getElementById('pcol').value;
+
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(x, y, z), new THREE.MeshStandardMaterial({ color: col }));
             this.scene.add(mesh);
             this.objects.push(mesh);
-        },
-        deleteSelected() {
-            // Logic to delete currently selected/dragged items
-            if(this.objects.length > 0) {
-                const last = this.objects.pop();
-                this.scene.remove(last);
-            }
-        },
-        setSun(val) { if(this.sun) this.sun.intensity = val; },
-        publish() {
-            const name = prompt("Enter game title:");
-            if(name) socket.emit('publish-game', { name, creator: currentUser, parts: [] });
+            this.gizmo.attach(mesh); // Add arrows to part
+            selectedPart = mesh;
         },
         render() {
             requestAnimationFrame(() => this.render());
@@ -204,35 +144,14 @@
         }
     };
 
-    function sendChat() {
-        const inp = document.getElementById('chat-in');
-        if(inp.value.trim()) socket.emit('send-chat', inp.value);
-        inp.value = "";
-    }
+    function buy(id) { socket.emit('buy-item', { username: user, itemId: id }); }
 
-    socket.on('chat-update', d => {
-        const history = document.getElementById('chat-history');
-        const msg = d.system ? `<div style="color:#64748b; font-style:italic;">${d.text}</div>` : 
-                               `<div><b style="color:#fff">${d.user}:</b> ${d.text}</div>`;
-        history.innerHTML += `<div style="margin-bottom:12px">${msg}</div>`;
-        history.scrollTop = history.scrollHeight;
+    socket.on('user-data', data => {
+        document.getElementById('cubes').innerText = data.cubes;
+        if(!data.isAdmin) document.getElementById('admin-content').innerText = "Access Denied.";
     });
 
-    socket.on('sync-games', games => {
-        const display = document.getElementById('game-list');
-        display.innerHTML = games.map(g => `
-            <div style="background:var(--sidebar); padding:20px; border-radius:15px; border:1px solid var(--border); margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <h3 style="font-size:18px;">${g.name}</h3>
-                    <small style="color:#64748b;">Created by ${g.creator}</small>
-                </div>
-                <button class="btn" style="width:120px;">Join Game</button>
-            </div>
-        `).join('');
-    });
-
-    // Auto-join global on load
-    socket.emit('join-global', currentUser);
+    socket.emit('get-user', user);
 </script>
 </body>
 </html>
