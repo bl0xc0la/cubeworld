@@ -8,194 +8,204 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #0070ff; --bg: #0b0e14; --panel: #161b26; --text: #ffffff; }
+        :root { --accent: #00f0ff; --bg: #05070a; --panel: #11141d; --text: #ffffff; }
         * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Login & UI Layout */
+        /* Auth Screen */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .box { background: var(--panel); padding: 30px; border-radius: 15px; width: 320px; text-align: center; border: 1px solid #2d3446; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #000; color: #fff; }
-        .btn { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+        .auth-box { background: var(--panel); padding: 40px; border-radius: 20px; width: 350px; text-align: center; border: 1px solid #2d3446; box-shadow: 0 0 30px rgba(0,240,255,0.1); }
         
-        .main-wrapper { display: grid; grid-template-columns: 240px 1fr 300px; height: 100vh; padding: 15px; gap: 15px; }
-        aside, main { background: var(--panel); border-radius: 15px; padding: 20px; border: 1px solid #2d3446; overflow-y: auto; }
+        /* Layout */
+        .wrapper { display: grid; grid-template-columns: 260px 1fr 300px; height: 100vh; padding: 15px; gap: 15px; }
+        aside, main { background: var(--panel); border-radius: 15px; padding: 20px; border: 1px solid #2d3446; overflow: hidden; position: relative; }
 
-        /* Studio & Game Screen */
-        #studio-viewport { width: 100%; height: 400px; background: #000; border-radius: 10px; position: relative; }
-        #game-overlay { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; }
+        /* Inputs & Buttons */
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #2d3446; background: #000; color: #fff; outline: none; }
+        input:focus { border-color: var(--accent); }
+        .btn { background: var(--accent); color: #000; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 900; text-transform: uppercase; transition: 0.2s; }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn-sec { background: #2d3446; color: #fff; margin-bottom: 10px; }
+
+        /* Studio Viewport */
+        #studio-viewport { width: 100%; height: 450px; background: #000; border-radius: 12px; margin-top: 10px; cursor: crosshair; }
         
-        /* Social */
-        .dm-window { position: fixed; bottom: 20px; right: 330px; width: 280px; background: var(--panel); border: 2px solid var(--accent); border-radius: 10px; display: none; }
-        .dm-header { padding: 10px; background: rgba(255,255,255,0.05); font-weight: bold; display: flex; justify-content: space-between; }
-        #dm-logs { height: 200px; overflow-y: auto; padding: 10px; font-size: 13px; }
+        /* Chat & Social */
+        #chat-logs, #friend-list { height: calc(100% - 120px); overflow-y: auto; margin: 15px 0; font-size: 13px; }
+        .msg { margin-bottom: 8px; padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.03); }
+        .dm-window { position: fixed; bottom: 20px; right: 330px; width: 300px; background: var(--panel); border: 2px solid var(--accent); border-radius: 12px; display: none; z-index: 6000; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
-    <div class="box">
-        <h1>CubeWorld</h1>
+    <div class="auth-box">
+        <h1 style="font-weight:900; letter-spacing:-1px; margin-bottom:10px">CUBE<span style="color:var(--accent)">WORLD</span></h1>
+        <p style="opacity:0.5; font-size:12px; margin-bottom:20px">MULTIPLAYER ENGINE v1.0</p>
         <input id="u-name" type="text" placeholder="Username">
-        <input id="u-pass" type="password" placeholder="Password">
-        <button class="btn" onclick="app.login()">Enter World</button>
+        <button class="btn" onclick="app.login()">Launch</button>
     </div>
 </div>
 
-<div class="main-wrapper">
+<div class="wrapper">
     <aside>
-        <div id="pfp" style="width:80px; height:80px; background:#000; border-radius:50%; margin:0 auto 10px; border:2px solid var(--accent);"></div>
-        <h3 id="display-name" style="text-align:center">User</h3>
-        <p id="display-cubes" style="text-align:center; color:#f1c40f; font-size:14px;">500 Cubes</p>
-        <hr style="margin:20px 0; opacity:0.1">
-        <div class="btn" style="background:#2d3446; margin-bottom:10px" onclick="app.view('games')">Games</div>
-        <div class="btn" style="background:#2d3446; margin-bottom:10px" onclick="app.view('studio'); studio.init()">Studio</div>
-        <div class="btn" style="background:#2d3446" onclick="app.view('social')">Friends</div>
+        <div id="avatar-preview" style="width:100px; height:100px; background:#000; border-radius:50%; margin:0 auto 15px; border:3px solid var(--accent);"></div>
+        <h2 id="display-name" style="text-align:center; margin-bottom:5px">User</h2>
+        <p id="display-cubes" style="text-align:center; color:#f1c40f; font-weight:bold; margin-bottom:25px">500 CUBES</p>
+        
+        <button class="btn btn-sec" onclick="app.view('games')">Browse Games</button>
+        <button class="btn btn-sec" onclick="app.view('studio'); studio.init()">Cube Studio</button>
+        <button class="btn btn-sec" onclick="app.view('social')">Friends</button>
     </aside>
 
     <main>
-        <section id="view-games" class="content">
-            <h2>Featured Games</h2>
+        <div id="view-games" class="page">
+            <h2 style="margin-bottom:20px">Active Worlds</h2>
             <div id="game-list"></div>
-        </section>
+        </div>
 
-        <section id="view-studio" class="content" style="display:none">
-            <h2>Advanced Studio (Grid Snapping)</h2>
-            <div id="studio-viewport"></div>
-            <div style="margin-top:15px; display:flex; gap:10px">
-                <input id="game-title" placeholder="Game Name..." style="margin:0">
-                <button class="btn" style="width:150px" onclick="studio.save()">Publish</button>
+        <div id="view-studio" class="page" style="display:none">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <h2>Studio Mode</h2>
+                <button class="btn" style="width:120px; font-size:12px" onclick="studio.publish()">Publish</button>
             </div>
-        </section>
+            <input id="studio-name" placeholder="Name your world..." style="margin-bottom:0">
+            <div id="studio-viewport"></div>
+            <p style="font-size:11px; opacity:0.5; margin-top:10px">CLICK TO PLACE BLOCK • GRID SNAPPING ENABLED</p>
+        </div>
 
-        <section id="view-social" class="content" style="display:none">
-            <h2>Friends & DMs</h2>
+        <div id="view-social" class="page" style="display:none">
+            <h2>Social</h2>
             <div id="friend-list"></div>
-        </section>
+        </div>
     </main>
 
     <aside>
-        <h3>Global Chat</h3>
-        <div id="global-logs" style="height:calc(100% - 100px); overflow-y:auto; font-size:13px; margin:15px 0"></div>
-        <input id="global-in" placeholder="Say something..." onkeypress="if(e.key==='Enter') app.sendChat()">
+        <h3>Global Terminal</h3>
+        <div id="chat-logs"></div>
+        <input id="chat-in" placeholder="Type message..." onkeypress="if(event.key==='Enter') app.sendChat()">
     </aside>
 </div>
 
-<div id="dm-window" class="dm-window">
-    <div class="dm-header"><span id="dm-target-name">Chat</span> <span onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer">×</span></div>
-    <div id="dm-logs"></div>
-    <input id="dm-in" placeholder="Message..." style="border-radius:0">
+<div id="dm-popup" class="dm-window">
+    <div style="padding:10px; background:rgba(255,255,255,0.05); display:flex; justify-content:space-between">
+        <span id="dm-target">Chat</span>
+        <button onclick="document.getElementById('dm-popup').style.display='none'" style="background:none; border:none; color:#fff; cursor:pointer">×</button>
+    </div>
+    <div id="dm-content" style="height:200px; overflow-y:auto; padding:10px; font-size:12px"></div>
+    <input id="dm-in" placeholder="Reply..." onkeypress="if(event.key==='Enter') app.sendDM()">
 </div>
 
 <script>
     const socket = io();
-    let currentUser = null;
+    let user = null;
     let activeDM = null;
 
-    // --- AVATAR SYSTEM (3D CAP) ---
-    function createPlayerMesh(color = 0x0070ff, hasCap = true) {
+    // --- AVATAR SYSTEM (The Cap) ---
+    function createAvatarMesh(color = 0x00f0ff) {
         const group = new THREE.Group();
+        // Body
         const body = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshStandardMaterial({color}));
         group.add(body);
-
-        if(hasCap) {
-            const cap = new THREE.Group();
-            const dome = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.3, 12), new THREE.MeshStandardMaterial({color: 0xff0000}));
-            const brim = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.5), new THREE.MeshStandardMaterial({color: 0xff0000}));
-            brim.position.set(0, -0.1, 0.3);
-            cap.add(dome, brim);
-            cap.position.y = 1.1; 
-            group.add(cap);
-        }
+        // The Cap
+        const cap = new THREE.Group();
+        const dome = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.3, 12), new THREE.MeshStandardMaterial({color: 0xff0000}));
+        const bill = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.5), new THREE.MeshStandardMaterial({color: 0xff0000}));
+        bill.position.set(0, -0.1, 0.3);
+        cap.add(dome, bill);
+        cap.position.y = 1.1;
+        group.add(cap);
         return group;
     }
 
-    // --- STUDIO SYSTEM (GRID SNAPPING) ---
+    // --- STUDIO LOGIC (Grid Snapping) ---
     const studio = {
-        scene: null, cam: null, renderer: null, blocks: [],
+        scene: null, cam: null, renderer: null, map: [],
         init() {
             if(this.scene) return;
-            const el = document.getElementById('studio-viewport');
+            const container = document.getElementById('studio-viewport');
             this.scene = new THREE.Scene();
-            this.cam = new THREE.PerspectiveCamera(75, el.clientWidth/el.clientHeight, 0.1, 1000);
-            this.renderer = new THREE.WebGLRenderer();
-            this.renderer.setSize(el.clientWidth, el.clientHeight);
-            el.appendChild(this.renderer.domElement);
-            
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(5, 10, 5);
-            this.scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
-            this.scene.add(new THREE.GridHelper(20, 20));
-            this.cam.position.set(5, 5, 5);
-            this.cam.lookAt(0,0,0);
+            this.cam = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
+            this.renderer = new THREE.WebGLRenderer({ antialias: true });
+            this.renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(this.renderer.domElement);
 
-            el.onclick = () => this.addBlock();
-            this.animate();
+            this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+            sun.position.set(5, 10, 7);
+            this.scene.add(sun);
+            this.scene.add(new THREE.GridHelper(20, 20, 0x444444, 0x222222));
+
+            this.cam.position.set(8, 8, 8);
+            this.cam.lookAt(0,0,0);
+            container.onclick = (e) => this.place();
+            this.render();
         },
-        addBlock() {
-            const size = 1.0; // GRID SIZE
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshStandardMaterial({color: Math.random() * 0xffffff}));
-            // Snapping logic
-            mesh.position.set(
-                Math.round((Math.random() * 5) / size) * size,
-                size/2,
-                Math.round((Math.random() * 5) / size) * size
-            );
+        place() {
+            const size = 1.0;
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshStandardMaterial({color: 0x00f0ff}));
+            // Snap to 1.0 increments
+            mesh.position.set(Math.round(Math.random()*6-3), size/2, Math.round(Math.random()*6-3));
             this.scene.add(mesh);
-            this.blocks.push({ x: mesh.position.x, y: mesh.position.y, z: mesh.position.z, color: mesh.material.color.getHex() });
+            this.map.push({ x: mesh.position.x, y: mesh.position.y, z: mesh.position.z });
         },
-        animate() {
-            requestAnimationFrame(() => this.animate());
+        publish() {
+            const name = document.getElementById('studio-name').value || "New World";
+            socket.emit('publish-game', { name, creator: user.username, mapData: this.map });
+            alert("Published to CubeWorld!");
+        },
+        render() {
+            requestAnimationFrame(() => this.render());
             this.renderer.render(this.scene, this.cam);
-        },
-        save() {
-            const name = document.getElementById('game-title').value || "Untitled Game";
-            socket.emit('publish-game', { name, creator: currentUser.username, mapData: this.blocks });
-            alert("Game Published Successfully!");
         }
     };
 
-    // --- CORE APP LOGIC ---
+    // --- APP CORE ---
     const app = {
-        login() {
+        async login() {
             const username = document.getElementById('u-name').value;
-            fetch('/api/login', {
+            if(!username) return;
+
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password: 'pw'})
-            }).then(r => r.json()).then(data => {
-                currentUser = data.user;
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('display-name').innerText = currentUser.username;
-                document.getElementById('display-cubes').innerText = `${currentUser.cubes} Cubes`;
+                body: JSON.stringify({username})
             });
+            const data = await res.json();
+            
+            if(data.success) {
+                user = data.user;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('display-name').innerText = user.username;
+            } else {
+                alert(data.error);
+            }
         },
         view(id) {
-            document.querySelectorAll('.content').forEach(s => s.style.display = 'none');
-            document.getElementById('view-' + id).style.display = 'block';
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById('view-'+id).style.display = 'block';
         },
         sendChat() {
-            const input = document.getElementById('global-in');
-            socket.emit('global-msg', { from: currentUser.username, text: input.value });
-            input.value = '';
+            const inp = document.getElementById('chat-in');
+            socket.emit('global-msg', { from: user.username, text: inp.value });
+            inp.value = '';
         }
     };
 
-    // --- SOCKET LISTENERS (DMs & FRIENDS) ---
-    socket.on('sync-games', (games) => {
-        const list = document.getElementById('game-list');
-        list.innerHTML = games.map(g => `
-            <div class="box" style="width:100%; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center">
-                <span><b>${g.name}</b> by ${g.creator}</span>
-                <button class="btn" style="width:80px">Play</button>
-            </div>
-        `).join('');
+    // --- SOCKETS ---
+    socket.on('chat-update', d => {
+        const logs = document.getElementById('chat-logs');
+        logs.innerHTML += `<div class="msg"><b>${d.from}:</b> ${d.text}</div>`;
+        logs.scrollTop = logs.scrollHeight;
     });
 
-    socket.on(`dm-receive-${currentUser?.username}`, (data) => {
-        if(activeDM === data.from) {
-            document.getElementById('dm-logs').innerHTML += `<div><b>${data.from}:</b> ${data.text}</div>`;
-        }
+    socket.on('sync-games', games => {
+        document.getElementById('game-list').innerHTML = games.map(g => `
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between">
+                <div><b>${g.name}</b><br><small>by ${g.creator}</small></div>
+                <button class="btn" style="width:80px">PLAY</button>
+            </div>
+        `).join('');
     });
 </script>
 </body>
