@@ -5,20 +5,21 @@ const io = require('socket.io')(http);
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// 1. DATABASE CONNECTION (With Safety Timeout)
-const MONGO_URI = process.env.MONGO_URI;
+// --- 1. THE FAIL-SAFE CONNECTION ---
+// This checks both common naming conventions (URI vs URL)
+const MONGO_CONNECTION_STRING = process.env.MONGO_URI || process.env.MONGO_URL;
 
-if (!MONGO_URI) {
-    console.error("❌ ERROR: MONGO_URI is missing in Render Environment Variables!");
+if (!MONGO_CONNECTION_STRING) {
+    console.error("❌ CRITICAL ERROR: No MongoDB string found in Render Environment Variables!");
+} else {
+    mongoose.connect(MONGO_CONNECTION_STRING, {
+        serverSelectionTimeoutMS: 5000 // Stop waiting after 5s to prevent hanging
+    })
+    .then(() => console.log("📦 SUCCESS: Connected to MongoDB!"))
+    .catch(err => console.error("❌ MONGODB ERROR:", err.message));
 }
 
-mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000 
-})
-.then(() => console.log("📦 Connected to MongoDB Successfully!"))
-.catch(err => console.error("❌ MongoDB Connection Failed:", err.message));
-
-// 2. DATA MODELS
+// --- 2. DATA SCHEMAS ---
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, unique: true },
     cubes: { type: Number, default: 500 },
@@ -32,52 +33,46 @@ const Game = mongoose.model('Game', new mongoose.Schema({
     mapData: Array
 }));
 
-// 3. MIDDLEWARE
+// --- 3. MIDDLEWARE ---
 app.use(express.json());
 app.use(express.static('public'));
 
-// 4. API ROUTES (The Login Fix)
+// --- 4. API ROUTES ---
 app.post('/api/login', async (req, res) => {
     try {
         const { username } = req.body;
-        if (!username) return res.status(400).json({ error: "Username required" });
+        if (!username) return res.status(400).json({ error: "No username" });
+
+        // Wait for DB connection status (1 = connected)
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(503).json({ error: "Database starting up... please try again in 5 seconds." });
+        }
 
         let account = await User.findOne({ username });
         if (!account) {
             account = new User({ username });
             await account.save();
-            console.log(`✨ New Account Created: ${username}`);
         }
         res.json({ success: true, user: account });
     } catch (err) {
-        console.error("Login API Error:", err);
-        res.status(500).json({ error: "Database not responding" });
+        res.status(500).json({ error: "Server Error" });
     }
 });
 
-// 5. SOCKET.IO (Friends, DMs, & Studio)
-io.on("connection", (socket) => {
-    console.log("A user connected");
+// --- 5. SOCKET ENGINE ---
+io.on("connection", async (socket) => {
+    console.log("User joined the network");
 
-    // Send games to the user when they connect
-    Game.find({}).then(games => socket.emit("sync-games", games));
+    // Only fetch games if the DB is actually connected
+    if (mongoose.connection.readyState === 1) {
+        try {
+            const games = await Game.find({});
+            socket.emit("sync-games", games);
+        } catch (e) { console.log("Sync error:", e); }
+    }
 
-    // Global Chat
-    socket.on("global-msg", (data) => {
-        io.emit("chat-update", data);
-    });
+    socket.on("global-msg", (data) => io.emit("chat-update", data));
 
-    // Friend Request / Add
-    socket.on("add-friend", async ({ user, target }) => {
-        const me = await User.findOne({ username: user });
-        if (me && !me.friends.includes(target)) {
-            me.friends.push(target);
-            await me.save();
-            socket.emit("sync-friends", me.friends);
-        }
-    });
-
-    // Send DM
     socket.on("send-dm", async ({ from, to, text }) => {
         const recipient = await User.findOne({ username: to });
         if (recipient) {
@@ -87,7 +82,6 @@ io.on("connection", (socket) => {
         }
     });
 
-    // Publish from Studio
     socket.on("publish-game", async (data) => {
         const newGame = new Game(data);
         await newGame.save();
@@ -96,5 +90,5 @@ io.on("connection", (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`🚀 Cubeworld running on port ${PORT}`));
+const PORT = process.env.PORT || 10000;
+http.listen(PORT, () => console.log(`🚀 Cubeworld Engine Live on Port ${PORT}`));
