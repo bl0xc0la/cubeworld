@@ -1,100 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>CubeWorld Studio Pro</title>
+    <meta charset="UTF-8">
+    <title>CubeWorld</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --retro-blue: #0055ff; --old-gui: #d6d6d6; }
-        body { margin: 0; font-family: 'Tahoma', sans-serif; background: #eee; overflow: hidden; }
+        :root { 
+            --accent: #0070ff; 
+            --bg: #0e1117; 
+            --panel: #161b22; 
+            --border: #30363d;
+            --text: #c9d1d9;
+        }
         
-        /* THE OLD UI THEME */
-        #top-bar { background: var(--retro-blue); color: white; padding: 10px; display: flex; justify-content: space-between; border-bottom: 4px solid #0033aa; }
-        #player-list { position: fixed; top: 60px; right: 10px; background: rgba(255,255,255,0.8); border: 2px solid #999; width: 150px; padding: 10px; z-index: 100; }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); overflow: hidden; }
+
+        /* HEADER / TOPBAR */
+        header { 
+            height: 50px; 
+            background: var(--panel); 
+            border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+        }
+
+        .logo { font-weight: 800; color: #fff; letter-spacing: -1px; font-size: 20px; }
+        .logo span { color: var(--accent); }
+
         /* STUDIO LAYOUT */
-        .studio-ui { display: flex; height: 100vh; }
-        #sidebar { width: 250px; background: var(--old-gui); border-right: 2px solid #999; padding: 10px; }
-        #viewport { flex: 1; background: #000; position: relative; }
+        .studio-container { display: flex; height: calc(100vh - 50px); }
+
+        /* SIDEBARS */
+        aside { 
+            width: 280px; background: var(--panel); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+        }
+        .right-bar { border-right: none; border-left: 1px solid var(--border); }
+
+        .panel-header { 
+            padding: 10px 15px; background: rgba(255,255,255,0.03); 
+            font-size: 11px; font-weight: bold; text-transform: uppercase; color: #8b949e;
+        }
+
+        /* TOOLBOX & PROPERTIES */
+        .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 15px; }
+        .tool-btn { 
+            background: #21262d; border: 1px solid var(--border); color: #fff; 
+            padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s;
+        }
+        .tool-btn:hover { background: var(--accent); border-color: var(--accent); }
+
+        .prop-item { padding: 12px 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .prop-item label { font-size: 13px; }
+        .prop-input { background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 4px 8px; border-radius: 4px; width: 100px; font-size: 12px; }
+
+        /* VIEWPORT */
+        main { flex: 1; position: relative; background: #000; }
         
-        /* PROPERTY EDITOR */
-        .prop-box { background: white; border: 1px solid #777; margin-top: 10px; padding: 5px; font-size: 12px; }
-        .part-btn { width: 100%; padding: 5px; margin-bottom: 5px; cursor: pointer; border: 1px inset #fff; background: #ccc; }
-        
-        #admin-panel { display: none; background: #ffcccc; padding: 10px; border: 2px solid red; margin-top: 20px; }
+        /* PLAYER LIST */
+        .player-item { padding: 10px 15px; display: flex; align-items: center; font-size: 14px; border-bottom: 1px solid var(--border); }
+        .status-dot { width: 8px; height: 8px; background: #238636; border-radius: 50%; margin-right: 10px; }
+
+        /* ADMIN NOTIFICATION */
+        #admin-badge { background: #f85149; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
     </style>
 </head>
 <body>
 
-<div id="top-bar">
-    <b>CUBEWORLD v2.0</b>
-    <div id="user-info">Cola | <span id="cube-count">500</span> Cubes</div>
-</div>
+<header>
+    <div class="logo">CUBE<span>WORLD</span> STUDIO</div>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <span style="font-size: 13px;">Cubes: <b style="color:#f1c40f">500</b></span>
+        <button class="tool-btn" style="padding: 5px 15px; background: var(--accent);" onclick="studio.publish()">Publish</button>
+    </div>
+</header>
 
-<div id="player-list">
-    <b>Players</b>
-    <hr>
-    <div id="players-online"></div>
-</div>
-
-<div class="studio-ui">
-    <aside id="sidebar">
-        <h3>Insert Parts</h3>
-        <button class="part-btn" onclick="studio.addPart('block')">Block</button>
-        <button class="part-btn" onclick="studio.addPart('sphere')">Sphere</button>
-        <button class="part-btn" onclick="studio.addPart('wedge')">Wedge</button>
+<div class="studio-container">
+    <aside>
+        <div class="panel-header">Toolbox</div>
+        <div class="tool-grid">
+            <button class="tool-btn" onclick="studio.addPart('Box')">Part</button>
+            <button class="tool-btn" onclick="studio.addPart('Sphere')">Sphere</button>
+            <button class="tool-btn" onclick="studio.addPart('Wedge')">Wedge</button>
+            <button class="tool-btn" onclick="studio.addPart('Cylinder')">Cylinder</button>
+        </div>
         
-        <div class="prop-box" id="props">
-            <b>Properties</b>
-            <div id="prop-content">Select a part...</div>
-        </div>
-
-        <div id="admin-panel">
-            <b>🛡️ ADMIN PANEL</b><br>
-            <button onclick="admin.ban()">Ban User</button>
-            <button onclick="admin.shutdown()">Shutdown</button>
-        </div>
+        <div class="panel-header">Explorer</div>
+        <div id="explorer-list" style="flex:1; overflow-y:auto;">
+            </div>
     </aside>
 
     <main id="viewport">
         </main>
+
+    <aside class="right-bar">
+        <div class="panel-header">Properties</div>
+        <div id="property-panel">
+            <div class="prop-item">
+                <label>Name</label>
+                <input class="prop-input" type="text" id="p-name" onchange="studio.updateProp('name', this.value)">
+            </div>
+            <div class="prop-item">
+                <label>Color</label>
+                <input class="prop-input" type="color" id="p-color" onchange="studio.updateProp('color', this.value)">
+            </div>
+        </div>
+
+        <div class="panel-header" style="margin-top:20px">Players Online</div>
+        <div id="online-list">
+            <div class="player-item"><div class="status-dot"></div> Cola <span id="admin-badge">ADMIN</span></div>
+        </div>
+    </aside>
 </div>
 
 <script>
     const socket = io();
-    let selectedPart = null;
+    let selectedObject = null;
 
-    // --- STUDIO ENGINE ---
     const studio = {
         scene: new THREE.Scene(),
+        objects: [],
         init() {
             const container = document.getElementById('viewport');
             this.cam = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
-            this.renderer = new THREE.WebGLRenderer();
+            this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(this.renderer.domElement);
-            this.cam.position.set(5, 5, 5);
+            
+            this.scene.background = new THREE.Color(0x050505);
+            this.scene.add(new THREE.GridHelper(50, 50, 0x30363d, 0x21262d));
+            this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            
+            this.cam.position.set(10, 10, 10);
             this.cam.lookAt(0,0,0);
-            this.scene.add(new THREE.AmbientLight(0xffffff, 0.7));
             this.render();
         },
         addPart(type) {
             let geo;
-            if(type === 'sphere') geo = new THREE.SphereGeometry(0.5, 16, 16);
-            else if(type === 'wedge') geo = new THREE.CylinderGeometry(0, 0.5, 1, 4);
-            else geo = new THREE.BoxGeometry(1, 1, 1);
+            if(type === 'Sphere') geo = new THREE.SphereGeometry(0.5, 32, 32);
+            else if(type === 'Wedge') geo = new THREE.CylinderGeometry(0, 1, 1, 4);
+            else geo = new THREE.BoxGeometry(1,1,1);
 
-            const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color: 0xaaaaaa}));
-            mesh.name = "Part_" + Math.floor(Math.random()*1000);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x0070ff });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.name = type + "_" + this.objects.length;
             this.scene.add(mesh);
+            this.objects.push(mesh);
             this.select(mesh);
+            this.refreshExplorer();
         },
-        select(mesh) {
-            selectedPart = mesh;
-            document.getElementById('prop-content').innerHTML = `
-                Name: <input value="${mesh.name}"><br>
-                Color: <input type="color" onchange="selectedPart.material.color.set(this.value)">
-            `;
+        select(obj) {
+            selectedObject = obj;
+            document.getElementById('p-name').value = obj.name;
+            document.getElementById('p-color').value = "#" + obj.material.color.getHexString();
+        },
+        updateProp(prop, val) {
+            if(!selectedObject) return;
+            if(prop === 'name') selectedObject.name = val;
+            if(prop === 'color') selectedObject.material.color.set(val);
+            this.refreshExplorer();
+        },
+        refreshExplorer() {
+            const list = document.getElementById('explorer-list');
+            list.innerHTML = this.objects.map((obj, i) => `
+                <div class="player-item" style="cursor:pointer; ${selectedObject === obj ? 'background:rgba(0,112,255,0.1)' : ''}" onclick="studio.select(studio.objects[${i}])">
+                    📦 ${obj.name}
+                </div>
+            `).join('');
         },
         render() {
             requestAnimationFrame(() => this.render());
@@ -102,10 +175,11 @@
         }
     };
 
-    // --- NETWORKING ---
-    socket.emit("join-server", "Cola"); // Hardcoded for now
-    socket.on("update-player-list", (list) => {
-        document.getElementById("players-online").innerHTML = list.map(p => `<div>• ${p}</div>`).join('');
+    window.addEventListener('resize', () => {
+        const container = document.getElementById('viewport');
+        studio.cam.aspect = container.clientWidth / container.clientHeight;
+        studio.cam.updateProjectionMatrix();
+        studio.renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
     studio.init();
