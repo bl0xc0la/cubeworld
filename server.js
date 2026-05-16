@@ -7,8 +7,8 @@ app.use(express.json());
 app.use(express.static('public'));
 
 let accounts = {}; 
-let friendsList = {}; // stores username -> array of friend names
-let gameServers = {}; // tracks players inside active game rooms
+let friendsList = {}; 
+let gameServers = {}; 
 let publishedGames = [
     { 
         id: '1', 
@@ -16,8 +16,8 @@ let publishedGames = [
         creator: "System", 
         logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150",
         mapData: [
-            { x: -2, y: 0.6, z: -2, sx: 1.2, sy: 1.2, sz: 1.2, color: "#ff0000" },
-            { x: 2, y: 0.6, z: 2, sx: 1.2, sy: 1.2, sz: 1.2, color: "#00ff00" }
+            { x: -2, y: 0.6, z: -2, sx: 1.5, sy: 1.5, sz: 1.5, color: "#ff0000" },
+            { x: 2, y: 0.6, z: 2, sx: 1.5, sy: 1.5, sz: 1.5, color: "#00ff00" }
         ]
     }
 ];
@@ -46,7 +46,6 @@ io.on("connection", (socket) => {
     socket.on("global-msg", (data) => io.emit("global-receive", data));
     socket.on("send-pm", (data) => io.emit("pm-receive", data));
 
-    // Friend System Events
     socket.on("add-friend", (data) => {
         if (!friendsList[data.user]) friendsList[data.user] = [];
         if (!friendsList[data.user].includes(data.target)) {
@@ -55,7 +54,6 @@ io.on("connection", (socket) => {
         socket.emit("sync-friends", friendsList[data.user]);
     });
 
-    // Admin Panel Trigger Events
     socket.on("admin-announcement", (msg) => {
         io.emit("global-receive", { from: "SYSTEM ALERT", text: msg });
     });
@@ -64,7 +62,6 @@ io.on("connection", (socket) => {
         io.emit("global-receive", { from: "SYSTEM", text: `Admin awarded ${data.amount} Cubes to ${data.target}!` });
     });
 
-    // Studio Save Execution
     socket.on("publish-game", (data) => {
         const logoUrl = data.logo.trim() !== "" ? data.logo : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150";
         publishedGames.push({ 
@@ -77,7 +74,7 @@ io.on("connection", (socket) => {
         io.emit("sync-games", publishedGames);
     });
 
-    // Multiplayer Room Logic
+    // MULTIPLAYER PIPELINE WITH FULL ROOM STATE SYNC
     socket.on("join-room", (data) => {
         currentRoom = data.roomId;
         currentUser = data.user;
@@ -85,15 +82,18 @@ io.on("connection", (socket) => {
 
         if (!gameServers[currentRoom]) gameServers[currentRoom] = {};
         
-        // Save player details
         gameServers[currentRoom][socket.id] = {
             id: socket.id,
             name: currentUser,
             x: 0, y: 1, z: 0
         };
 
+        // Send existing players to the user who just connected
+        socket.emit("current-room-state", Object.values(gameServers[currentRoom]));
+        
+        // Notify everyone else
+        socket.to(currentRoom).emit("player-joined-server", gameServers[currentRoom][socket.id]);
         io.to(currentRoom).emit("room-players-update", Object.values(gameServers[currentRoom]));
-        io.to(currentRoom).emit("server-msg", { user: "SYSTEM", text: `${currentUser} connected.` });
     });
 
     socket.on("move-player", (data) => {
@@ -107,6 +107,17 @@ io.on("connection", (socket) => {
 
     socket.on("game-chat-send", (data) => {
         io.to(data.roomId).emit("server-msg", { user: data.user, text: data.text });
+    });
+
+    socket.on("get-profile-data", (targetName) => {
+        const targetAccount = accounts[targetName] || { role: "User", cubes: 500 };
+        const friendsCount = friendsList[targetName] ? friendsList[targetName].length : 0;
+        socket.emit("profile-data-response", {
+            username: targetName,
+            role: targetAccount.role,
+            cubes: targetAccount.cubes,
+            friends: friendsCount
+        });
     });
 
     socket.on("disconnect", () => {
