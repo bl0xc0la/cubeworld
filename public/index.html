@@ -5,239 +5,111 @@
     <title>CubeWorld</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
     <style>
-        :root {
-            --bg: #0d1117; --panel: #161b22; --sidebar: #010409;
-            --accent: #007bff; --text: #c9d1d9; --border: #30363d; --card: #21262d;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        :root { --bg: #0d1117; --panel: #161b22; --sidebar: #010409; --accent: #007bff; --text: #c9d1d9; --border: #30363d; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        #sidebar { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0; }
-        .sidebar-header { padding: 0 25px 20px; font-weight: 800; font-size: 22px; color: #fff; }
-        .nav-link { padding: 12px 25px; cursor: pointer; color: var(--text); border-left: 3px solid transparent; font-size: 14px; }
-        .nav-link.active { background: rgba(0, 123, 255, 0.1); border-left-color: var(--accent); color: #fff; }
+        /* Auth Overlay */
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .auth-box { background: var(--panel); padding: 40px; border-radius: 12px; border: 1px solid var(--border); width: 350px; text-align: center; }
+        
+        #sidebar { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 20px 0; }
+        main { flex: 1; padding: 30px; display: none; overflow-y: auto; }
+        .page { display: none; }
+        .active { display: block; }
 
-        main { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
-        .page { display: none; width: 100%; max-width: 1000px; margin: 0 auto; }
-        .page.active { display: block; }
-
-        /* Shop & Games Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; transition: 0.2s; }
-        .card:hover { border-color: var(--accent); }
-
-        /* Chat Window */
-        #chat-pane { width: 300px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-        #chat-msgs { flex: 1; padding: 15px; overflow-y: auto; font-size: 13px; }
-        .chat-input { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 5px; }
-
-        /* Studio Viewport */
-        #viewport { height: 450px; background: #000; border-radius: 12px; border: 1px solid var(--border); }
-
-        /* Maintenance Overlay */
-        #maint-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; align-items: center; justify-content: center; text-align: center; }
-
-        .btn { background: var(--accent); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        input { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; width: 100%; margin-bottom: 10px; }
+        .btn { background: var(--accent); color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px; }
+        input { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; width: 100%; margin-bottom: 15px; outline: none; }
+        .link { color: var(--accent); cursor: pointer; font-size: 13px; margin-top: 15px; display: block; }
     </style>
 </head>
-<body id="body">
+<body>
 
-<div id="maint-overlay">
-    <div>
-        <h1>Maintenance Mode</h1>
-        <p>CubeWorld is currently updating. Check back soon.</p>
+<div id="auth-overlay">
+    <div class="auth-box">
+        <h1 style="margin-bottom: 25px;">CubeWorld</h1>
+        <div id="auth-form">
+            <input id="auth-user" placeholder="Username">
+            <input id="auth-pass" type="password" placeholder="Password">
+            <button class="btn" id="auth-btn" onclick="handleAuth()">Login</button>
+            <span class="link" id="auth-toggle" onclick="toggleAuthMode()">Need an account? Sign Up</span>
+        </div>
     </div>
 </div>
 
 <div id="sidebar">
-    <div class="sidebar-header">CubeWorld</div>
-    <div class="nav-link active" onclick="nav('games', this)">Games</div>
-    <div class="nav-link" onclick="nav('studio', this)">Studio</div>
-    <div class="nav-link" onclick="nav('shop', this)">Shop</div>
-    <div class="nav-link" onclick="nav('settings', this)">Settings</div>
-    <div id="admin-nav" class="nav-link" style="display:none" onclick="nav('admin', this)">Admin</div>
+    <div style="padding: 0 25px 20px; font-weight: 800; font-size: 22px;">CubeWorld</div>
+    <div class="nav-link" onclick="nav('games')">Discover</div>
+    <div class="nav-link" onclick="nav('studio')">Studio</div>
     <div class="nav-link" style="margin-top:auto" onclick="logout()">Logout</div>
 </div>
 
-<main>
+<main id="main-content">
     <div id="page-games" class="page active">
-        <h1 style="margin-bottom:20px">Discover</h1>
-        <div id="game-list" class="grid"></div>
+        <h1>Welcome, <span id="display-name"></span></h1>
+        <p>CubeBucks: <span id="display-bucks">0</span></p>
     </div>
-
-    <div id="page-studio" class="page">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px">
-            <h1>Studio</h1>
-            <button class="btn" onclick="publish()">Publish Game</button>
-        </div>
-        <div id="viewport"></div>
-        <button class="btn" style="margin-top:10px" onclick="studio.addPart()">Insert Part</button>
-    </div>
-
-    <div id="page-shop" class="page">
-        <h1>Avatar Shop</h1>
-        <p>Your Balance: <span id="balance">0</span> CubeBucks</p>
-        <button class="btn" onclick="claimDaily()" style="margin: 15px 0">Claim Daily Rewards</button>
-        <div class="grid">
-            <div class="card"><h3>Classic Cap</h3><p>50 CB</p><button class="btn">Buy</button></div>
-            <div class="card"><h3>Red Shirt</h3><p>75 CB</p><button class="btn">Buy</button></div>
-        </div>
-    </div>
-
-    <div id="page-settings" class="page">
-        <h1>Settings</h1>
-        <div class="card" style="margin-top:20px">
-            <h3>Danger Zone</h3>
-            <p style="color:#8b949e; margin-bottom:10px">Once you delete your account, there is no going back.</p>
-            <button class="btn" style="background:#da3633" onclick="deleteAccount()">Delete Account</button>
-        </div>
-    </div>
-
-    <div id="page-admin" class="page">
-        <h1>Admin Control Panel</h1>
-        <div class="card" style="margin-top:20px">
-            <h3>User Management</h3>
-            <input id="adm-target" placeholder="Target Username">
-            <input id="adm-amount" placeholder="Amount (for CubeBucks)">
-            <div style="display:flex; gap:10px">
-                <button class="btn" onclick="adminAction('ban')">Ban</button>
-                <button class="btn" onclick="adminAction('unban')">Unban</button>
-                <button class="btn" onclick="adminAction('give')">Give Bucks</button>
-            </div>
-            <button class="btn" style="background:#da3633; margin-top:15px; width:100%" onclick="adminAction('maintenance')">Toggle Maintenance Mode</button>
-        </div>
-    </div>
-</main>
-
-<div id="chat-pane">
-    <div style="padding:15px; border-bottom:1px solid var(--border)"><b>Global Chat</b></div>
-    <div id="chat-msgs"></div>
-    <div class="chat-input">
-        <input id="chat-in" placeholder="Say something..." style="margin:0">
-        <button class="btn" onclick="sendChat()">Send</button>
-    </div>
-</div>
+    </main>
 
 <script>
     const socket = io();
-    const username = "BloxColaYT"; // This would normally come from a login form
+    let isLoginMode = true;
+    let currentUser = null;
 
-    function nav(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById('page-'+id).classList.add('active');
-        if(el) el.classList.add('active');
-        if(id === 'studio') studio.init();
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-btn').innerText = isLoginMode ? 'Login' : 'Sign Up';
+        document.getElementById('auth-toggle').innerText = isLoginMode ? 'Need an account? Sign Up' : 'Have an account? Login';
     }
 
-    // --- GAME LOGIC ---
-    const studio = {
-        scene: null, cam: null, renderer: null, objects: [],
-        init() {
-            if(this.renderer) return;
-            const div = document.getElementById('viewport');
-            this.scene = new THREE.Scene();
-            this.cam = new THREE.PerspectiveCamera(75, div.clientWidth/div.clientHeight, 0.1, 1000);
-            this.renderer = new THREE.WebGLRenderer();
-            this.renderer.setSize(div.clientWidth, div.clientHeight);
-            div.appendChild(this.renderer.domElement);
-            this.scene.add(new THREE.GridHelper(30, 30, 0x30363d, 0x30363d));
-            this.cam.position.set(10, 10, 10);
-            this.cam.lookAt(0,0,0);
-            this.render();
-        },
-        addPart(data = null) {
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshNormalMaterial());
-            if(data) mesh.position.set(data.pos.x, data.pos.y, data.pos.z);
-            this.scene.add(mesh);
-            this.objects.push(mesh);
-        },
-        render() { requestAnimationFrame(() => this.render()); this.renderer.render(this.scene, this.cam); }
-    };
+    async function handleAuth() {
+        const username = document.getElementById('auth-user').value;
+        const password = document.getElementById('auth-pass').value;
+        const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
 
-    function publish() {
-        const name = prompt("Game Name:");
-        if(!name) return;
-        socket.emit('publish-game', {
-            name, creator: username,
-            parts: studio.objects.map(o => ({ pos: o.position }))
-        });
-    }
-
-    // --- USER & ADMIN ACTIONS ---
-    async function claimDaily() {
-        const res = await fetch('/api/daily-claim', { 
-            method: 'POST', 
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ username })
-        });
-        if(res.ok) {
-            const data = await res.json();
-            document.getElementById('balance').innerText = data.balance;
-        } else alert(await res.text());
-    }
-
-    async function adminAction(action) {
-        await fetch('/api/admin/action', {
+        const res = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'username': username },
-            body: JSON.stringify({ 
-                action, 
-                target: document.getElementById('adm-target').value,
-                amount: parseInt(document.getElementById('adm-amount').value)
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
         });
-    }
 
-    function logout() { window.location.reload(); }
-    async function deleteAccount() {
-        if(confirm("Delete everything?")) {
-            await fetch('/api/delete-account', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ username })
-            });
-            logout();
+        if (res.ok) {
+            const data = await res.json();
+            loginSuccess(data);
+        } else {
+            alert(await res.text());
         }
     }
 
-    function sendChat() {
-        const inp = document.getElementById('chat-in');
-        if(inp.value) socket.emit('send-chat', inp.value);
-        inp.value = "";
+    function loginSuccess(user) {
+        currentUser = user;
+        localStorage.setItem('cubeUser', JSON.stringify(user));
+        
+        document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('sidebar').style.display = 'flex';
+        document.getElementById('main-content').style.display = 'block';
+        document.getElementById('display-name').innerText = user.username;
+        document.getElementById('display-bucks').innerText = user.cubebucks || 0;
+
+        socket.emit('join-session', user.username);
     }
 
-    // --- SOCKET EVENTS ---
-    socket.on('sync-games', games => {
-        document.getElementById('game-list').innerHTML = games.map(g => `
-            <div class="card">
-                <b>${g.name}</b><br><small>by ${g.creator}</small>
-                <button class="btn" style="width:100%; margin-top:10px">Play</button>
-            </div>
-        `).join('');
-    });
+    function logout() {
+        localStorage.removeItem('cubeUser');
+        window.location.reload();
+    }
 
-    socket.on('chat-receive', d => {
-        const box = document.getElementById('chat-msgs');
-        box.innerHTML += `<div><b>${d.user}:</b> ${d.text}</div>`;
-        box.scrollTop = box.scrollHeight;
-    });
+    // Auto-login if session exists
+    window.onload = () => {
+        const savedUser = localStorage.getItem('cubeUser');
+        if (savedUser) loginSuccess(JSON.parse(savedUser));
+    };
 
-    socket.on('user-data', d => {
-        document.getElementById('balance').innerText = d.cubebucks;
-        if(d.isAdmin) document.getElementById('admin-nav').style.display = 'block';
-    });
-
-    socket.on('maintenance-status', active => {
-        document.getElementById('maint-overlay').style.display = (active && username !== 'BloxColaYT') ? 'flex' : 'none';
-    });
-
-    socket.on('banned', () => { document.body.innerHTML = "<h1>You are banned from CubeWorld.</h1>"; });
-
-    socket.emit('join-session', username);
+    function nav(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + id).classList.add('active');
+    }
 </script>
 </body>
 </html>
