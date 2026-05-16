@@ -5,172 +5,101 @@ const io = require('socket.io')(http);
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-app.use(express.json());
-app.use(express.static('public'));
-
-// 🗄️ CONNECT MONGO DB PERMANENT STORAGE
+// 1. DATABASE CONNECTION
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/cubeworld';
 mongoose.connect(MONGO_URI)
-    .then(() => console.log("📦 MongoDB Connected Successfully!"))
-    .catch(err => console.error("❌ MongoDB Connection Error:", err));
+    .then(() => console.log("📦 Database Connected!"))
+    .catch(err => console.error("❌ DB Error:", err));
 
-// Database Schemas
+// 2. SCHEMAS (Data Structures)
 const UserSchema = new mongoose.Schema({
     username: { type: String, unique: true, required: true },
     password: { type: String, required: true },
-    role: { type: String, default: "User" },
-    cubes: { type: String, default: "500" },
-    friends: { type: [String], default: [] }
+    cubes: { type: Number, default: 500 },
+    friends: [String],
+    inventory: [String] // Store items like 'Red Cap'
 });
 const User = mongoose.model('User', UserSchema);
 
 const GameSchema = new mongoose.Schema({
     name: String,
     creator: String,
-    logo: String,
-    mapData: Array
+    logo: { type: String, default: "https://via.placeholder.com/150" },
+    mapData: Array // The advanced block data
 });
 const Game = mongoose.model('Game', GameSchema);
 
-// Memory tracking tracker for active game rooms only (ephemeral live sync)
-let gameServers = {}; 
+const MessageSchema = new mongoose.Schema({
+    from: String,
+    to: String,
+    text: String,
+    time: { type: Date, default: Date.now }
+});
+const Message = mongoose.model('Message', MessageSchema);
 
-// Handle Persistent Logins
+// 3. SERVER CONFIG
+app.use(express.json());
+app.use(express.static('public'));
+
+// 4. API ROUTES
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-    try {
-        let account = await User.findOne({ username });
-        
-        if (username === "BloxColaYT") {
-            if (!account) {
-                account = new User({ username, password, role: "Owner", cubes: "∞" });
-                await account.save();
-            }
-            return res.json({ success: true, user: username, role: "Owner", cubes: "∞" });
-        }
-
-        if (!account) {
-            account = new User({ username, password, role: "User", cubes: "500" });
-            await account.save();
-        }
-        
-        res.json({ success: true, user: username, role: account.role, cubes: account.cubes });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+    let account = await User.findOne({ username });
+    if (!account) {
+        account = new User({ username, password });
+        await account.save();
     }
+    res.json({ success: true, user: account });
 });
 
+// 5. SOCKET ENGINE (Real-time Friends, DMs, & Multiplayer)
 io.on("connection", async (socket) => {
-    let currentRoom = null;
-    let currentUser = null;
+    // Initial Sync
+    const games = await Game.find({});
+    socket.emit("sync-games", games);
 
-    // Stream saved database games right to client menu dashboard framework
-    try {
-        const games = await Game.find({});
-        socket.emit("sync-games", games);
-    } catch(e) {}
-
-    socket.on("global-msg", (data) => io.emit("global-receive", data));
-    socket.on("send-pm", (data) => io.emit("pm-receive", data));
-
-    // Persistent Friends System
-    socket.on("add-friend", async (data) => {
-        try {
-            const me = await User.findOne({ username: data.user });
-            if (me && !me.friends.includes(data.target)) {
-                me.friends.push(data.target);
-                await me.save();
-            }
-            socket.emit("sync-friends", me ? me.friends : []);
-        } catch(e){}
+    // Friend System
+    socket.on("add-friend", async ({ user, target }) => {
+        const me = await User.findOne({ username: user });
+        if (me && !me.friends.includes(target)) {
+            me.friends.push(target);
+            await me.save();
+            socket.emit("sync-friends", me.friends);
+        }
     });
 
-    socket.on("admin-announcement", (msg) => {
-        io.emit("global-receive", { from: "SYSTEM ALERT", text: msg });
+    // Private Messaging (DMs)
+    socket.on("send-dm", async (data) => {
+        const msg = new Message(data);
+        await msg.save();
+        io.emit(`dm-receive-${data.to}`, data);
     });
 
-    // Save Game Pipeline Directly to Cluster
+    // Fetch DM History
+    socket.on("get-dms", async ({ user, target }) => {
+        const history = await Message.find({
+            $or: [
+                { from: user, to: target },
+                { from: target, to: user }
+            ]
+        }).sort({ time: 1 });
+        socket.emit("dm-history", history);
+    });
+
+    // Studio Publishing
     socket.on("publish-game", async (data) => {
-        const logoUrl = data.logo.trim() !== "" ? data.logo : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150";
-        try {
-            const newGame = new Game({
-                name: data.name,
-                creator: data.user,
-                logo: logoUrl,
-                mapData: data.mapData
-            });
-            await newGame.save();
-            
-            const allGames = await Game.find({});
-            io.emit("sync-games", allGames);
-        } catch(e) {}
+        const newGame = new Game(data);
+        await newGame.save();
+        const allGames = await Game.find({});
+        io.emit("sync-games", allGames);
     });
 
-    // Multiplayer State System Pipeline
-    socket.on("join-room", (data) => {
-        currentRoom = data.roomId;
-        currentUser = data.user;
-        socket.join(currentRoom);
-
-        if (!gameServers[currentRoom]) gameServers[currentRoom] = {};
-        
-        gameServers[currentRoom][socket.id] = {
-            id: socket.id,
-            name: currentUser,
-            x: 0, y: 1, z: 0
-        };
-
-        socket.emit("current-room-state", Object.values(gameServers[currentRoom]));
-        socket.to(currentRoom).emit("player-joined-server", gameServers[currentRoom][socket.id]);
-        io.to(currentRoom).emit("room-players-update", Object.values(gameServers[currentRoom]));
-    });
-
-    // Clean Escape Routing to Avoid Ghost Duplicate Avatars disappearing
-    socket.on("leave-room-request", () => {
-        if (currentRoom && gameServers[currentRoom] && gameServers[currentRoom][socket.id]) {
-            delete gameServers[currentRoom][socket.id];
-            socket.to(currentRoom).emit("player-left", socket.id);
-            io.to(currentRoom).emit("room-players-update", Object.values(gameServers[currentRoom]));
-            socket.leave(currentRoom);
-            currentRoom = null;
-        }
-    });
-
+    // Multiplayer Sync
+    socket.on("join-room", (room) => socket.join(room));
     socket.on("move-player", (data) => {
-        if (currentRoom && gameServers[currentRoom] && gameServers[currentRoom][socket.id]) {
-            gameServers[currentRoom][socket.id].x = data.x;
-            gameServers[currentRoom][socket.id].y = data.y;
-            gameServers[currentRoom][socket.id].z = data.z;
-            socket.to(currentRoom).emit("player-moved", gameServers[currentRoom][socket.id]);
-        }
-    });
-
-    socket.on("game-chat-send", (data) => {
-        io.to(data.roomId).emit("server-msg", { user: data.user, text: data.text });
-    });
-
-    socket.on("get-profile-data", async (targetName) => {
-        const account = await User.findOne({ username: targetName });
-        const resRole = account ? account.role : "User";
-        const resCubes = account ? account.cubes : "500";
-        const resFriends = account ? account.friends.length : 0;
-        
-        socket.emit("profile-data-response", {
-            username: targetName,
-            role: resRole,
-            cubes: resCubes,
-            friends: resFriends
-        });
-    });
-
-    socket.on("disconnect", () => {
-        if (currentRoom && gameServers[currentRoom] && gameServers[currentRoom][socket.id]) {
-            delete gameServers[currentRoom][socket.id];
-            io.to(currentRoom).emit("room-players-update", Object.values(gameServers[currentRoom]));
-            io.to(currentRoom).emit("player-left", socket.id);
-        }
+        socket.to(data.room).emit("player-moved", data);
     });
 });
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+http.listen(PORT, () => console.log(`🚀 Cubeworld Live on ${PORT}`));
