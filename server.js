@@ -2,42 +2,37 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
-const mongoose = require('mongoose');
 const path = require('path');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/cubeworld');
-
-const Game = mongoose.model('Game', new mongoose.Schema({
-    name: String,
-    creator: String,
-    parts: Array,
-    date: { type: Date, default: Date.now }
-}));
-
-// API to get a specific game's data for joining
-app.get('/api/games/:id', async (req, res) => {
-    try {
-        const game = await Game.findById(req.params.id);
-        res.json(game);
-    } catch (err) {
-        res.status(404).send("Game not found");
-    }
-});
+let activePlayers = {};
 
 io.on('connection', (socket) => {
-    Game.find({}).then(games => socket.emit('sync-games', games));
+    socket.on('player-join', (userData) => {
+        activePlayers[socket.id] = {
+            id: socket.id,
+            username: userData.username,
+            pos: { x: 0, y: 2, z: 0 },
+            color: userData.color || '#3b82f6'
+        };
+        // Tell the new player about everyone else
+        socket.emit('current-players', activePlayers);
+        // Tell everyone else about the new player
+        socket.broadcast.emit('new-player', activePlayers[socket.id]);
+    });
 
-    socket.on('publish-game', async (data) => {
-        await Game.create({
-            name: data.name,
-            creator: data.creator,
-            parts: data.parts
-        });
-        const allGames = await Game.find({});
-        io.emit('sync-games', allGames);
+    socket.on('update-pos', (pos) => {
+        if (activePlayers[socket.id]) {
+            activePlayers[socket.id].pos = pos;
+            socket.broadcast.emit('player-moved', { id: socket.id, pos: pos });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        delete activePlayers[socket.id];
+        io.emit('player-left', socket.id);
     });
 });
 
-http.listen(10000, () => console.log('cubeworld engine online'));
+http.listen(10000, () => console.log('CubeWorld Multiplayer Online'));
