@@ -7,7 +7,6 @@ const path = require('path');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Connect to DB for saving published games
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/cubeworld');
 
 const Game = mongoose.model('Game', new mongoose.Schema({
@@ -17,12 +16,21 @@ const Game = mongoose.model('Game', new mongoose.Schema({
     date: { type: Date, default: Date.now }
 }));
 
+// API to get a specific game's data for joining
+app.get('/api/games/:id', async (req, res) => {
+    try {
+        const game = await Game.findById(req.params.id);
+        res.json(game);
+    } catch (err) {
+        res.status(404).send("Game not found");
+    }
+});
+
 io.on('connection', (socket) => {
-    // Send existing games on connect
     Game.find({}).then(games => socket.emit('sync-games', games));
 
     socket.on('publish-game', async (data) => {
-        const newGame = await Game.create({
+        await Game.create({
             name: data.name,
             creator: data.creator,
             parts: data.parts
@@ -30,12 +38,6 @@ io.on('connection', (socket) => {
         const allGames = await Game.find({});
         io.emit('sync-games', allGames);
     });
-
-    socket.on('join-game', (user) => {
-        socket.broadcast.emit('player-joined', user);
-    });
 });
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-
-http.listen(10000, () => console.log('Polytoria-Style Engine Online'));
+http.listen(10000, () => console.log('cubeworld engine online'));
