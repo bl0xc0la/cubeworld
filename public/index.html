@@ -1,201 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>CubeWorld</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
     <style>
-        :root { --bg: #0b0e14; --panel: #12161f; --accent: #3b82f6; --text: #fff; --border: #1e293b; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; padding: 15px; gap: 15px; }
+        :root {
+            --bg: #0d1117; --panel: #161b22; --sidebar: #010409;
+            --accent: #007bff; --text: #c9d1d9; --border: #30363d;
+            --card: #21262d;
+        }
+        /* Theme Overrides */
+        .neon-theme { --accent: #28a745; --text: #28a745; --border: #28a745; }
+        .white-theme { --bg: #f6f8fa; --panel: #fff; --sidebar: #fff; --text: #24292f; --border: #d0d7de; --card: #f6f8fa; }
 
-        #sidebar { width: 260px; background: #0f121a; border-radius: 20px; border: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; }
-        main { flex: 1; background: var(--panel); border-radius: 25px; border: 1px solid var(--border); padding: 30px; overflow-y: auto; }
-        .page { display: none; }
-        .active { display: block; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Studio & UI Editor */
-        #viewport { width: 100%; height: 450px; background: #000; border-radius: 15px; position: relative; }
-        #in-game-ui-layer { position: absolute; inset: 0; pointer-events: none; }
-        .draggable-ui-text { position: absolute; color: white; font-weight: bold; pointer-events: auto; cursor: move; }
+        /* Left Sidebar (Polytoria Style) */
+        #sidebar { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0; }
+        .nav-link { padding: 12px 25px; cursor: pointer; color: var(--text); font-weight: 500; font-size: 14px; transition: 0.2s; border-left: 3px solid transparent; }
+        .nav-link:hover { background: rgba(255,255,255,0.05); }
+        .nav-link.active { background: rgba(0, 123, 255, 0.1); border-left-color: var(--accent); color: #fff; }
+        .sidebar-header { padding: 0 25px 20px; font-weight: 800; font-size: 20px; color: #fff; }
 
-        /* Friends List */
-        .friend-item { background: var(--bg); padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
-        .friend-item.pinned { border-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
-        
-        .btn { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .btn-pin { background: #fbbf24; color: #000; font-size: 10px; padding: 4px 8px; }
-        .nav-item { padding: 12px; border-radius: 10px; cursor: pointer; color: #64748b; margin-bottom: 5px; }
-        .nav-item:hover, .nav-active { background: var(--panel); color: #fff; }
+        /* Main Area */
+        main { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        .page { display: none; width: 100%; max-width: 1200px; margin: 0 auto; }
+        .page.active { display: block; }
+
+        /* Studio Panel */
+        .studio-container { display: grid; grid-template-columns: 1fr 300px; gap: 20px; height: 600px; }
+        #viewport { background: #000; border-radius: 12px; border: 1px solid var(--border); position: relative; }
+        .editor-side { background: var(--panel); border-radius: 12px; border: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+
+        /* Cards for Games */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .game-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: 0.2s; cursor: pointer; }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .game-thumb { height: 120px; background: #000; }
+        .game-info { padding: 15px; }
+        .game-title { font-weight: 700; font-size: 16px; margin-bottom: 5px; color: #fff; }
+        .game-meta { font-size: 12px; color: #8b949e; }
+
+        /* Inputs & Buttons */
+        .btn { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        input, select { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; width: 100%; }
+
+        /* UI Text in Studio */
+        #ui-layer { position: absolute; inset: 0; pointer-events: none; }
+        .studio-ui-text { position: absolute; pointer-events: auto; cursor: move; color: #fff; font-weight: bold; }
     </style>
 </head>
-<body>
+<body id="main-body">
 
 <div id="sidebar">
-    <div style="text-align:center; margin-bottom:30px">
-        <div style="width:60px; height:60px; background:var(--accent); border-radius:50%; margin:0 auto 10px"></div>
-        <h3>BloxColaYT</h3>
-    </div>
-    <div class="nav-item" onclick="nav('games')">Games</div>
-    <div class="nav-item nav-active" onclick="nav('studio')">Studio Workspace</div>
-    <div class="nav-item" onclick="nav('friends')">Connections</div>
-    <div class="nav-item" onclick="nav('admin')">Admin Panel</div>
+    <div class="sidebar-header">Polytoria</div>
+    <div class="nav-link active" onclick="nav('games', this)">Games</div>
+    <div class="nav-link" onclick="nav('studio', this)">Create</div>
+    <div class="nav-link" onclick="nav('settings', this)">Settings</div>
+    <div class="nav-link" onclick="nav('admin', this)">Admin</div>
+    <div style="margin-top: auto;" class="nav-link">Logout</div>
 </div>
 
 <main>
-    <div id="page-games" class="page">
-        <h1>Multiplayer Games</h1>
-        <button class="btn" style="margin-top:20px" onclick="joinMultiplayer()">Join Main Server</button>
-        <div id="player-list-ui" style="margin-top:20px"></div>
+    <div id="page-games" class="page active">
+        <h1 style="margin-bottom: 20px;">Discover</h1>
+        <div id="game-list" class="game-grid"></div>
     </div>
 
-    <div id="page-studio" class="page active">
-        <h2>Studio Workspace V3</h2>
-        <div id="viewport">
-            <div id="in-game-ui-layer"></div>
+    <div id="page-studio" class="page">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Studio Workspace</h1>
+            <button class="btn" onclick="publishGame()">Publish Game</button>
         </div>
-        
-        <div style="display:flex; gap:10px; margin-top:15px">
-            <button class="btn" onclick="studio.spawnPart()">Add Part (Arrows)</button>
-            <button class="btn" style="background:#7c3aed" onclick="studio.addText()">Add UI Text</button>
-            <input type="color" id="p-col" value="#3b82f6" style="width:50px">
-            <button class="btn" style="background:#ef4444" onclick="studio.deleteSelected()">Delete</button>
+        <div class="studio-container">
+            <div id="viewport"><div id="ui-layer"></div></div>
+            <div class="editor-side">
+                <h3>Properties</h3>
+                <label>Part Color</label>
+                <input type="color" id="part-color" value="#007bff">
+                <button class="btn btn-outline" onclick="studio.addPart()">Insert Part</button>
+                <button class="btn btn-outline" onclick="studio.addText()">Insert UI Text</button>
+                <hr style="border: 0; border-top: 1px solid var(--border);">
+                <h3>Lighting</h3>
+                <input type="range" oninput="studio.updateLight(this.value/50)">
+                <button class="btn" style="background:#da3633; margin-top: auto;" onclick="studio.clear()">Clear All</button>
+            </div>
         </div>
     </div>
 
-    <div id="page-friends" class="page">
-        <h1>Connections</h1>
-        <div style="margin: 20px 0; display:flex; gap:10px">
-            <input id="friend-name" placeholder="Username..." style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:10px; border-radius:8px">
-            <button class="btn" onclick="addFriend()">Add Connection</button>
+    <div id="page-settings" class="page">
+        <h1>Settings</h1>
+        <div class="editor-side" style="margin-top: 20px;">
+            <h3>App Theme</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn" onclick="setTheme('dark')">Dark Mode</button>
+                <button class="btn" style="background:#007bff" onclick="setTheme('blue')">Roblox Blue</button>
+                <button class="btn" style="background:#28a745" onclick="setTheme('neon')">Neon Green</button>
+                <button class="btn" style="background:#fff; color:#000" onclick="setTheme('white')">White Mode</button>
+            </div>
         </div>
-        <div id="friends-list"></div>
+    </div>
+
+    <div id="page-admin" class="page">
+        <h1>Admin Control</h1>
+        <p style="margin-top: 20px; color: #8b949e;">Authorized User: BloxColaYT</p>
     </div>
 </main>
 
 <script>
     const socket = io();
-    const myUser = "BloxColaYT";
-    let friends = JSON.parse(localStorage.getItem('friends') || '[]');
+    const currentUser = "BloxColaYT";
 
-    function nav(id) {
+    function nav(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
-        document.getElementById('page-'+id).classList.add('active');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById('page-' + id).classList.add('active');
+        el.classList.add('active');
         if(id === 'studio') studio.init();
-        if(id === 'friends') renderFriends();
     }
 
-    // --- STUDIO LOGIC ---
+    function setTheme(t) {
+        document.getElementById('main-body').className = t + '-theme';
+    }
+
     const studio = {
-        scene: null, cam: null, renderer: null, gizmo: null,
+        scene: null, cam: null, renderer: null, objects: [],
         init() {
             if(this.renderer) return;
-            const container = document.getElementById('viewport');
+            const div = document.getElementById('viewport');
             this.scene = new THREE.Scene();
-            this.cam = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
+            this.cam = new THREE.PerspectiveCamera(75, div.clientWidth/div.clientHeight, 0.1, 1000);
             this.renderer = new THREE.WebGLRenderer({ antialias: true });
-            this.renderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(this.renderer.domElement);
+            this.renderer.setSize(div.clientWidth, div.clientHeight);
+            div.appendChild(this.renderer.domElement);
             
-            this.scene.add(new THREE.GridHelper(20, 20, 0x1e293b, 0x1e293b));
-            this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-            this.cam.position.set(5, 5, 5);
+            this.scene.add(new THREE.GridHelper(30, 30, 0x30363d, 0x30363d));
+            this.light = new THREE.DirectionalLight(0xffffff, 1);
+            this.light.position.set(5, 10, 7);
+            this.scene.add(this.light, new THREE.AmbientLight(0xffffff, 0.4));
+            this.cam.position.set(8, 8, 8);
             this.cam.lookAt(0,0,0);
 
             this.gizmo = new THREE.TransformControls(this.cam, this.renderer.domElement);
             this.scene.add(this.gizmo);
-            
             this.render();
         },
-        spawnPart() {
+        addPart() {
             const mesh = new THREE.Mesh(
-                new THREE.BoxGeometry(1, 1, 1),
-                new THREE.MeshStandardMaterial({ color: document.getElementById('p-col').value })
+                new THREE.BoxGeometry(1.5, 1.5, 1.5),
+                new THREE.MeshStandardMaterial({ color: document.getElementById('part-color').value })
             );
             this.scene.add(mesh);
+            this.objects.push(mesh);
             this.gizmo.attach(mesh);
         },
         addText() {
-            const txt = document.createElement('div');
-            txt.className = 'draggable-ui-text';
-            txt.innerText = 'New UI Text';
-            txt.contentEditable = true;
-            txt.style.left = '50px';
-            txt.style.top = '50px';
-            document.getElementById('in-game-ui-layer').appendChild(txt);
-            // Simple drag logic
-            txt.onmousedown = (e) => {
-                let shiftX = e.clientX - txt.getBoundingClientRect().left;
-                let shiftY = e.clientY - txt.getBoundingClientRect().top;
-                function moveAt(pageX, pageY) {
-                    txt.style.left = pageX - shiftX - 290 + 'px'; // Sidebar offset
-                    txt.style.top = pageY - shiftY - 100 + 'px';
-                }
-                function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
-                document.addEventListener('mousemove', onMouseMove);
-                txt.onmouseup = () => document.removeEventListener('mousemove', onMouseMove);
-            };
+            const t = document.createElement('div');
+            t.className = 'studio-ui-text';
+            t.innerText = 'Text Label';
+            t.contentEditable = true;
+            t.style.left = '20px'; t.style.top = '20px';
+            document.getElementById('ui-layer').appendChild(t);
         },
-        deleteSelected() {
-            if(this.gizmo.object) {
-                this.scene.remove(this.gizmo.object);
-                this.gizmo.detach();
-            }
-        },
+        updateLight(v) { this.light.intensity = v; },
+        clear() { this.objects.forEach(o => this.scene.remove(o)); this.objects = []; this.gizmo.detach(); },
         render() {
             requestAnimationFrame(() => this.render());
             this.renderer.render(this.scene, this.cam);
         }
     };
 
-    // --- FRIENDS LOGIC ---
-    function addFriend() {
-        const name = document.getElementById('friend-name').value;
+    function publishGame() {
+        const name = prompt("Game Name:");
         if(name) {
-            friends.push({ name, pinned: false });
-            saveFriends();
-            renderFriends();
+            socket.emit('publish-game', {
+                name: name,
+                creator: currentUser,
+                parts: studio.objects.map(o => ({ pos: o.position, col: o.material.color }))
+            });
+            alert("Published!");
         }
     }
 
-    function togglePin(index) {
-        friends[index].pinned = !friends[index].pinned;
-        saveFriends();
-        renderFriends();
-    }
-
-    function saveFriends() {
-        localStorage.setItem('friends', JSON.stringify(friends));
-    }
-
-    function renderFriends() {
-        // Sort: Pinned first
-        const sorted = [...friends].sort((a, b) => b.pinned - a.pinned);
-        const list = document.getElementById('friends-list');
-        list.innerHTML = sorted.map((f, i) => `
-            <div class="friend-item ${f.pinned ? 'pinned' : ''}">
-                <span>${f.name} ${f.pinned ? '📌' : ''}</span>
-                <button class="btn btn-pin" onclick="togglePin(${friends.indexOf(f)})">
-                    ${f.pinned ? 'Unpin' : 'Pin to Top'}
-                </button>
+    socket.on('sync-games', games => {
+        document.getElementById('game-list').innerHTML = games.map(g => `
+            <div class="game-card">
+                <div class="game-thumb"></div>
+                <div class="game-info">
+                    <div class="game-title">${g.name}</div>
+                    <div class="game-meta">by ${g.creator}</div>
+                </div>
             </div>
         `).join('');
-    }
-
-    // --- MULTIPLAYER LOGIC ---
-    function joinMultiplayer() {
-        socket.emit('join-game', { username: myUser });
-        alert("Joined Multiplayer! (Logic connected to backend)");
-    }
-
-    socket.on('current-players', (players) => {
-        document.getElementById('player-list-ui').innerHTML = `<h3>Players Online:</h3>` + 
-            Object.values(players).map(p => `<div>• ${p.username}</div>`).join('');
     });
 
-    nav('studio');
 </script>
 </body>
 </html>
