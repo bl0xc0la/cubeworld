@@ -6,13 +6,15 @@ const mongoose = require('mongoose');
 
 mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URL);
 
-// --- SCHEMAS ---
-const User = mongoose.model('User', new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     username: { type: String, unique: true },
-    cubes: { type: Number, default: 500 },
-    isAdmin: { type: Boolean, default: false }, // Manual set in MongoDB for now
     friends: [String],
-    inventory: [String]
+    cubes: { type: Number, default: 500 }
+});
+const User = mongoose.model('User', UserSchema);
+
+const Message = mongoose.model('Message', new mongoose.Schema({
+    from: String, to: String, text: String, timestamp: { type: Date, default: Date.now }
 }));
 
 const Game = mongoose.model('Game', new mongoose.Schema({
@@ -22,26 +24,29 @@ const Game = mongoose.model('Game', new mongoose.Schema({
 app.use(express.static('public'));
 app.use(express.json());
 
-// --- PLAYER TRACKING ---
-let onlinePlayers = {}; 
-
 io.on("connection", (socket) => {
-    socket.on("join-server", async (username) => {
-        const u = await User.findOne({ username });
+    socket.on("join", async (username) => {
         socket.username = username;
-        onlinePlayers[username] = { id: socket.id, isAdmin: u?.isAdmin };
-        io.emit("update-player-list", Object.keys(onlinePlayers));
+        const u = await User.findOneAndUpdate({ username }, { username }, { upsert: true, new: true });
+        socket.emit("user-data", u);
     });
 
-    // Private Messaging
-    socket.on("send-dm", (data) => { // { to: "Bob", text: "Hi" }
-        const target = onlinePlayers[data.to];
-        if(target) io.to(target.id).emit("dm-receive", { from: socket.username, text: data.text });
+    socket.on("send-dm", async (data) => {
+        const msg = new Message(data);
+        await msg.save();
+        io.emit(`dm-${data.to}`, data);
     });
 
-    socket.on("disconnect", () => {
-        delete onlinePlayers[socket.username];
-        io.emit("update-player-list", Object.keys(onlinePlayers));
+    socket.on("add-friend", async ({ user, friend }) => {
+        await User.updateOne({ username: user }, { $addToSet: { friends: friend } });
+        const updated = await User.findOne({ username: user });
+        socket.emit("user-data", updated);
+    });
+
+    socket.on("publish", async (game) => {
+        await new Game(game).save();
+        const games = await Game.find({});
+        io.emit("sync-games", games);
     });
 });
 
