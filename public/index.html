@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld</title>
+    <title>CubeWorld Permanent Engine</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -21,7 +21,6 @@
         body.theme-neon { --bg: #000; --panel: #111; --accent: #00f28d; --text: #ffffff; --border: #222; }
         body.theme-dark { --bg: #121212; --panel: #1e1e1e; --accent: #fff; --text: #ffffff; --border: #333; }
         
-        /* WHITE MODE */
         body.theme-white { 
             --bg: #f0f2f5; 
             --panel: #ffffff; 
@@ -76,9 +75,8 @@
         .num-row { display: flex; gap: 5px; }
         .num-row input { padding: 8px; margin-bottom: 0; }
 
-        /* USER PROFILE MODAL */
         #profile-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 8000; display: none; align-items: center; justify-content:center; }
-        .profile-card { background: var(--panel); border: 2px solid var(--accent); padding: 30px; border-radius: var(--radius); width: 320px; text-align: center; position: relative; }
+        .profile-card { background: var(--panel); border: 2px solid var(--accent); padding: 30px; border-radius: var(--radius); width: 320px; text-align: center; position: relative; color: var(--text); }
     </style>
 </head>
 <body class="theme-roblox">
@@ -99,8 +97,8 @@
         <h3 id="prof-name">Username</h3>
         <p id="prof-role" style="color:var(--accent); font-weight:700; font-size:14px; margin-bottom:15px;">Rank</p>
         <div style="background:rgba(0,0,0,0.1); padding:10px; border-radius:10px; margin-bottom:15px; text-align:left; font-size:13px;">
-            <div>Balance: <span id="prof-cubes" style="color:#f1c40f; font-weight:700;">0</span></div>
-            <div>Connections: <span id="prof-friends">0 Friends</span></div>
+            <div>💰 Balance: <span id="prof-cubes" style="color:#f1c40f; font-weight:700;">0</span></div>
+            <div>👥 Connections: <span id="prof-friends">0 Friends</span></div>
         </div>
         <button id="prof-add-btn" class="btn" style="padding:8px;">Send Friend Request</button>
     </div>
@@ -110,7 +108,7 @@
     <div id="canvas-game-container">
         <div style="position: absolute; top: 20px; left: 20px; font-weight:700; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; z-index: 10; color:#fff;">
             <span id="active-game-title">Game Workspace</span><br>
-            <small style="font-weight:400; color:#00f28d">Controls: W, A, S, D / Arrows to Move</small>
+            <small style="font-weight:400; color:#00f28d">Controls: W, A, S, D to Move</small>
         </div>
         <button class="btn" style="position: absolute; top: 20px; right: 260px; width: auto; background: #ff4757; padding: 10px 20px; z-index: 10;" onclick="core.leaveGame()">EXIT TO MENU</button>
         
@@ -147,7 +145,7 @@
 
         <section id="view-studio" class="view">
             <h2>Roblox Style Engine Studio V3</h2>
-            <p style="color: #64748b; font-size:13px; margin-bottom:10px;">Click & Drag parts directly inside the window workspace viewport viewport frame to position them!</p>
+            <p style="color: #64748b; font-size:13px; margin-bottom:10px;">Click & Drag parts directly inside the window workspace viewport frame to position them!</p>
             <div class="studio-layout">
                 <div id="studio-canvas"></div>
                 <div class="studio-sidebar-tools">
@@ -166,7 +164,7 @@
                     <button class="btn" style="padding: 8px;" onclick="studio.spawnPart()">Spawn New Part</button>
                     <hr style="border-color:var(--border); margin:5px 0;">
 
-                    <h4 style="color:var(--accent)">Lighting Engine Engine</h4>
+                    <h4 style="color:var(--accent)">Lighting Engine</h4>
                     <label style="font-size: 12px;">Sun Intensity</label>
                     <input id="light-intensity" type="range" min="1" max="15" value="7" oninput="studio.updateLighting(this.value)">
 
@@ -182,9 +180,9 @@
         </section>
 
         <section id="view-admin" class="view">
-            <h2>System Owner Dashboard</h2>
+            <h2>👑 System Owner Dashboard</h2>
             <p style="color: #64748b; margin-bottom: 20px;">Welcome back, BloxColaYT.</p>
-            <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 16px; margin-bottom: 15px; border:1px solid var(--border);">
+            <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 16px; border:1px solid var(--border);">
                 <h4>Broadcast Server Announcement Notification</h4>
                 <input id="admin-notice-input" placeholder="Type global system banner alert text here..." style="margin-top:10px;">
                 <button class="btn" onclick="core.sendAdminNotice()">Send Banner Alert</button>
@@ -239,7 +237,6 @@
     let moveKeys = { w: false, a: false, s: false, d: false };
     let otherPlayers = {}; 
 
-    // Advanced interactive Studio variables
     let studioScene, studioCamera, studioRenderer, studioSunLight;
     let selectedMesh = null;
     let studioRaycaster = new THREE.Raycaster();
@@ -277,7 +274,6 @@
         parentMesh.add(mouthMesh);
     }
 
-    // STUDIO ENGINE WITH INTERACTIVE DRAG AND PICKING
     const studio = {
         init() {
             const container = document.getElementById("studio-canvas");
@@ -300,7 +296,6 @@
             studioCamera.position.set(0, 12, 18);
             studioCamera.lookAt(0, 0, 0);
 
-            // Hook up dragging pointer physics listeners straight to structural workspace canvas
             container.addEventListener('pointerdown', studio.onPointerDown);
             container.addEventListener('pointermove', studio.onPointerMove);
             window.addEventListener('pointerup', () => { isDraggingPart = false; });
@@ -316,7 +311,7 @@
             const boxMat = new THREE.MeshStandardMaterial({ color: 0x0070ff });
             const mesh = new THREE.Mesh(boxGeo, boxMat);
             mesh.position.set((Math.random() - 0.5) * 5, 0.75, (Math.random() - 0.5) * 5);
-            mesh.isWorkspaceBlock = true; // identification flag
+            mesh.isWorkspaceBlock = true;
             studioScene.add(mesh);
             studio.selectPart(mesh);
         },
@@ -337,7 +332,7 @@
             const sy = parseFloat(document.getElementById("s-y").value) || 1;
             const sz = parseFloat(document.getElementById("s-z").value) || 1;
             selectedMesh.scale.set(sx / 1.5, sy / 1.5, sz / 1.5);
-            selectedMesh.position.y = sy / 2; // Auto Snap bounding level right up to flat plane
+            selectedMesh.position.y = sy / 2;
         },
         updateSelectedColor(hex) {
             if (!selectedMesh) return;
@@ -374,7 +369,7 @@
 
             studioRaycaster.setFromCamera(studioMouse, studioCamera);
             if (studioRaycaster.ray.intersectPlane(dragPlane, intersectionVec)) {
-                selectedMesh.position.x = Math.round(intersectionVec.x * 2) / 2; // Smooth grid snapping physics mechanics
+                selectedMesh.position.x = Math.round(intersectionVec.x * 2) / 2;
                 selectedMesh.position.z = Math.round(intersectionVec.z * 2) / 2;
             }
         },
@@ -386,7 +381,6 @@
         }
     };
 
-    // ACTIVE WORLD PIPELINE RUNNER
     function runGameWorldEngine(mapData) {
         const holder = document.getElementById("canvas-game-container");
         const oldCanvas = holder.querySelector('canvas');
@@ -453,18 +447,18 @@
     window.addEventListener('keydown', (e) => {
         if (!e.key) return;
         const key = e.key.toLowerCase();
-        if(key === 'w' || key === 'arrowup') moveKeys.w = true;
-        if(key === 's' || key === 'arrowdown') moveKeys.s = true;
-        if(key === 'a' || key === 'arrowleft') moveKeys.a = true;
-        if(key === 'd' || key === 'arrowright') moveKeys.d = true;
+        if(key === 'w') moveKeys.w = true;
+        if(key === 's') moveKeys.s = true;
+        if(key === 'a') moveKeys.a = true;
+        if(key === 'd') moveKeys.d = true;
     });
     window.addEventListener('keyup', (e) => {
         if (!e.key) return;
         const key = e.key.toLowerCase();
-        if(key === 'w' || key === 'arrowup') moveKeys.w = false;
-        if(key === 's' || key === 'arrowdown') moveKeys.s = false;
-        if(key === 'a' || key === 'arrowleft') moveKeys.a = false;
-        if(key === 'd' || key === 'arrowright') moveKeys.d = false;
+        if(key === 'w') moveKeys.w = false;
+        if(key === 's') moveKeys.s = false;
+        if(key === 'a') moveKeys.a = false;
+        if(key === 'd') moveKeys.d = false;
     });
 
     const core = {
@@ -517,7 +511,7 @@
         publish() {
             const name = document.getElementById("new-game-name").value;
             const logo = document.getElementById("new-game-logo").value;
-            if(!name) return alert("Please type an instance map name structure!");
+            if(!name) return alert("Please type a map build title!");
             
             const compilerMapData = [];
             studioScene.children.filter(c => c.isWorkspaceBlock).forEach(c => {
@@ -545,9 +539,12 @@
             setTimeout(() => runGameWorldEngine(parsedBlocks), 200);
         },
         leaveGame() {
+            socket.emit("leave-room-request"); // Tell server we left to clean room arrays
             document.getElementById("game-screen").style.display = "none";
             currentRoomId = null;
-            Object.values(otherPlayers).forEach(p => gameScene.remove(p.mesh));
+            if (gameScene) {
+                Object.values(otherPlayers).forEach(p => gameScene.remove(p.mesh));
+            }
             otherPlayers = {};
         },
         setTheme(t) { document.body.className = "theme-" + t; },
@@ -587,7 +584,6 @@
         }).join('');
     });
 
-    // POPOULATE LIVE USER PROFILE RESPONSES FROM PIPELINE Sockets
     socket.on("profile-data-response", (data) => {
         document.getElementById("prof-name").innerText = data.username;
         document.getElementById("prof-role").innerText = data.role.toUpperCase();
@@ -597,7 +593,6 @@
         document.getElementById("profile-modal").style.display = "flex";
     });
 
-    // FULL MULTIPLAYER STATE SYNC HANDLING
     socket.on("current-room-state", (playersList) => {
         if (!gameScene) return;
         playersList.forEach(p => {
@@ -627,7 +622,7 @@
     });
 
     socket.on("player-left", (id) => {
-        if (otherPlayers[id]) {
+        if (otherPlayers[id] && gameScene) {
             gameScene.remove(otherPlayers[id].mesh);
             delete otherPlayers[id];
         }
@@ -650,7 +645,7 @@
         document.getElementById("global-chat").innerHTML += `
             <div style="margin-bottom:8px;">
                 <b onclick="core.openPM('${data.from}')" style="color:var(--accent); cursor:pointer;">${data.from}:</b> ${data.text}
-                <small style="color:#64748b; font-size:10px; margin-left:5px; cursor:pointer;" onclick="core.viewProfile('${data.from}')">[View Profile]</small>
+                <small style="color:#64748b; font-size:10px; margin-left:5px; cursor:pointer;" onclick="core.viewProfile('${data.from}')">[View]</small>
             </div>`;
         document.getElementById("global-chat").scrollTop = document.getElementById("global-chat").scrollHeight;
     });
