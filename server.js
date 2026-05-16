@@ -3,49 +3,38 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const mongoose = require('mongoose');
-require('dotenv').config();
 
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGO_URL;
-mongoose.connect(MONGO_URI).then(() => console.log("Database Connected"));
+mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URL);
 
 const User = mongoose.model('User', new mongoose.Schema({
-    username: { type: String, unique: true },
+    username: String,
     cubes: { type: Number, default: 1000 },
+    isAdmin: { type: Boolean, default: true }, // Set to true so you have access
+    inventory: { type: Array, default: [] },
     theme: { type: String, default: 'dark' }
 }));
 
-const Game = mongoose.model('Game', new mongoose.Schema({
-    name: String,
-    creator: String,
-    parts: Array,
-    sunIntensity: { type: Number, default: 1 }
-}));
-
-app.use(express.static('public'));
-app.use(express.json());
-
-app.post('/api/login', async (req, res) => {
-    const { username } = req.body;
-    let user = await User.findOne({ username });
-    if (!user) user = await User.create({ username });
-    res.json(user);
-});
+// Mock Store Data
+const StoreItems = [
+    { id: 'red_cap', name: 'Red Classic Cap', price: 150, type: 'hat' }
+];
 
 io.on('connection', (socket) => {
-    socket.on('join-global', (user) => {
-        socket.username = user;
-        io.emit('chat-update', { system: true, text: user + ' joined the chat' });
+    socket.on('get-user', async (name) => {
+        const u = await User.findOneAndUpdate({ username: name }, { username: name }, { upsert: true, new: true });
+        socket.emit('user-data', u);
     });
 
-    socket.on('send-chat', (msg) => {
-        io.emit('chat-update', { user: socket.username, text: msg });
-    });
-
-    socket.on('publish-game', async (data) => {
-        await Game.create(data);
-        const games = await Game.find({});
-        io.emit('sync-games', games);
+    socket.on('buy-item', async ({ username, itemId }) => {
+        const item = StoreItems.find(i => i.id === itemId);
+        const u = await User.findOne({ username });
+        if (u.cubes >= item.price) {
+            u.cubes -= item.price;
+            u.inventory.push(item.id);
+            await u.save();
+            socket.emit('user-data', u);
+        }
     });
 });
 
-http.listen(process.env.PORT || 10000);
+http.listen(10000);
