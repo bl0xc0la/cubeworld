@@ -1,63 +1,42 @@
-const express = require('express');
-const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const path = require('path');
-require('dotenv').config();
+// --- ADD THESE TO YOUR EXISTING SERVER.JS ---
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/cubeworld');
-
-// User Model with Password
-const User = mongoose.model('User', new mongoose.Schema({
-    username: { type: String, unique: true, required: true },
-    password: { type: String, required: true },
-    cubebucks: { type: Number, default: 100 },
-    isBanned: { type: Boolean, default: false },
-    isAdmin: { type: Boolean, default: false }
+// Store games in memory or MongoDB
+const Game = mongoose.model('Game', new mongoose.Schema({
+    name: String,
+    creator: String,
+    parts: Array,
+    createdAt: { type: Date, default: Date.now }
 }));
 
-// --- AUTH ROUTES ---
-
-app.post('/api/auth/register', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ 
-            username, 
-            password: hashedPassword,
-            isAdmin: username === 'BloxColaYT' // Auto-admin for you
-        });
-        res.status(201).json({ username: user.username, isAdmin: user.isAdmin });
-    } catch (err) {
-        res.status(400).send("Username already exists");
-    }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-    const { username, password } = req.body;
+// Fix 404: Daily Claim Route
+app.post('/api/daily-claim', async (req, res) => {
+    const { username } = req.body;
     const user = await User.findOne({ username });
-    if (!user) return res.status(400).send("User not found");
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).send("Invalid credentials");
-    if (user.isBanned) return res.status(403).send("You are banned");
-
-    res.json({ username: user.username, isAdmin: user.isAdmin, cubebucks: user.cubebucks });
+    if (!user) return res.status(404).send("User not found");
+    
+    // Add 50 CubeBucks
+    user.cubebucks = (user.cubebucks || 0) + 50;
+    await user.save();
+    res.json({ balance: user.cubebucks });
 });
 
-// Admin and Game routes remain the same...
+// Fix: Get All Games
+app.get('/api/games', async (req, res) => {
+    const games = await Game.find().sort({ createdAt: -1 });
+    res.json(games);
+});
 
+// Fix: Get Single Game
+app.get('/api/games/:id', async (req, res) => {
+    const game = await Game.findById(req.params.id);
+    res.json(game);
+});
+
+// Fix: Socket.io Publish Logic
 io.on('connection', (socket) => {
-    socket.on('join-session', (username) => {
-        socket.username = username;
-        console.log(`${username} connected to CubeWorld`);
+    socket.on('publish-game', async (data) => {
+        const newGame = await Game.create(data);
+        const allGames = await Game.find();
+        io.emit('sync-games', allGames); // Update everyone's list
     });
-    // ... other socket logic
 });
-
-http.listen(10000, () => console.log('CubeWorld Auth Server Online'));
