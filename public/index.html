@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="C (1)" href="/favicon
     <meta charset="UTF-8">
     <title>CubeWorld</title>
     <script src="/socket.io/socket.io.js"></script>
@@ -9,38 +8,41 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
     <style>
         :root {
-            --bg: #050505; --panel: #111115; --accent: #3b82f6; 
+            --bg: #08080a; --panel: #121217; --accent: #3b82f6; 
             --text: #a1a1aa; --text-bright: #ffffff;
-            --border: #27272a; --ui-corner: 14px;
+            --border: #27272a; --ui-corner: 15px; /* Rounded Corners */
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; outline: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* UI Corner Styles */
-        .btn { background: var(--accent); color: #fff; border: none; padding: 12px 22px; border-radius: var(--ui-corner); font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px; }
-        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
-        .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--ui-corner); padding: 20px; }
+        /* UI Elements */
+        .btn { background: var(--accent); color: #fff; border: none; padding: 12px 24px; border-radius: var(--ui-corner); font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--ui-corner); padding: 20px; transition: 0.3s; }
+        .card:hover { border-color: var(--accent); }
 
         /* Profile & Avatar */
-        .avatar-circle { width: 50px; height: 50px; border-radius: 50%; background: #222; border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 900; color: white; }
+        .pfp-circle { 
+            width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 20px;
+            border: 2px solid var(--border);
+        }
 
-        #sidebar { width: 280px; background: #000; border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 30px; }
-        .nav-link { padding: 15px; cursor: pointer; border-radius: var(--ui-corner); margin-bottom: 8px; transition: 0.2s; font-weight: 600; }
+        #sidebar { width: 280px; background: #000; border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 25px; }
+        .nav-link { padding: 15px; cursor: pointer; border-radius: var(--ui-corner); margin-bottom: 5px; transition: 0.2s; font-weight: 600; }
         .nav-link.active { background: var(--panel); color: white; border: 1px solid var(--border); }
 
         main { flex: 1; padding: 40px; overflow-y: auto; display: none; }
-        .page { display: none; }
-        .active-page { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .active-page { display: block; }
 
-        #viewport-container { width: 100%; height: 550px; border-radius: var(--ui-corner); border: 1px solid var(--border); background: #000; position: relative; overflow: hidden; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #viewport-container { width: 100%; height: 500px; border-radius: var(--ui-corner); border: 1px solid var(--border); background: #000; position: relative; overflow: hidden; }
         #viewport { width: 100%; height: 100%; }
 
         #chat-sidebar { width: 340px; background: #000; border-left: 1px solid var(--border); display: none; flex-direction: column; }
-        #chat-history { flex: 1; padding: 20px; overflow-y: auto; font-size: 13px; }
-        .chat-entry { margin-bottom: 10px; }
-        .chat-entry b { color: var(--accent); }
     </style>
 </head>
 <body>
@@ -49,66 +51,55 @@
     <div class="card" style="width:380px; text-align:center;">
         <h1 style="color:white; margin-bottom:30px; letter-spacing:-1px;">cubeworld</h1>
         <input id="auth-user" type="text" placeholder="Username" style="width:100%; padding:14px; margin-bottom:15px; border-radius:10px; border:1px solid var(--border); background:#000; color:white;">
-        <button class="btn" style="width:100%" onclick="handleAuth()">Join the World</button>
+        <button class="btn" style="width:100%" onclick="handleAuth()">Enter Engine</button>
     </div>
 </div>
 
 <div id="sidebar">
     <div style="display:flex; align-items:center; gap:15px; margin-bottom:40px;">
-        <div class="avatar-circle" id="pfp">?</div>
+        <div class="pfp-circle" id="pfp-initial">?</div>
         <div>
-            <div id="u-name" style="color:white; font-weight:bold;">Guest</div>
-            <div id="u-bucks" style="font-size:12px; color:var(--accent);">0 CB</div>
+            <div id="display-name" style="color:white; font-weight:bold;">Guest</div>
+            <div id="display-bucks" style="font-size:12px; color:var(--accent);">0 CB</div>
         </div>
     </div>
-    <div class="nav-link active" id="l-games" onclick="nav('games')">Discover</div>
-    <div class="nav-link" id="l-studio" onclick="nav('studio')">Studio Builder</div>
-    <div class="nav-link" id="l-shop" onclick="nav('shop')">Avatar Shop</div>
+    <div class="nav-link active" onclick="nav('games')">Discover</div>
+    <div class="nav-link" onclick="nav('studio')">Studio</div>
+    <div class="nav-link" onclick="nav('shop')">Avatar Shop</div>
     <div class="nav-link" style="margin-top:auto; color:#ef4444" onclick="location.reload()">Logout</div>
 </div>
 
 <main id="app-main">
     <div id="page-games" class="page active-page">
-        <h1 style="color:white; margin-bottom:30px;">Featured</h1>
-        <div id="game-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:25px;"></div>
+        <h1 style="color:white; margin-bottom:30px;">Featured Games</h1>
+        <div id="game-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:20px;"></div>
     </div>
 
     <div id="page-studio" class="page">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h1 style="color:white;" id="studio-mode">Workspace</h1>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="background:#22c55e" onclick="publishGame()">Publish</button>
-            </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <h1 style="color:white;">Editor Workspace</h1>
+            <button class="btn" onclick="publishGame()">🚀 Publish Game</button>
         </div>
         <div id="viewport-container">
             <div id="viewport"></div>
             <div style="position:absolute; bottom:20px; left:20px; display:flex; gap:10px;">
-                <button class="btn" style="background:#27272a" onclick="studio.addPart()">Insert Cube</button>
+                <button class="btn" style="background:#27272a" onclick="studio.addPart()">+ Cube</button>
                 <button class="btn" style="background:#ef4444" onclick="studio.clear()">Reset</button>
             </div>
-            <div style="position:absolute; top:20px; right:20px; color:white; font-size:12px; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px;">
+            <div style="position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); padding:10px; border-radius:8px; color:white; font-size:11px;">
                 T: Move | R: Rotate | S: Scale
             </div>
         </div>
     </div>
 </main>
 
-<div id="chat-sidebar">
-    <div style="padding:25px; font-weight:800; color:white; border-bottom:1px solid var(--border)">Global Chat</div>
-    <div id="chat-history"></div>
-    <div style="padding:20px; border-top:1px solid var(--border); display:flex; gap:10px;">
-        <input id="chat-msg" placeholder="Say something..." style="flex:1; background:#111; border:1px solid var(--border); color:white; padding:10px; border-radius:8px;">
-        <button class="btn" onclick="sendChat()">Send</button>
-    </div>
-</div>
-
 <script>
     const socket = io();
     let user = null;
 
-    // --- AUTH & PROFILE ---
     async function handleAuth() {
         const username = document.getElementById('auth-user').value;
+        if(!username) return;
         const res = await fetch('/api/auth/register', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -119,50 +110,48 @@
         document.getElementById('auth-overlay').style.display = 'none';
         document.getElementById('sidebar').style.display = 'flex';
         document.getElementById('app-main').style.display = 'block';
-        document.getElementById('chat-sidebar').style.display = 'flex';
-        document.getElementById('u-name').innerText = data.username;
-        document.getElementById('pfp').innerText = data.username[0].toUpperCase();
-        document.getElementById('u-bucks').innerText = data.cubebucks + " CB";
+        document.getElementById('display-name').innerText = data.username;
+        document.getElementById('pfp-initial').innerText = data.username[0].toUpperCase();
+        document.getElementById('display-bucks').innerText = data.cubebucks + " CB";
         socket.emit('join-session', data.username);
     }
 
     function nav(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         document.getElementById('page-' + id).classList.add('active-page');
         if(id === 'studio') studio.init();
     }
 
-    // --- STUDIO & GIZMOS ---
+    // --- 3D ENGINE ---
     const studio = {
-        scene: null, cam: null, renderer: null, control: null, objects: [], isPlaying: false, character: null,
+        scene: null, cam: null, renderer: null, control: null, objects: [],
         init() {
             if(this.renderer) return;
             const container = document.getElementById('viewport');
             this.scene = new THREE.Scene();
-            this.scene.background = new THREE.Color(0x050505);
+            this.scene.background = new THREE.Color(0x08080a);
             this.cam = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
             this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(this.renderer.domElement);
 
-            // Gizmos
+            // X, Y, Z Arrows
             this.control = new THREE.TransformControls(this.cam, this.renderer.domElement);
             this.scene.add(this.control);
 
             this.scene.add(new THREE.GridHelper(50, 50, 0x27272a, 0x27272a));
-            this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-            this.cam.position.set(15, 15, 15);
+            this.scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            this.cam.position.set(12, 12, 12);
             this.cam.lookAt(0,0,0);
 
-            // Hotkeys
+            // Hotkeys for Gizmos
             window.addEventListener('keydown', (e) => {
                 if(e.key === 't') this.control.setMode('translate');
                 if(e.key === 'r') this.control.setMode('rotate');
                 if(e.key === 's') this.control.setMode('scale');
             });
 
-            // Selection
+            // Click to Select
             window.addEventListener('mousedown', (e) => {
                 const rect = container.getBoundingClientRect();
                 const mouse = new THREE.Vector2(
@@ -177,70 +166,31 @@
 
             this.render();
         },
-        addPart(data = null) {
+        addPart() {
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshStandardMaterial({color: 0x3b82f6}));
-            if(data) mesh.position.copy(data.pos);
-            else mesh.position.y = 1;
+            mesh.position.y = 1;
             this.scene.add(mesh);
             this.objects.push(mesh);
             this.control.attach(mesh);
         },
-        async play(id) {
-            this.isPlaying = true;
-            this.clear();
-            const res = await fetch('/api/games/' + id);
-            const game = await res.json();
-            game.parts.forEach(p => this.addPart(p));
-            
-            // Spawn Avatar
-            this.character = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 0.5), new THREE.MeshStandardMaterial({color: 0xffffff}));
-            this.character.add(body);
-            this.scene.add(this.character);
-            nav('studio');
-            document.getElementById('studio-mode').innerText = "Playing: " + game.name;
-        },
         clear() { this.objects.forEach(o => this.scene.remove(o)); this.objects = []; this.control.detach(); },
-        render() { 
-            requestAnimationFrame(() => this.render()); 
-            if(this.isPlaying && this.character) {
-                // Future: Add WASD logic here
-            }
-            this.renderer.render(this.scene, this.cam); 
-        }
+        render() { requestAnimationFrame(() => this.render()); this.renderer.render(this.scene, this.cam); }
     };
 
-    // --- SYSTEMS ---
     function publishGame() {
-        const name = prompt("Experience Name:");
+        const name = prompt("Name your creation:");
         if(!name) return;
         socket.emit('publish-game', { name, creator: user.username, parts: studio.objects.map(o => ({ pos: o.position })) });
         alert("Published!");
     }
 
-    function sendChat() {
-        const msg = document.getElementById('chat-msg');
-        if(!msg.value) return;
-        socket.emit('send-chat', msg.value);
-        msg.value = "";
-    }
-
-    socket.on('chat-receive', d => {
-        const hist = document.getElementById('chat-history');
-        const div = document.createElement('div');
-        div.className = 'chat-entry';
-        div.innerHTML = `<b>${d.user}:</b> ${d.text}`;
-        hist.appendChild(div);
-        hist.scrollTop = hist.scrollHeight;
-    });
-
     socket.on('sync-games', games => {
         document.getElementById('game-list').innerHTML = games.map(g => `
             <div class="card">
-                <div style="height:140px; background:#000; border-radius:10px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:900;">CUBE</div>
+                <div style="height:120px; background:#000; border-radius:10px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:900;">CUBEWORLD</div>
                 <b style="color:white; font-size:18px;">${g.name}</b>
                 <p style="font-size:12px; margin-top:5px;">by ${g.creator}</p>
-                <button class="btn" style="width:100%; margin-top:15px;" onclick="studio.play('${g._id}')">Play Now</button>
+                <button class="btn" style="width:100%; margin-top:15px;" onclick="nav('studio')">Play</button>
             </div>
         `).join('');
     });
