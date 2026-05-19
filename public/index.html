@@ -8,71 +8,87 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
     <style>
         :root {
-            --bg: #0d1117; 
-            --panel: #161b22; 
+            --bg: #05070a; 
+            --panel: #0d1117; 
             --sidebar: #010409;
-            --accent: #007bff; 
-            --text: #c9d1d9; 
-            --text-bright: #ffffff;
+            --accent: #3b82f6; 
+            --text: #8b949e; 
+            --text-bright: #f0f6fc;
             --border: #30363d;
-            --card: #21262d;
-            --danger: #da3633;
+            --card: #161b22;
+            --danger: #f85149;
+            --success: #2ea043;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Inter", -apple-system, sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Auth Overlay */
-        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .auth-box { background: var(--panel); padding: 40px; border-radius: 12px; border: 1px solid var(--border); width: 380px; text-align: center; }
+        /* Auth Screen */
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .auth-box { background: var(--panel); padding: 40px; border-radius: 16px; border: 1px solid var(--border); width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 
-        /* Sidebar */
-        #sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 25px 0; }
-        .sidebar-brand { padding: 0 25px 30px; font-weight: 800; font-size: 24px; color: var(--text-bright); }
-        .nav-link { padding: 12px 25px; cursor: pointer; color: var(--text); font-size: 14px; border-left: 3px solid transparent; transition: 0.2s; }
-        .nav-link.active { background: rgba(0, 123, 255, 0.1); border-left-color: var(--accent); color: var(--text-bright); }
+        /* Sidebar Navigation */
+        #sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 30px 0; }
+        .sidebar-brand { padding: 0 30px 40px; font-weight: 900; font-size: 26px; color: var(--text-bright); letter-spacing: -1.5px; text-transform: lowercase; }
+        .nav-link { padding: 14px 30px; cursor: pointer; color: var(--text); font-size: 15px; font-weight: 600; border-left: 4px solid transparent; transition: 0.3s; display: flex; align-items: center; gap: 12px; }
+        .nav-link:hover { background: rgba(255,255,255,0.03); color: var(--text-bright); }
+        .nav-link.active { background: rgba(59, 130, 246, 0.1); border-left-color: var(--accent); color: var(--text-bright); }
 
-        /* Main Content */
-        main { flex: 1; padding: 40px; overflow-y: auto; display: none; }
-        .page { display: none; width: 100%; max-width: 1100px; margin: 0 auto; }
+        /* Content Area */
+        main { flex: 1; padding: 40px; overflow-y: auto; display: none; scroll-behavior: smooth; }
+        .page { display: none; width: 100%; max-width: 1200px; margin: 0 auto; animation: fadeIn 0.3s ease; }
         .page.active-page { display: block; }
 
-        /* Grids & Cards */
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Viewport */
-        #viewport-container { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #000; height: 450px; margin-bottom: 20px; }
+        /* Search & Headers */
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .search-container { position: relative; width: 100%; max-width: 450px; }
+        .search-bar { background: var(--card); border: 1px solid var(--border); color: #fff; padding: 12px 20px; border-radius: 8px; width: 100%; outline: none; transition: 0.2s; }
+        .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+
+        /* Game & Shop Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: 0.3s; position: relative; }
+        .card:hover { transform: translateY(-5px); border-color: #444c56; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .card b { color: var(--text-bright); display: block; margin-bottom: 4px; font-size: 18px; }
+
+        /* Studio & Viewport */
+        #viewport-container { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: #000; height: 550px; margin-bottom: 25px; position: relative; }
         #viewport { width: 100%; height: 100%; }
+        .viewport-controls { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; }
 
-        /* Chat */
-        #chat-sidebar { width: 320px; background: var(--sidebar); border-left: 1px solid var(--border); display: none; flex-direction: column; }
-        #chat-history { flex: 1; padding: 20px; overflow-y: auto; font-size: 13px; }
-        .chat-input-area { padding: 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+        /* Global Chat */
+        #chat-sidebar { width: 340px; background: var(--sidebar); border-left: 1px solid var(--border); display: none; flex-direction: column; }
+        .chat-header { padding: 20px; font-weight: 800; border-bottom: 1px solid var(--border); color: var(--text-bright); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        #chat-history { flex: 1; padding: 20px; overflow-y: auto; font-size: 13px; scrollbar-width: thin; }
+        .chat-msg { margin-bottom: 12px; line-height: 1.5; }
+        .chat-msg b { color: var(--accent); margin-right: 6px; }
+        .chat-input-area { padding: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
 
-        /* UI Elements */
-        .btn { background: var(--accent); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        /* Buttons & Inputs */
+        .btn { background: var(--accent); color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn:hover { filter: brightness(1.2); }
         .btn-danger { background: var(--danger); }
-        .btn-secondary { background: #30363d; color: var(--text); }
-        input { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; width: 100%; outline: none; }
-        .search-bar { max-width: 400px; margin-bottom: 0; }
+        .btn-secondary { background: #30363d; color: var(--text-bright); }
+        input[type="text"], input[type="password"] { background: var(--card); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 15px; outline: none; }
     </style>
 </head>
 <body>
 
 <div id="auth-overlay">
     <div class="auth-box">
-        <h1 style="margin-bottom:20px">cubeworld</h1>
-        <input id="auth-user" placeholder="Username">
+        <h1 class="sidebar-brand" style="padding:0; margin-bottom:30px;">cubeworld</h1>
+        <input id="auth-user" type="text" placeholder="Username">
         <input id="auth-pass" type="password" placeholder="Password">
-        <button class="btn" style="width:100%" onclick="handleAuth()">Login / Sign Up</button>
+        <button class="btn" style="width:100%" onclick="handleAuth()">Enter cubeworld</button>
+        <p id="auth-status" style="margin-top:15px; font-size:12px; color: var(--danger)"></p>
     </div>
 </div>
 
 <div id="sidebar">
     <div class="sidebar-brand">cubeworld</div>
-    <div class="nav-link active" id="link-games" onclick="nav('games')">Discover</div>
+    <div class="nav-link active" id="link-games" onclick="nav('games')">Games</div>
     <div class="nav-link" id="link-studio" onclick="nav('studio')">Studio</div>
     <div class="nav-link" id="link-shop" onclick="nav('shop')">Avatar Shop</div>
     <div class="nav-link" id="link-settings" onclick="nav('settings')">Settings</div>
@@ -84,61 +100,73 @@
     <div id="page-games" class="page active-page">
         <div class="header-row">
             <h1>Discover</h1>
-            <input type="text" id="game-search" class="search-bar" placeholder="Search games..." oninput="filterGames()">
+            <div class="search-container">
+                <input type="text" id="game-search" class="search-bar" placeholder="Find a world..." oninput="filterGames()">
+            </div>
         </div>
         <div id="game-list" class="grid"></div>
     </div>
 
     <div id="page-studio" class="page">
         <div class="header-row">
-            <h1>Studio</h1>
-            <button class="btn" onclick="publishGame()">Publish Game</button>
+            <h1 id="studio-title">Studio Workspace</h1>
+            <button class="btn" onclick="publishGame()">Publish Experience</button>
         </div>
-        <div id="viewport-container"><div id="viewport"></div></div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn btn-secondary" onclick="studio.addPart()">Add Cube</button>
-            <button class="btn btn-danger" onclick="studio.clear()">Clear All</button>
+        <div id="viewport-container">
+            <div id="viewport"></div>
+            <div class="viewport-controls">
+                <button class="btn btn-secondary" onclick="studio.addPart()">Insert Part</button>
+                <button class="btn btn-danger" onclick="studio.clear()">Reset Map</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Part Settings</h3>
+            <p style="font-size:13px; margin-bottom:10px;">Select a part in the 3D view to modify its properties.</p>
+            <input type="color" id="part-color" value="#3b82f6" style="height:40px; border:none; cursor:pointer;">
         </div>
     </div>
 
     <div id="page-shop" class="page">
-        <h1>Avatar Shop</h1>
-        <p>Balance: <span id="cb-balance">0</span> CubeBucks</p>
-        <button class="btn" style="margin:20px 0" onclick="claimDaily()">Claim Daily Rewards</button>
+        <div class="header-row">
+            <h1>Avatar Shop</h1>
+            <div class="card" style="padding:10px 20px;">
+                <b>Balance: <span id="cb-balance">0</span> CB</b>
+            </div>
+        </div>
+        <button class="btn" style="margin-bottom:30px; background:var(--success)" onclick="claimDaily()">Claim Daily 50 CubeBucks</button>
         <div class="grid">
-            <div class="card"><h3>Classic Hat</h3><p>50 CB</p><button class="btn btn-secondary">Buy</button></div>
+            <div class="card"><b>Classic Visor</b><p>50 CB</p><button class="btn btn-secondary" style="width:100%; margin-top:10px;">Purchase</button></div>
+            <div class="card"><b>Neon Wings</b><p>250 CB</p><button class="btn btn-secondary" style="width:100%; margin-top:10px;">Purchase</button></div>
         </div>
     </div>
 
     <div id="page-settings" class="page">
-        <h1>Settings</h1>
-        <button class="btn btn-danger" style="margin-top:20px" onclick="deleteAccount()">Delete Account</button>
+        <h1>Account Settings</h1>
+        <div class="card" style="margin-top:20px; border-color: var(--danger)">
+            <h3>Danger Zone</h3>
+            <p style="margin-bottom:15px">Deleting your account is permanent.</p>
+            <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+        </div>
     </div>
 
     <div id="page-admin" class="page">
-        <h1>Admin Panel</h1>
+        <h1>Admin Control</h1>
         <div class="grid" style="margin-top:20px">
             <div class="card">
-                <h3>User Management</h3>
+                <h3>Management</h3>
                 <input id="adm-user" placeholder="Username">
-                <button class="btn" onclick="adminAction('ban')">Ban User</button>
-                <button class="btn btn-secondary" onclick="adminAction('unban')" style="margin-top:5px">Unban</button>
+                <button class="btn" style="width:100%" onclick="adminAction('ban')">Ban</button>
             </div>
             <div class="card">
-                <h3>Economy</h3>
-                <input id="adm-amt" placeholder="Amount">
-                <button class="btn" onclick="adminAction('give')">Give CubeBucks</button>
-            </div>
-            <div class="card">
-                <h3>System</h3>
-                <button class="btn btn-danger" onclick="adminAction('maintenance')">Toggle Maintenance</button>
+                <h3>Maintenance</h3>
+                <button class="btn btn-danger" style="width:100%" onclick="adminAction('maintenance')">Toggle Global Maintenance</button>
             </div>
         </div>
     </div>
 </main>
 
 <div id="chat-sidebar">
-    <div style="padding:20px; font-weight:bold; border-bottom:1px solid var(--border)">Global Chat</div>
+    <div class="chat-header">Global Chat</div>
     <div id="chat-history"></div>
     <div class="chat-input-area">
         <input id="chat-msg" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChat()">
@@ -155,7 +183,6 @@
     async function handleAuth() {
         const username = document.getElementById('auth-user').value;
         const password = document.getElementById('auth-pass').value;
-        // Simple combined logic: try login, if fails with 404, try register
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -165,14 +192,13 @@
         if (res.ok) {
             loginSuccess(await res.json());
         } else {
-            // Try register if login failed
             const reg = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ username, password })
             });
             if(reg.ok) loginSuccess(await reg.json());
-            else alert("Authentication failed.");
+            else document.getElementById('auth-status').innerText = "Auth Error. Check credentials.";
         }
     }
 
@@ -199,40 +225,88 @@
         if(id === 'studio') studio.init();
     }
 
-    // --- STUDIO & GAMES ---
+    // --- 3D ENGINE & PLAY MODE ---
     const studio = {
-        scene: null, cam: null, renderer: null, objects: [],
+        scene: null, cam: null, renderer: null, objects: [], isPlaying: false, keys: {}, character: null,
         init() {
             if(this.renderer) return;
             const container = document.getElementById('viewport');
             this.scene = new THREE.Scene();
+            this.scene.background = new THREE.Color(0x05070a);
             this.cam = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
             this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(this.renderer.domElement);
-            this.scene.add(new THREE.GridHelper(30, 30, 0x30363d, 0x30363d));
-            this.cam.position.set(10, 10, 10);
+            
+            this.scene.add(new THREE.GridHelper(50, 50, 0x30363d, 0x30363d));
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(10, 20, 10);
+            this.scene.add(light);
+            this.scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+            
+            this.cam.position.set(15, 15, 15);
             this.cam.lookAt(0,0,0);
             this.render();
+            window.addEventListener('keydown', e => this.keys[e.code] = true);
+            window.addEventListener('keyup', e => this.keys[e.code] = false);
         },
-        addPart() {
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshNormalMaterial());
+        addPart(data = null) {
+            const color = document.getElementById('part-color').value;
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ color: data ? data.col : color }));
+            if(data) mesh.position.set(data.pos.x, data.pos.y, data.pos.z);
             this.scene.add(mesh);
             this.objects.push(mesh);
         },
-        clear() { this.objects.forEach(o => this.scene.remove(o)); this.objects = []; },
-        render() { requestAnimationFrame(() => this.render()); this.renderer.render(this.scene, this.cam); }
+        startPlay(gameParts) {
+            this.isPlaying = true;
+            this.clear();
+            gameParts.forEach(p => this.addPart(p));
+            
+            // Create Humanoid Character
+            const group = new THREE.Group();
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), new THREE.MeshStandardMaterial({color: 0xffdbac}));
+            head.position.y = 1.8;
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.5), new THREE.MeshStandardMaterial({color: 0x3b82f6}));
+            body.position.y = 1;
+            group.add(head, body);
+            this.character = group;
+            this.scene.add(this.character);
+            nav('studio');
+            document.getElementById('studio-title').innerText = "Playing Game";
+        },
+        clear() { this.objects.forEach(o => this.scene.remove(o)); this.objects = []; if(this.character) this.scene.remove(this.character); },
+        render() {
+            requestAnimationFrame(() => this.render());
+            if(this.isPlaying && this.character) {
+                const speed = 0.2;
+                if(this.keys['KeyW']) this.character.position.z -= speed;
+                if(this.keys['KeyS']) this.character.position.z += speed;
+                if(this.keys['KeyA']) this.character.position.x -= speed;
+                if(this.keys['KeyD']) this.character.position.x += speed;
+
+                this.cam.position.set(this.character.position.x, this.character.position.y + 8, this.character.position.z + 15);
+                this.cam.lookAt(this.character.position);
+            }
+            this.renderer.render(this.scene, this.cam);
+        }
     };
 
+    // --- GAME ACTIONS ---
+    async function joinGame(id) {
+        const res = await fetch('/api/games/' + id);
+        const game = await res.json();
+        studio.init();
+        studio.startPlay(game.parts);
+    }
+
     function publishGame() {
-        const name = prompt("Name your cubeworld game:");
+        const name = prompt("Experience Name:");
         if(!name) return;
         socket.emit('publish-game', {
-            name: name,
-            creator: user.username,
-            parts: studio.objects.map(o => ({ pos: o.position }))
+            name, creator: user.username,
+            parts: studio.objects.map(o => ({ pos: o.position, col: '#'+o.material.color.getHexString() }))
         });
-        alert("Published!");
+        alert("Published to Discovery!");
     }
 
     function filterGames() {
@@ -244,13 +318,14 @@
     function renderGames(list) {
         document.getElementById('game-list').innerHTML = list.map(g => `
             <div class="card">
-                <b>${g.name}</b><br><small>by ${g.creator}</small>
-                <button class="btn" style="width:100%; margin-top:10px" onclick="alert('Joining...')">Play</button>
+                <b>${g.name}</b>
+                <p style="font-size:12px; margin-bottom:15px;">By ${g.creator}</p>
+                <button class="btn" style="width:100%" onclick="joinGame('${g._id}')">Play Now</button>
             </div>
         `).join('');
     }
 
-    // --- GLOBAL CHAT ---
+    // --- CHAT & SOCIAL ---
     function sendChat() {
         const input = document.getElementById('chat-msg');
         if(!input.value) return;
@@ -260,13 +335,15 @@
 
     socket.on('chat-receive', d => {
         const history = document.getElementById('chat-history');
-        const msg = document.createElement('div');
-        msg.innerHTML = `<b>${d.user}:</b> ${d.text}`;
-        history.appendChild(msg);
+        const div = document.createElement('div');
+        div.className = 'chat-msg';
+        div.innerHTML = `<b>${d.user}</b> ${d.text}`;
+        history.appendChild(div);
         history.scrollTop = history.scrollHeight;
     });
 
-    // --- ECONOMY & ADMIN ---
+    socket.on('sync-games', games => { allGames = games; renderGames(games); });
+
     async function claimDaily() {
         const res = await fetch('/api/daily-claim', {
             method: 'POST',
@@ -274,36 +351,12 @@
             body: JSON.stringify({ username: user.username })
         });
         if(res.ok) {
-            const data = await res.json();
-            user.cubebucks = data.balance;
-            document.getElementById('cb-balance').innerText = data.balance;
+            const d = await res.json();
+            document.getElementById('cb-balance').innerText = d.balance;
         } else alert(await res.text());
     }
 
-    async function adminAction(action) {
-        const target = document.getElementById('adm-user').value;
-        const amount = document.getElementById('adm-amt').value;
-        await fetch('/api/admin/action', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'username': user.username},
-            body: JSON.stringify({ action, target, amount: parseInt(amount) })
-        });
-        alert("Admin action sent.");
-    }
-
-    async function deleteAccount() {
-        if(!confirm("Permanently delete your account?")) return;
-        await fetch('/api/delete-account', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ username: user.username })
-        });
-        logout();
-    }
-
     function logout() { localStorage.removeItem('cubeSession'); window.location.reload(); }
-
-    socket.on('sync-games', games => { allGames = games; renderGames(games); });
 
     window.onload = () => {
         const saved = localStorage.getItem('cubeSession');
