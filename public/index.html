@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld - Build & Explore</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>CubeWorld</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,47 +13,179 @@
         }
 
         :root {
-            --primary: #5B63FF;
-            --secondary: #FF6B6B;
-            --accent: #4ECDC4;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --gray: #95a5a6;
-            --gold: #FFD700;
-            --success: #2ecc71;
-            --danger: #e74c3c;
-            --shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --accent: #3b82f6;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --gold: #f59e0b;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
             background: var(--light);
             color: var(--dark);
-            transition: all 0.3s ease;
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            display: flex;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .auth-box {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .auth-subtitle {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+
+        .btn-secondary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--light);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .auth-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Main App */
+        .app-container {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .app-container.active {
+            display: flex;
         }
 
         /* Navigation */
         .navbar {
             background: white;
+            border-bottom: 1px solid var(--border);
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
         .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -1px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
         }
 
         .navbar-menu {
@@ -63,170 +195,117 @@
         }
 
         .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
             cursor: pointer;
-            font-weight: 600;
-            color: var(--dark);
-            transition: color 0.3s ease;
             padding: 0.5rem 1rem;
-            border-radius: 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
         }
 
         .nav-link:hover {
             color: var(--primary);
-            background: rgba(91, 99, 255, 0.1);
+            background: var(--light);
         }
 
         .nav-link.active {
             color: var(--primary);
-            background: rgba(91, 99, 255, 0.15);
+            background: rgba(37, 99, 235, 0.1);
         }
 
-        .user-info {
+        .user-section {
             display: flex;
-            gap: 1rem;
             align-items: center;
+            gap: 1rem;
         }
 
-        .coin-badge {
+        .coin-display {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: linear-gradient(135deg, var(--gold) 0%, #FFC700 100%);
             padding: 0.5rem 1rem;
-            border-radius: 20px;
+            background: var(--light);
+            border-radius: 6px;
             font-weight: 600;
-            color: var(--dark);
         }
 
-        .coin-icon {
-            width: 20px;
-            height: 20px;
-            background: radial-gradient(circle at 30% 30%, #FFE100, var(--gold));
+        .avatar-mini {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
+            background: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
-        }
-
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
             color: white;
+            font-weight: 700;
         }
 
-        .btn-primary:hover {
-            background: #4652dd;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(91, 99, 255, 0.3);
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
         }
 
-        .btn-secondary {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #FF5252;
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-small {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--dark);
-            padding: 0.5rem 1rem;
-        }
-
-        .btn-ghost:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        /* Main Container */
-        .container {
+        .page {
             display: none;
         }
 
-        .container.active {
+        .page.active {
             display: block;
         }
 
-        .page-content {
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--dark);
         }
 
         /* Discover Page */
-        .discover-grid {
+        .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
-            margin-top: 2rem;
         }
 
         .game-card {
             background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
         .game-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
         }
 
-        .game-card-image {
+        .game-header {
             width: 100%;
-            height: 160px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            height: 120px;
+            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+            border-radius: 6px;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
-            color: white;
-        }
-
-        .game-card-content {
-            padding: 1.5rem;
         }
 
         .game-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
 
         .game-author {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--gray);
             margin-bottom: 1rem;
         }
@@ -239,87 +318,31 @@
             margin-bottom: 1rem;
         }
 
-        .game-stat {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        /* Studio Editor */
+        /* Studio Page */
         .studio-container {
             display: flex;
             gap: 1.5rem;
-            height: calc(100vh - 100px);
+            height: calc(100vh - 150px);
         }
 
         .viewport {
             flex: 1;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .canvas-wrapper {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .axes-overlay {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.9);
+            background: white;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 10px;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .axis {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            justify-content: center;
+            font-size: 3rem;
         }
 
-        .axis-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .axis-x { background: #FF6B6B; }
-        .axis-y { background: #4ECDC4; }
-        .axis-z { background: var(--primary); }
-
-        .axis-label {
-            font-weight: 700;
-            min-width: 20px;
-        }
-
-        /* Properties Panel */
         .properties-panel {
-            width: 300px;
+            width: 320px;
             background: white;
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
             overflow-y: auto;
-            max-height: calc(100vh - 100px);
         }
 
         .panel-section {
@@ -327,10 +350,12 @@
         }
 
         .panel-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: var(--dark);
+            text-transform: uppercase;
+            color: var(--gray);
+            letter-spacing: 0.5px;
         }
 
         .property-group {
@@ -338,67 +363,135 @@
         }
 
         .property-label {
-            display: block;
             font-size: 0.85rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+            display: block;
+            color: var(--dark);
+        }
+
+        /* Avatar Shop */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .item-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .item-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+
+        .item-preview {
+            width: 100%;
+            height: 120px;
+            background: var(--light);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-price {
+            font-size: 0.9rem;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .item-btn {
+            width: 100%;
+        }
+
+        /* Admin Panel */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .admin-section {
+            background: white;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-info {
+            flex: 1;
+        }
+
+        .list-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .list-meta {
+            font-size: 0.85rem;
             color: var(--gray);
         }
 
-        .property-input {
-            width: 100%;
-            padding: 0.6rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .property-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(91, 99, 255, 0.1);
-        }
-
-        .color-picker {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* Toolbar */
-        .toolbar {
+        .list-actions {
             display: flex;
             gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .tool-btn {
-            flex: 1;
-            min-width: 60px;
-            padding: 0.7rem;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .tool-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        .tool-btn.active {
-            background: var(--primary);
-            color: white;
         }
 
         /* Modal */
@@ -425,7 +518,8 @@
             padding: 2rem;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -434,136 +528,75 @@
             margin-bottom: 1.5rem;
         }
 
-        .modal-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .form-input {
-            padding: 0.75rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(91, 99, 255, 0.1);
-        }
-
         .modal-footer {
             display: flex;
             gap: 1rem;
             margin-top: 2rem;
+            justify-content: flex-end;
         }
 
-        /* Admin Panel */
-        .admin-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
+        /* Profile */
+        .profile-card {
             background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .stat-label {
-            color: var(--gray);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .admin-section {
-            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             padding: 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
+            max-width: 400px;
             margin-bottom: 2rem;
         }
 
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 700;
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .profile-info {
             margin-bottom: 1.5rem;
         }
 
-        .user-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+        .profile-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
         }
 
-        .user-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .user-item:hover {
-            background: #e9ecef;
-        }
-
-        .user-badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        .profile-value {
+            font-size: 1.1rem;
             font-weight: 600;
-            background: var(--gold);
-            color: var(--dark);
         }
 
-        .badge-admin {
-            background: var(--secondary);
-            color: white;
+        /* Warning */
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #78350f;
+        }
+
+        .warning-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .studio-container {
                 flex-direction: column;
-                height: auto;
             }
 
             .properties-panel {
                 width: 100%;
-                max-height: none;
-            }
-
-            .discover-grid {
-                grid-template-columns: 1fr;
             }
 
             .navbar-menu {
@@ -571,590 +604,654 @@
                 font-size: 0.9rem;
             }
 
-            .modal-content {
-                width: 95%;
+            .games-grid, .shop-grid {
+                grid-template-columns: 1fr;
             }
         }
 
-        /* Animations */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .container.active {
-            animation: fadeIn 0.3s ease;
-        }
-
-        .game-card {
-            animation: slideIn 0.3s ease backwards;
-        }
-
-        .game-card:nth-child(1) { animation-delay: 0.1s; }
-        .game-card:nth-child(2) { animation-delay: 0.2s; }
-        .game-card:nth-child(3) { animation-delay: 0.3s; }
-
-        /* Loading */
         .empty-state {
             text-align: center;
             padding: 3rem;
             color: var(--gray);
         }
 
-        .empty-state-icon {
-            font-size: 3rem;
+        .empty-state-text {
+            font-size: 1.1rem;
             margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="navbar-brand">🎮 CubeWorld</div>
-        <div class="navbar-menu">
-            <div class="nav-link active" onclick="switchPage('discover')">Discover</div>
-            <div class="nav-link" onclick="switchPage('studio')">Studio</div>
-            <div class="nav-link" onclick="switchPage('games')">My Games</div>
-            <div class="nav-link admin-only" style="display: none;" onclick="switchPage('admin')">Admin</div>
-        </div>
-        <div class="user-info">
-            <div class="coin-badge">
-                <div class="coin-icon">₡</div>
-                <span id="coinCount">1,250</span>
-            </div>
-            <button class="btn btn-primary btn-small" onclick="handleLogout()">Logout</button>
-        </div>
-    </nav>
+    <!-- Auth Page -->
+    <div id="auth-page" class="auth-container">
+        <div class="auth-box">
+            <div class="auth-title">CubeWorld</div>
+            <div class="auth-subtitle">Build and play games</div>
 
-    <!-- Discover Page -->
-    <div class="container active" id="discover-page">
-        <div class="page-content">
-            <h1>Discover Games</h1>
-            <div class="discover-grid" id="gamesGrid">
-                <!-- Games will be populated here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Studio Page -->
-    <div class="container" id="studio-page">
-        <div class="page-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1>Studio Editor</h1>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-outline" onclick="togglePreview()">Preview</button>
-                    <button class="btn btn-secondary" onclick="openPublishModal()">🚀 Publish</button>
+            <!-- Login Form -->
+            <div id="login-form">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="loginUsername" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="Enter password">
+                </div>
+                <button class="btn btn-primary" onclick="handleLogin()">Login</button>
+                <div class="auth-link">
+                    Don't have an account? <a onclick="showSignup()">Create one</a>
                 </div>
             </div>
 
-            <div class="studio-container">
-                <!-- Canvas Viewport -->
-                <div class="viewport">
-                    <div class="canvas-wrapper">
-                        <canvas id="studioCanvas"></canvas>
-                        <div class="axes-overlay">
-                            <div class="axis">
-                                <div class="axis-indicator axis-x"></div>
-                                <span class="axis-label">X</span>
-                            </div>
-                            <div class="axis">
-                                <div class="axis-indicator axis-y"></div>
-                                <span class="axis-label">Y</span>
-                            </div>
-                            <div class="axis">
-                                <div class="axis-indicator axis-z"></div>
-                                <span class="axis-label">Z</span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Signup Form -->
+            <div id="signup-form" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="signupUsername" placeholder="Choose username">
                 </div>
-
-                <!-- Properties Panel -->
-                <div class="properties-panel">
-                    <div class="panel-section">
-                        <div class="panel-title">Building Tools</div>
-                        <div class="toolbar">
-                            <button class="tool-btn active" data-tool="cube" onclick="selectTool('cube')">📦 Cube</button>
-                            <button class="tool-btn" data-tool="select" onclick="selectTool('select')">✋ Select</button>
-                            <button class="tool-btn" data-tool="move" onclick="selectTool('move')">↔️ Move</button>
-                        </div>
-                    </div>
-
-                    <div class="panel-section">
-                        <div class="panel-title">Object Properties</div>
-                        <div class="property-group">
-                            <label class="property-label">Position X</label>
-                            <input type="number" class="property-input" id="propX" value="0" onchange="updateProperty('x', this.value)">
-                        </div>
-                        <div class="property-group">
-                            <label class="property-label">Position Y</label>
-                            <input type="number" class="property-input" id="propY" value="0" onchange="updateProperty('y', this.value)">
-                        </div>
-                        <div class="property-group">
-                            <label class="property-label">Position Z</label>
-                            <input type="number" class="property-input" id="propZ" value="0" onchange="updateProperty('z', this.value)">
-                        </div>
-                        <div class="property-group">
-                            <label class="property-label">Color</label>
-                            <input type="color" class="color-picker" id="propColor" value="#5B63FF" onchange="updateProperty('color', this.value)">
-                        </div>
-                    </div>
-
-                    <div class="panel-section">
-                        <div class="panel-title">Scale</div>
-                        <div class="property-group">
-                            <label class="property-label">Size</label>
-                            <input type="range" class="property-input" min="0.5" max="5" step="0.5" value="1" onchange="updateProperty('scale', this.value)">
-                        </div>
-                    </div>
-
-                    <div class="panel-section">
-                        <button class="btn btn-secondary" style="width: 100%;" onclick="deleteSelected()">🗑️ Delete</button>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="signupEmail" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="signupPassword" placeholder="Create password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-input" id="signupConfirm" placeholder="Confirm password">
+                </div>
+                <button class="btn btn-primary" onclick="handleSignup()">Create Account</button>
+                <div class="auth-link">
+                    Already have an account? <a onclick="showLogin()">Login</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- My Games Page -->
-    <div class="container" id="games-page">
-        <div class="page-content">
-            <h1>My Games</h1>
-            <button class="btn btn-primary" style="margin-top: 1rem; margin-bottom: 1rem;" onclick="openCreateGameModal()">+ Create New Game</button>
-            <div class="discover-grid" id="myGamesGrid">
-                <!-- User's games will be populated here -->
+    <!-- Main App -->
+    <div id="app-page" class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="navbar-brand">CubeWorld</div>
+            <div class="navbar-menu">
+                <a class="nav-link active" onclick="switchPage('discover')">Discover</a>
+                <a class="nav-link" onclick="switchPage('studio')">Studio</a>
+                <a class="nav-link" onclick="switchPage('shop')">Shop</a>
+                <a class="nav-link" onclick="switchPage('profile')">Profile</a>
+                <a class="nav-link admin-only" style="display: none;" onclick="switchPage('admin')">Admin</a>
             </div>
-        </div>
-    </div>
+            <div class="user-section">
+                <div class="coin-display">
+                    <span id="coinCount">0</span> coins
+                </div>
+                <div class="avatar-mini" id="navAvatar">A</div>
+                <button class="btn btn-ghost btn-small" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
 
-    <!-- Admin Panel -->
-    <div class="container" id="admin-page">
-        <div class="page-content">
-            <h1>Admin Dashboard</h1>
-
-            <div class="admin-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Users</div>
-                    <div class="stat-value">2,847</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Games Published</div>
-                    <div class="stat-value">156</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Total CubeCoins</div>
-                    <div class="stat-value">125.2K</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Active Players</div>
-                    <div class="stat-value">1,204</div>
-                </div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Discover Page -->
+            <div id="discover-page" class="page active">
+                <div class="page-title">Discover Games</div>
+                <div class="games-grid" id="gamesGrid"></div>
             </div>
 
-            <div class="admin-section">
-                <div class="section-title">Manage Admins</div>
-                <div class="user-list">
-                    <div class="user-item">
-                        <div>
-                            <div style="font-weight: 600;">BloxColaYT</div>
-                            <div style="font-size: 0.85rem; color: var(--gray);">Main Admin</div>
+            <!-- Studio Page -->
+            <div id="studio-page" class="page">
+                <div class="page-title">Studio Editor</div>
+                <div class="studio-container">
+                    <div class="viewport">Build your game here</div>
+                    <div class="properties-panel">
+                        <div class="panel-section">
+                            <div class="panel-title">Game Info</div>
+                            <div class="property-group">
+                                <label class="property-label">Game Name</label>
+                                <input type="text" class="form-input" id="gameName">
+                            </div>
+                            <div class="property-group">
+                                <label class="property-label">Description</label>
+                                <textarea class="form-input" id="gameDesc" style="min-height: 80px; resize: vertical;"></textarea>
+                            </div>
+                            <button class="btn btn-secondary" style="width: 100%;" onclick="publishGame()">Publish Game</button>
                         </div>
-                        <span class="user-badge badge-admin">ADMIN</span>
                     </div>
-                    <div class="user-item">
-                        <div>
-                            <div style="font-weight: 600;">ModeratorX</div>
-                            <div style="font-size: 0.85rem; color: var(--gray);">Game Moderator</div>
-                        </div>
-                        <button class="btn btn-small" onclick="removeAdmin('ModeratorX')">Remove</button>
-                    </div>
-                </div>
-                <div style="margin-top: 1.5rem;">
-                    <button class="btn btn-outline" onclick="openAddAdminModal()">+ Add Admin</button>
                 </div>
             </div>
 
-            <div class="admin-section">
-                <div class="section-title">Recent Reports</div>
-                <div class="user-list">
-                    <div class="user-item">
-                        <div>
-                            <div style="font-weight: 600;">Game: "Sky Block"</div>
-                            <div style="font-size: 0.85rem; color: var(--gray);">Reported by 12 users</div>
-                        </div>
-                        <button class="btn btn-small btn-secondary">Review</button>
+            <!-- Shop Page -->
+            <div id="shop-page" class="page">
+                <div class="page-title">Avatar Shop</div>
+                <h3 style="margin-bottom: 1.5rem; color: var(--gray);">Clothing & Accessories</h3>
+                <div class="shop-grid" id="shopGrid"></div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profile-page" class="page">
+                <div class="page-title">Profile</div>
+                <div class="profile-card">
+                    <div class="profile-avatar" id="profileAvatar">A</div>
+                    <div class="profile-info">
+                        <div class="profile-label">Username</div>
+                        <div class="profile-value" id="profileUsername">-</div>
                     </div>
-                    <div class="user-item">
-                        <div>
-                            <div style="font-weight: 600;">User: PlayerXYZ</div>
-                            <div style="font-size: 0.85rem; color: var(--gray);">Inappropriate behavior</div>
-                        </div>
-                        <button class="btn btn-small btn-secondary">Action</button>
+                    <div class="profile-info">
+                        <div class="profile-label">Email</div>
+                        <div class="profile-value" id="profileEmail">-</div>
                     </div>
+                    <div class="profile-info">
+                        <div class="profile-label">CubeCoins</div>
+                        <div class="profile-value" id="profileCoins">0</div>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-label">Joined</div>
+                        <div class="profile-value" id="profileJoined">-</div>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem;" onclick="openChangePasswordModal()">Change Password</button>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 0.5rem;" onclick="openDeleteAccountModal()">Delete Account</button>
+                </div>
+
+                <div class="admin-section" id="myGamesSection">
+                    <div class="section-title">My Games</div>
+                    <div id="myGamesList"></div>
+                </div>
+            </div>
+
+            <!-- Admin Page -->
+            <div id="admin-page" class="page">
+                <div class="page-title">Admin Dashboard</div>
+
+                <div class="admin-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-value" id="statUsers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Games Published</div>
+                        <div class="stat-value" id="statGames">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Clothing Items</div>
+                        <div class="stat-value" id="statClothing">0</div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="section-title">Manage Clothing Items</div>
+                    <button class="btn btn-secondary" style="margin-bottom: 1rem;" onclick="openAddClothingModal()">Add Clothing Item</button>
+                    <div id="clothingList"></div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="section-title">Ban Users</div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <input type="text" class="form-input" id="banUsername" placeholder="Username to ban">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <textarea class="form-input" id="banReason" placeholder="Reason for ban" style="min-height: 80px; resize: vertical;"></textarea>
+                    </div>
+                    <button class="btn btn-danger" onclick="handleBanUser()">Ban User</button>
+                </div>
+
+                <div class="admin-section">
+                    <div class="section-title">Manage Games</div>
+                    <div id="adminGamesList"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modals -->
-    <div class="modal" id="publishModal">
+    <div class="modal" id="changePasswordModal">
         <div class="modal-content">
-            <div class="modal-header">Publish Game</div>
-            <form class="modal-form">
-                <div class="form-group">
-                    <label class="form-label">Game Title</label>
-                    <input type="text" class="form-input" id="publishTitle" placeholder="Enter game name" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea style="padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; font-family: 'Poppins', sans-serif; min-height: 80px; resize: vertical;" id="publishDesc" placeholder="Describe your game"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Price (in CubeCoins)</label>
-                    <input type="number" class="form-input" id="publishPrice" value="0" min="0">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-ghost" onclick="closeModal('publishModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary" onclick="publishGame(event)">Publish</button>
-                </div>
-            </form>
+            <div class="modal-header">Change Password</div>
+            <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-input" id="currentPassword">
+            </div>
+            <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-input" id="newPassword">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" class="form-input" id="confirmNewPassword">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('changePasswordModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="handleChangePassword()">Update Password</button>
+            </div>
         </div>
     </div>
 
-    <div class="modal" id="createGameModal">
+    <div class="modal" id="deleteAccountModal">
         <div class="modal-content">
-            <div class="modal-header">Create New Game</div>
-            <form class="modal-form">
-                <div class="form-group">
-                    <label class="form-label">Game Name</label>
-                    <input type="text" class="form-input" id="gameName" placeholder="My Awesome Game" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea style="padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; font-family: 'Poppins', sans-serif; min-height: 80px; resize: vertical;" id="gameDesc" placeholder="What's your game about?"></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-ghost" onclick="closeModal('createGameModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary" onclick="createGame(event)">Create</button>
-                </div>
-            </form>
+            <div class="modal-header">Delete Account</div>
+            <div class="warning-box">
+                <div class="warning-title">Warning</div>
+                <p>This action cannot be undone. All your games and data will be permanently deleted.</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Enter your password to confirm</label>
+                <input type="password" class="form-input" id="deleteConfirmPassword">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('deleteAccountModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="handleDeleteAccount()">Delete Account</button>
+            </div>
         </div>
     </div>
 
-    <div class="modal" id="addAdminModal">
+    <div class="modal" id="addClothingModal">
         <div class="modal-content">
-            <div class="modal-header">Add Admin</div>
-            <form class="modal-form">
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" class="form-input" id="adminUsername" placeholder="Enter username" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-ghost" onclick="closeModal('addAdminModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary" onclick="addAdmin(event)">Add Admin</button>
-                </div>
-            </form>
+            <div class="modal-header">Add Clothing Item</div>
+            <div class="form-group">
+                <label class="form-label">Item Name</label>
+                <input type="text" class="form-input" id="clothingName">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="clothingCategory">
+                    <option value="shirt">Shirt</option>
+                    <option value="pants">Pants</option>
+                    <option value="hat">Hat</option>
+                    <option value="accessories">Accessories</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Price (coins)</label>
+                <input type="number" class="form-input" id="clothingPrice" min="0">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('addClothingModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="handleAddClothing()">Add Item</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Game state
-        let currentUser = {
-            username: 'Guest',
-            coins: 1250,
-            isAdmin: false,
-            games: []
-        };
+        // Global state
+        let currentUser = null;
+        let users = {};
+        let games = [];
+        let clothingItems = [];
+        let bannedUsers = [];
 
-        const adminUsers = ['BloxColaYT'];
+        const mockClothing = [
+            { id: 1, name: 'Blue Shirt', category: 'shirt', price: 100 },
+            { id: 2, name: 'Black Pants', category: 'pants', price: 150 },
+            { id: 3, name: 'Baseball Cap', category: 'hat', price: 75 },
+            { id: 4, name: 'Sunglasses', category: 'accessories', price: 50 },
+            { id: 5, name: 'Red Shirt', category: 'shirt', price: 100 },
+            { id: 6, name: 'Jeans', category: 'pants', price: 150 }
+        ];
+
         const mockGames = [
-            { id: 1, title: 'Sky Block', author: 'BuildMaster', emoji: '☁️', plays: 2543, rating: 4.8 },
-            { id: 2, title: 'Obby Challenge', author: 'ObbyKing', emoji: '🏔️', plays: 1892, rating: 4.6 },
-            { id: 3, title: 'Zombie Escape', author: 'GamerX', emoji: '🧟', plays: 3421, rating: 4.5 },
-            { id: 4, title: 'Parkour Paradise', author: 'AcroMan', emoji: '🤸', plays: 2156, rating: 4.7 },
+            { id: 1, title: 'Building Game', author: 'BuildMaster', plays: 2543 },
+            { id: 2, title: 'Puzzle Quest', author: 'Player123', plays: 1892 },
+            { id: 3, title: 'Adventure World', author: 'GameDev', plays: 3421 }
         ];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            checkUserAuth();
-            loadDiscoverGames();
-            initStudio();
+            clothingItems = [...mockClothing];
+            games = [...mockGames];
+            checkAuth();
         });
 
-        function checkUserAuth() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const user = urlParams.get('user') || localStorage.getItem('cubeworld_user') || 'Guest';
-            
-            currentUser.username = user;
-            currentUser.isAdmin = adminUsers.includes(user);
-
-            if (currentUser.isAdmin) {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        function checkAuth() {
+            const user = localStorage.getItem('cubeworld_user');
+            if (user) {
+                currentUser = JSON.parse(user);
+                showApp();
+            } else {
+                showAuth();
             }
-
-            // Update UI
-            updateUserDisplay();
         }
 
-        function updateUserDisplay() {
-            // This would normally fetch from backend
-            document.getElementById('coinCount').textContent = currentUser.coins.toLocaleString();
+        function showAuth() {
+            document.getElementById('auth-page').style.display = 'flex';
+            document.getElementById('app-page').classList.remove('active');
+        }
+
+        function showApp() {
+            document.getElementById('auth-page').style.display = 'none';
+            document.getElementById('app-page').classList.add('active');
+            updateUI();
+            loadDiscoverGames();
+            loadShop();
+        }
+
+        function updateUI() {
+            if (!currentUser) return;
+            document.getElementById('navAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            document.getElementById('coinCount').textContent = currentUser.coins || 0;
+            document.getElementById('profileUsername').textContent = currentUser.username;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileCoins').textContent = currentUser.coins || 0;
+            document.getElementById('profileAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            document.getElementById('profileJoined').textContent = new Date(currentUser.createdAt).toLocaleDateString();
+
+            if (currentUser.username === 'BloxColaYT') {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+                loadAdminStats();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('signup-form').style.display = 'none';
+        }
+
+        function showSignup() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'block';
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+
+            currentUser = {
+                username: username,
+                email: username + '@cubeworld.local',
+                coins: 1000,
+                createdAt: new Date().toISOString(),
+                games: []
+            };
+
+            localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+            showApp();
+        }
+
+        function handleSignup() {
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+
+            if (!username || !email || !password || !confirm) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            if (password !== confirm) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            currentUser = {
+                username: username,
+                email: email,
+                coins: 1000,
+                createdAt: new Date().toISOString(),
+                games: []
+            };
+
+            localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+            showApp();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('cubeworld_user');
+            currentUser = null;
+            showAuth();
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
         }
 
         function switchPage(page) {
-            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById(page + '-page').classList.add('active');
             event.target.classList.add('active');
 
-            if (page === 'studio') {
-                setTimeout(() => {
-                    if (window.studioCanvas) {
-                        renderStudio();
-                    }
-                }, 100);
+            if (page === 'shop') {
+                loadShop();
             }
-
-            if (page === 'games') {
+            if (page === 'profile') {
                 loadMyGames();
+            }
+            if (page === 'admin') {
+                loadAdminStats();
             }
         }
 
         function loadDiscoverGames() {
             const grid = document.getElementById('gamesGrid');
-            grid.innerHTML = mockGames.map(game => `
-                <div class="game-card" onclick="playGame(${game.id})">
-                    <div class="game-card-image">${game.emoji}</div>
-                    <div class="game-card-content">
-                        <div class="game-title">${game.title}</div>
-                        <div class="game-author">by ${game.author}</div>
-                        <div class="game-stats">
-                            <div class="game-stat">👥 ${game.plays.toLocaleString()}</div>
-                            <div class="game-stat">⭐ ${game.rating}</div>
-                        </div>
-                        <button class="btn btn-primary" style="width: 100%;">Play Now</button>
+            grid.innerHTML = games.map(game => `
+                <div class="game-card">
+                    <div class="game-header">GAME</div>
+                    <div class="game-title">${game.title}</div>
+                    <div class="game-author">by ${game.author}</div>
+                    <div class="game-stats">
+                        <span>${game.plays} plays</span>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%;">Play</button>
+                </div>
+            `).join('');
+        }
+
+        function loadShop() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = clothingItems.map(item => `
+                <div class="item-card">
+                    <div class="item-preview">${item.category === 'shirt' ? 'A' : item.category === 'pants' ? 'B' : item.category === 'hat' ? 'C' : 'D'}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price">${item.price} coins</div>
+                    <button class="btn btn-secondary item-btn" onclick="buyClothing(${item.id})">Buy</button>
+                </div>
+            `).join('');
+        }
+
+        function buyClothing(itemId) {
+            const item = clothingItems.find(c => c.id === itemId);
+            if (!item) return;
+
+            if (currentUser.coins >= item.price) {
+                currentUser.coins -= item.price;
+                localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+                updateUI();
+                alert('Purchased ' + item.name);
+            } else {
+                alert('Not enough coins');
+            }
+        }
+
+        function publishGame() {
+            const name = document.getElementById('gameName').value;
+            const desc = document.getElementById('gameDesc').value;
+
+            if (!name) {
+                alert('Enter game name');
+                return;
+            }
+
+            const newGame = {
+                id: Date.now(),
+                title: name,
+                description: desc,
+                author: currentUser.username,
+                plays: 0
+            };
+
+            games.push(newGame);
+            if (!currentUser.games) currentUser.games = [];
+            currentUser.games.push(newGame.id);
+            localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+            alert('Game published!');
+            loadDiscoverGames();
+        }
+
+        function loadMyGames() {
+            const list = document.getElementById('myGamesList');
+            if (!currentUser.games || currentUser.games.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-text">No games yet</div></div>';
+                return;
+            }
+
+            const userGames = games.filter(g => currentUser.games.includes(g.id));
+            list.innerHTML = userGames.map(game => `
+                <div class="list-item">
+                    <div class="list-info">
+                        <div class="list-name">${game.title}</div>
+                        <div class="list-meta">${game.plays} plays</div>
+                    </div>
+                    <div class="list-actions">
+                        <button class="btn btn-secondary btn-small" onclick="editGame(${game.id})">Edit</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function loadMyGames() {
-            const grid = document.getElementById('myGamesGrid');
-            if (currentUser.games.length === 0) {
-                grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No games yet. Create your first game!</p></div>';
-            } else {
-                grid.innerHTML = currentUser.games.map(game => `
-                    <div class="game-card" onclick="editGame(${game.id})">
-                        <div class="game-card-image">${game.emoji || '🎮'}</div>
-                        <div class="game-card-content">
-                            <div class="game-title">${game.title}</div>
-                            <div class="game-author">Created by You</div>
-                            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Edit</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
+        function editGame(gameId) {
+            switchPage('studio');
         }
 
-        // Studio Functions
-        let studioState = {
-            objects: [],
-            selectedObject: null,
-            currentTool: 'cube'
-        };
-
-        function initStudio() {
-            const canvas = document.getElementById('studioCanvas');
-            if (!canvas) return;
-
-            window.studioCanvas = canvas;
-            const ctx = canvas.getContext('2d');
-
-            function resizeCanvas() {
-                const rect = canvas.parentElement.getBoundingClientRect();
-                canvas.width = rect.width;
-                canvas.height = rect.height;
-                renderStudio();
-            }
-
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-
-            canvas.addEventListener('click', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                if (studioState.currentTool === 'cube') {
-                    studioState.objects.push({
-                        id: Date.now(),
-                        x: x,
-                        y: y,
-                        z: 0,
-                        size: 40,
-                        color: '#5B63FF'
-                    });
-                    renderStudio();
-                }
-            });
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('active');
         }
 
-        function renderStudio() {
-            const canvas = document.getElementById('studioCanvas');
-            if (!canvas) return;
-
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw grid
-            ctx.strokeStyle = '#e0e0e0';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < canvas.width; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, canvas.height);
-                ctx.stroke();
-            }
-            for (let i = 0; i < canvas.height; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(0, i);
-                ctx.lineTo(canvas.width, i);
-                ctx.stroke();
-            }
-
-            // Draw objects
-            studioState.objects.forEach(obj => {
-                ctx.fillStyle = obj.color;
-                ctx.fillRect(obj.x - obj.size/2, obj.y - obj.size/2, obj.size, obj.size);
-
-                if (studioState.selectedObject === obj.id) {
-                    ctx.strokeStyle = '#FFD700';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(obj.x - obj.size/2, obj.y - obj.size/2, obj.size, obj.size);
-                }
-            });
+        function openDeleteAccountModal() {
+            document.getElementById('deleteAccountModal').classList.add('active');
         }
 
-        function selectTool(tool) {
-            studioState.currentTool = tool;
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
-        }
-
-        function updateProperty(prop, value) {
-            if (studioState.selectedObject === null) return;
-            const obj = studioState.objects.find(o => o.id === studioState.selectedObject);
-            if (!obj) return;
-
-            obj[prop] = isNaN(value) ? value : parseFloat(value);
-            renderStudio();
-        }
-
-        function deleteSelected() {
-            studioState.objects = studioState.objects.filter(o => o.id !== studioState.selectedObject);
-            studioState.selectedObject = null;
-            renderStudio();
-        }
-
-        // Modal Functions
-        function openPublishModal() {
-            document.getElementById('publishModal').classList.add('active');
-        }
-
-        function openCreateGameModal() {
-            document.getElementById('createGameModal').classList.add('active');
-        }
-
-        function openAddAdminModal() {
-            document.getElementById('addAdminModal').classList.add('active');
+        function openAddClothingModal() {
+            document.getElementById('addClothingModal').classList.add('active');
         }
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
 
-        function publishGame(e) {
-            e.preventDefault();
-            const title = document.getElementById('publishTitle').value;
-            const desc = document.getElementById('publishDesc').value;
-            const price = parseInt(document.getElementById('publishPrice').value);
+        function handleChangePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmNewPassword').value;
 
-            const game = {
-                id: Date.now(),
-                title: title,
-                description: desc,
-                price: price,
-                author: currentUser.username,
-                emoji: '🎮'
-            };
+            if (!current || !newPass || !confirm) {
+                alert('Fill all fields');
+                return;
+            }
 
-            currentUser.games.push(game);
-            closeModal('publishModal');
-            alert(`✅ Game "${title}" published successfully!`);
+            if (newPass !== confirm) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            alert('Password changed');
+            closeModal('changePasswordModal');
         }
 
-        function createGame(e) {
-            e.preventDefault();
-            const name = document.getElementById('gameName').value;
-            const desc = document.getElementById('gameDesc').value;
+        function handleDeleteAccount() {
+            const password = document.getElementById('deleteConfirmPassword').value;
 
-            currentUser.games.push({
-                id: Date.now(),
-                title: name,
-                description: desc,
-                emoji: '🎮'
-            });
+            if (!password) {
+                alert('Enter password to confirm');
+                return;
+            }
 
-            closeModal('createGameModal');
-            switchPage('games');
-            loadMyGames();
-        }
-
-        function addAdmin(e) {
-            e.preventDefault();
-            const username = document.getElementById('adminUsername').value;
-            adminUsers.push(username);
-            closeModal('addAdminModal');
-            alert(`✅ ${username} is now an admin!`);
-        }
-
-        function removeAdmin(username) {
-            const idx = adminUsers.indexOf(username);
-            if (idx > -1) {
-                adminUsers.splice(idx, 1);
-                alert(`✅ ${username} is no longer an admin.`);
-                location.reload();
+            if (confirm('Are you sure? This cannot be undone.')) {
+                localStorage.removeItem('cubeworld_user');
+                currentUser = null;
+                showAuth();
+                alert('Account deleted');
             }
         }
 
-        function playGame(gameId) {
-            alert(`🎮 Loading game... (ID: ${gameId})`);
+        function loadAdminStats() {
+            document.getElementById('statUsers').textContent = Object.keys(users).length + 1;
+            document.getElementById('statGames').textContent = games.length;
+            document.getElementById('statClothing').textContent = clothingItems.length;
+            loadClothingList();
+            loadAdminGamesList();
         }
 
-        function editGame(gameId) {
-            switchPage('studio');
-            alert('Game loaded in studio!');
+        function loadClothingList() {
+            const list = document.getElementById('clothingList');
+            list.innerHTML = clothingItems.map(item => `
+                <div class="list-item">
+                    <div class="list-info">
+                        <div class="list-name">${item.name}</div>
+                        <div class="list-meta">${item.category} - ${item.price} coins</div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="deleteClothing(${item.id})">Delete</button>
+                </div>
+            `).join('');
         }
 
-        function togglePreview() {
-            alert('Preview mode would show your game in play mode');
+        function deleteClothing(itemId) {
+            if (confirm('Delete this item?')) {
+                clothingItems = clothingItems.filter(c => c.id !== itemId);
+                loadClothingList();
+                loadAdminStats();
+                alert('Item deleted');
+            }
         }
 
-        function handleLogout() {
-            localStorage.removeItem('cubeworld_user');
-            location.href = '/';
+        function handleAddClothing() {
+            const name = document.getElementById('clothingName').value;
+            const category = document.getElementById('clothingCategory').value;
+            const price = parseInt(document.getElementById('clothingPrice').value);
+
+            if (!name || !price) {
+                alert('Fill all fields');
+                return;
+            }
+
+            clothingItems.push({
+                id: Date.now(),
+                name: name,
+                category: category,
+                price: price
+            });
+
+            closeModal('addClothingModal');
+            loadAdminStats();
+            alert('Item added');
+        }
+
+        function handleBanUser() {
+            const username = document.getElementById('banUsername').value;
+            const reason = document.getElementById('banReason').value;
+
+            if (!username || !reason) {
+                alert('Fill all fields');
+                return;
+            }
+
+            bannedUsers.push({ username, reason, date: new Date().toISOString() });
+            document.getElementById('banUsername').value = '';
+            document.getElementById('banReason').value = '';
+            alert('User banned');
+        }
+
+        function loadAdminGamesList() {
+            const list = document.getElementById('adminGamesList');
+            list.innerHTML = games.map(game => `
+                <div class="list-item">
+                    <div class="list-info">
+                        <div class="list-name">${game.title}</div>
+                        <div class="list-meta">by ${game.author} - ${game.plays} plays</div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="deleteGame(${game.id})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteGame(gameId) {
+            if (confirm('Delete this game?')) {
+                games = games.filter(g => g.id !== gameId);
+                loadAdminGamesList();
+                alert('Game deleted');
+            }
         }
 
         // Close modals on background click
