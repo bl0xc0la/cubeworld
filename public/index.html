@@ -23,12 +23,24 @@
             --success: #10b981;
             --error: #ef4444;
             --gold: #f59e0b;
+            --bg: #ffffff;
+            --text: #0f172a;
+            --card-bg: #ffffff;
+        }
+
+        body.dark-mode {
+            --bg: #0f172a;
+            --text: #f1f5f9;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --light: #1e293b;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: var(--light);
-            color: var(--dark);
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
         }
 
         /* Auth Pages */
@@ -42,7 +54,7 @@
             width: 100%;
             max-width: 400px;
             margin: auto;
-            background: white;
+            background: var(--card-bg);
             padding: 2.5rem;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
@@ -52,7 +64,7 @@
             font-size: 1.75rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            color: var(--dark);
+            color: var(--text);
         }
 
         .auth-subtitle {
@@ -69,7 +81,7 @@
             display: block;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            color: var(--dark);
+            color: var(--text);
             font-size: 0.95rem;
         }
 
@@ -80,6 +92,8 @@
             border-radius: 8px;
             font-family: 'Poppins', sans-serif;
             font-size: 0.95rem;
+            background: var(--bg);
+            color: var(--text);
             transition: border-color 0.3s;
         }
 
@@ -174,7 +188,7 @@
 
         /* Navigation */
         .navbar {
-            background: white;
+            background: var(--card-bg);
             border-bottom: 1px solid var(--border);
             padding: 1rem 2rem;
             display: flex;
@@ -235,11 +249,17 @@
             height: 32px;
             border-radius: 50%;
             background: var(--accent);
+            color: white;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 700;
+            object-fit: cover;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 1.2rem;
         }
 
         /* Main Content */
@@ -261,18 +281,18 @@
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 2rem;
-            color: var(--dark);
+            color: var(--text);
         }
 
         /* Discover Page */
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
 
         .game-card {
-            background: white;
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1.5rem;
@@ -286,16 +306,13 @@
             transform: translateY(-2px);
         }
 
-        .game-header {
+        .game-image {
             width: 100%;
-            height: 120px;
-            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+            height: 150px;
             border-radius: 6px;
+            object-fit: cover;
             margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
+            background: var(--light);
         }
 
         .game-title {
@@ -319,26 +336,93 @@
         }
 
         /* Studio Page */
-        .studio-container {
+        .studio-wrapper {
             display: flex;
             gap: 1.5rem;
             height: calc(100vh - 150px);
         }
 
-        .viewport {
+        .game-builder {
             flex: 1;
-            background: white;
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .builder-toolbar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .builder-btn {
+            padding: 0.5rem 1rem;
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .builder-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .builder-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .canvas-area {
+            flex: 1;
+            background: var(--light);
+            border-radius: 6px;
+            border: 2px dashed var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .canvas-grid {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background-image: 
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .game-block {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border: 2px solid var(--secondary);
+            border-radius: 4px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
         }
 
         .properties-panel {
             width: 320px;
-            background: white;
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1.5rem;
@@ -367,10 +451,10 @@
             font-weight: 600;
             margin-bottom: 0.5rem;
             display: block;
-            color: var(--dark);
+            color: var(--text);
         }
 
-        /* Avatar Shop */
+        /* Shop Page */
         .shop-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -378,7 +462,7 @@
         }
 
         .item-card {
-            background: white;
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1.5rem;
@@ -401,7 +485,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+        }
+
+        .item-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 6px;
         }
 
         .item-name {
@@ -420,6 +509,50 @@
             width: 100%;
         }
 
+        /* Profile */
+        .profile-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 400px;
+            margin-bottom: 2rem;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .avatar-upload {
+            margin-bottom: 1rem;
+        }
+
         /* Admin Panel */
         .admin-grid {
             display: grid;
@@ -429,7 +562,7 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--card-bg);
             padding: 1.5rem;
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -450,7 +583,7 @@
         }
 
         .admin-section {
-            background: white;
+            background: var(--card-bg);
             padding: 1.5rem;
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -494,6 +627,77 @@
             gap: 0.5rem;
         }
 
+        /* Game View */
+        .game-view {
+            display: flex;
+            gap: 1rem;
+            height: calc(100vh - 150px);
+        }
+
+        .game-viewport {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+        }
+
+        .game-chat {
+            width: 300px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        .chat-header {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .chat-message {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--light);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .chat-message-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -513,7 +717,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 2rem;
             width: 90%;
@@ -535,46 +739,6 @@
             justify-content: flex-end;
         }
 
-        /* Profile */
-        .profile-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 2rem;
-            max-width: 400px;
-            margin-bottom: 2rem;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            background: var(--light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .profile-info {
-            margin-bottom: 1.5rem;
-        }
-
-        .profile-label {
-            font-size: 0.85rem;
-            color: var(--gray);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.25rem;
-        }
-
-        .profile-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        /* Warning */
         .warning-box {
             background: #fef3c7;
             border: 1px solid #fcd34d;
@@ -589,14 +753,33 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Responsive */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .empty-state-text {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
         @media (max-width: 768px) {
-            .studio-container {
+            .studio-wrapper {
                 flex-direction: column;
             }
 
             .properties-panel {
                 width: 100%;
+            }
+
+            .game-view {
+                flex-direction: column;
+            }
+
+            .game-chat {
+                width: 100%;
+                height: 200px;
             }
 
             .navbar-menu {
@@ -607,17 +790,6 @@
             .games-grid, .shop-grid {
                 grid-template-columns: 1fr;
             }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--gray);
-        }
-
-        .empty-state-text {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -686,7 +858,10 @@
                 <div class="coin-display">
                     <span id="coinCount">0</span> coins
                 </div>
-                <div class="avatar-mini" id="navAvatar">A</div>
+                <img id="navAvatar" class="avatar-mini" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar">
+                <span class="theme-toggle" onclick="toggleTheme()">
+                    <span id="themeIcon">🌙</span>
+                </span>
                 <button class="btn btn-ghost btn-small" onclick="handleLogout()">Logout</button>
             </div>
         </nav>
@@ -702,20 +877,37 @@
             <!-- Studio Page -->
             <div id="studio-page" class="page">
                 <div class="page-title">Studio Editor</div>
-                <div class="studio-container">
-                    <div class="viewport">Build your game here</div>
+                <div class="studio-wrapper">
+                    <div class="game-builder">
+                        <div class="builder-toolbar">
+                            <button class="builder-btn active" onclick="selectBlock('normal')">Block</button>
+                            <button class="builder-btn" onclick="selectBlock('platform')">Platform</button>
+                            <button class="builder-btn" onclick="selectBlock('spawn')">Spawn</button>
+                            <button class="builder-btn" onclick="clearCanvas()">Clear</button>
+                        </div>
+                        <div class="canvas-area">
+                            <div class="canvas-grid" id="gameCanvas"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Game Name</label>
+                            <input type="text" class="form-input" id="gameName" placeholder="My Game">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-input" id="gameDesc" placeholder="Describe your game" style="min-height: 80px; resize: vertical;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Game Image URL</label>
+                            <input type="text" class="form-input" id="gameImageUrl" placeholder="https://example.com/image.jpg">
+                        </div>
+                        <button class="btn btn-secondary" onclick="publishGame()">Publish Game</button>
+                    </div>
                     <div class="properties-panel">
                         <div class="panel-section">
-                            <div class="panel-title">Game Info</div>
+                            <div class="panel-title">Build Info</div>
                             <div class="property-group">
-                                <label class="property-label">Game Name</label>
-                                <input type="text" class="form-input" id="gameName">
+                                <label class="property-label">Total Blocks: <span id="blockCount">0</span></label>
                             </div>
-                            <div class="property-group">
-                                <label class="property-label">Description</label>
-                                <textarea class="form-input" id="gameDesc" style="min-height: 80px; resize: vertical;"></textarea>
-                            </div>
-                            <button class="btn btn-secondary" style="width: 100%;" onclick="publishGame()">Publish Game</button>
                         </div>
                     </div>
                 </div>
@@ -732,7 +924,12 @@
             <div id="profile-page" class="page">
                 <div class="page-title">Profile</div>
                 <div class="profile-card">
-                    <div class="profile-avatar" id="profileAvatar">A</div>
+                    <img id="profileAvatar" class="profile-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar">
+                    <div class="avatar-upload">
+                        <label class="form-label">Avatar Image URL</label>
+                        <input type="text" class="form-input" id="avatarUrl" placeholder="https://example.com/avatar.jpg">
+                        <button class="btn btn-secondary btn-small" style="margin-top: 0.5rem; width: 100%;" onclick="updateAvatar()">Update Avatar</button>
+                    </div>
                     <div class="profile-info">
                         <div class="profile-label">Username</div>
                         <div class="profile-value" id="profileUsername">-</div>
@@ -803,6 +1000,34 @@
         </div>
     </div>
 
+    <!-- Game Play Page -->
+    <div id="game-play-page" class="app-container">
+        <nav class="navbar">
+            <div class="navbar-brand" onclick="backToDiscover()" style="cursor: pointer;">CubeWorld</div>
+            <div class="navbar-menu">
+                <button class="btn btn-ghost btn-small" onclick="backToDiscover()">Back to Discover</button>
+            </div>
+            <div class="user-section">
+                <div class="coin-display">
+                    <span id="gamePlayCoins">0</span> coins
+                </div>
+            </div>
+        </nav>
+        <div class="main-content">
+            <div class="game-view">
+                <div class="game-viewport" id="gameViewport">Game Loading...</div>
+                <div class="game-chat">
+                    <div class="chat-header">Live Chat</div>
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-group">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Type message..." onkeypress="handleChatKeypress(event)">
+                        <button class="btn btn-secondary btn-small" onclick="sendChatMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modals -->
     <div class="modal" id="changePasswordModal">
         <div class="modal-content">
@@ -864,6 +1089,10 @@
                 <label class="form-label">Price (coins)</label>
                 <input type="number" class="form-input" id="clothingPrice" min="0">
             </div>
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <input type="text" class="form-input" id="clothingImage" placeholder="https://example.com/image.jpg">
+            </div>
             <div class="modal-footer">
                 <button class="btn btn-ghost" onclick="closeModal('addClothingModal')">Cancel</button>
                 <button class="btn btn-primary" onclick="handleAddClothing()">Add Item</button>
@@ -874,30 +1103,38 @@
     <script>
         // Global state
         let currentUser = null;
-        let users = {};
         let games = [];
         let clothingItems = [];
         let bannedUsers = [];
+        let chatMessages = [];
+        let selectedBlocks = [];
+        let currentGame = null;
+        let blockCounter = 0;
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
 
         const mockClothing = [
-            { id: 1, name: 'Blue Shirt', category: 'shirt', price: 100 },
-            { id: 2, name: 'Black Pants', category: 'pants', price: 150 },
-            { id: 3, name: 'Baseball Cap', category: 'hat', price: 75 },
-            { id: 4, name: 'Sunglasses', category: 'accessories', price: 50 },
-            { id: 5, name: 'Red Shirt', category: 'shirt', price: 100 },
-            { id: 6, name: 'Jeans', category: 'pants', price: 150 }
+            { id: 1, name: 'Blue Shirt', category: 'shirt', price: 100, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=shirt1' },
+            { id: 2, name: 'Black Pants', category: 'pants', price: 150, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=pants1' },
+            { id: 3, name: 'Baseball Cap', category: 'hat', price: 75, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=hat1' },
+            { id: 4, name: 'Sunglasses', category: 'accessories', price: 50, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=acc1' },
+            { id: 5, name: 'Red Shirt', category: 'shirt', price: 100, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=shirt2' },
+            { id: 6, name: 'Jeans', category: 'pants', price: 150, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=pants2' }
         ];
 
         const mockGames = [
-            { id: 1, title: 'Building Game', author: 'BuildMaster', plays: 2543 },
-            { id: 2, title: 'Puzzle Quest', author: 'Player123', plays: 1892 },
-            { id: 3, title: 'Adventure World', author: 'GameDev', plays: 3421 }
+            { id: 1, title: 'Building Game', author: 'BuildMaster', plays: 2543, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=game1' },
+            { id: 2, title: 'Puzzle Quest', author: 'Player123', plays: 1892, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=game2' },
+            { id: 3, title: 'Adventure World', author: 'GameDev', plays: 3421, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=game3' }
         ];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             clothingItems = [...mockClothing];
             games = [...mockGames];
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
             checkAuth();
         });
 
@@ -914,29 +1151,49 @@
         function showAuth() {
             document.getElementById('auth-page').style.display = 'flex';
             document.getElementById('app-page').classList.remove('active');
+            document.getElementById('game-play-page').classList.remove('active');
         }
 
         function showApp() {
             document.getElementById('auth-page').style.display = 'none';
             document.getElementById('app-page').classList.add('active');
+            document.getElementById('game-play-page').classList.remove('active');
             updateUI();
             loadDiscoverGames();
             loadShop();
         }
 
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.getElementById('themeIcon').textContent = '🌙';
+            }
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
         function updateUI() {
             if (!currentUser) return;
-            document.getElementById('navAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            const initials = currentUser.username.charAt(0).toUpperCase();
+            const avatarUrl = currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
+            
+            document.getElementById('navAvatar').src = avatarUrl;
+            document.getElementById('profileAvatar').src = avatarUrl;
             document.getElementById('coinCount').textContent = currentUser.coins || 0;
             document.getElementById('profileUsername').textContent = currentUser.username;
             document.getElementById('profileEmail').textContent = currentUser.email;
             document.getElementById('profileCoins').textContent = currentUser.coins || 0;
-            document.getElementById('profileAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
             document.getElementById('profileJoined').textContent = new Date(currentUser.createdAt).toLocaleDateString();
+            document.getElementById('gamePlayCoins').textContent = currentUser.coins || 0;
 
             if (currentUser.username === 'BloxColaYT') {
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
                 loadAdminStats();
+            } else {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             }
         }
 
@@ -959,12 +1216,18 @@
                 return;
             }
 
+            if (bannedUsers.some(u => u.username === username)) {
+                alert('This account has been banned');
+                return;
+            }
+
             currentUser = {
                 username: username,
                 email: username + '@cubeworld.local',
                 coins: 1000,
                 createdAt: new Date().toISOString(),
-                games: []
+                games: [],
+                avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
             };
 
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
@@ -992,7 +1255,8 @@
                 email: email,
                 coins: 1000,
                 createdAt: new Date().toISOString(),
-                games: []
+                games: [],
+                avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
             };
 
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
@@ -1022,13 +1286,16 @@
             if (page === 'admin') {
                 loadAdminStats();
             }
+            if (page === 'studio') {
+                blockCounter = 0;
+            }
         }
 
         function loadDiscoverGames() {
             const grid = document.getElementById('gamesGrid');
             grid.innerHTML = games.map(game => `
-                <div class="game-card">
-                    <div class="game-header">GAME</div>
+                <div class="game-card" onclick="playGame(${game.id})">
+                    <img src="${game.image}" class="game-image" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=${game.id}'">
                     <div class="game-title">${game.title}</div>
                     <div class="game-author">by ${game.author}</div>
                     <div class="game-stats">
@@ -1039,11 +1306,31 @@
             `).join('');
         }
 
+        function playGame(gameId) {
+            currentGame = games.find(g => g.id === gameId);
+            if (!currentGame) return;
+
+            document.getElementById('app-page').classList.remove('active');
+            document.getElementById('game-play-page').classList.add('active');
+            document.getElementById('gameViewport').textContent = currentGame.title + ' - Playing...';
+            chatMessages = [];
+            loadChatMessages();
+        }
+
+        function backToDiscover() {
+            document.getElementById('game-play-page').classList.remove('active');
+            document.getElementById('app-page').classList.add('active');
+            currentGame = null;
+            chatMessages = [];
+        }
+
         function loadShop() {
             const grid = document.getElementById('shopGrid');
             grid.innerHTML = clothingItems.map(item => `
                 <div class="item-card">
-                    <div class="item-preview">${item.category === 'shirt' ? 'A' : item.category === 'pants' ? 'B' : item.category === 'hat' ? 'C' : 'D'}</div>
+                    <div class="item-preview">
+                        <img src="${item.image}" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=${item.id}'">
+                    </div>
                     <div class="item-name">${item.name}</div>
                     <div class="item-price">${item.price} coins</div>
                     <button class="btn btn-secondary item-btn" onclick="buyClothing(${item.id})">Buy</button>
@@ -1065,9 +1352,45 @@
             }
         }
 
+        function selectBlock(type) {
+            document.querySelectorAll('.builder-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function clearCanvas() {
+            document.getElementById('gameCanvas').innerHTML = '';
+            selectedBlocks = [];
+            blockCounter = 0;
+            document.getElementById('blockCount').textContent = '0';
+        }
+
+        function addBlockToCanvas(e) {
+            if (e.target.id !== 'gameCanvas') return;
+
+            const canvas = document.getElementById('gameCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / 40) * 40;
+            const y = Math.floor((e.clientY - rect.top) / 40) * 40;
+
+            const block = document.createElement('div');
+            block.className = 'game-block';
+            block.style.left = x + 'px';
+            block.style.top = y + 'px';
+            block.textContent = (blockCounter + 1);
+            block.id = 'block-' + blockCounter;
+            blockCounter++;
+
+            selectedBlocks.push({ x, y, id: block.id });
+            canvas.appendChild(block);
+            document.getElementById('blockCount').textContent = blockCounter;
+        }
+
+        document.addEventListener('click', addBlockToCanvas);
+
         function publishGame() {
             const name = document.getElementById('gameName').value;
             const desc = document.getElementById('gameDesc').value;
+            const imageUrl = document.getElementById('gameImageUrl').value;
 
             if (!name) {
                 alert('Enter game name');
@@ -1079,7 +1402,8 @@
                 title: name,
                 description: desc,
                 author: currentUser.username,
-                plays: 0
+                plays: 0,
+                image: imageUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${Date.now()}`
             };
 
             games.push(newGame);
@@ -1088,6 +1412,7 @@
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
             alert('Game published!');
             loadDiscoverGames();
+            clearCanvas();
         }
 
         function loadMyGames() {
@@ -1113,6 +1438,18 @@
 
         function editGame(gameId) {
             switchPage('studio');
+        }
+
+        function updateAvatar() {
+            const url = document.getElementById('avatarUrl').value;
+            if (!url) {
+                alert('Enter image URL');
+                return;
+            }
+            currentUser.avatarUrl = url;
+            localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+            updateUI();
+            alert('Avatar updated');
         }
 
         function openChangePasswordModal() {
@@ -1148,6 +1485,9 @@
 
             alert('Password changed');
             closeModal('changePasswordModal');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
         }
 
         function handleDeleteAccount() {
@@ -1167,7 +1507,7 @@
         }
 
         function loadAdminStats() {
-            document.getElementById('statUsers').textContent = Object.keys(users).length + 1;
+            document.getElementById('statUsers').textContent = '5';
             document.getElementById('statGames').textContent = games.length;
             document.getElementById('statClothing').textContent = clothingItems.length;
             loadClothingList();
@@ -1188,10 +1528,15 @@
         }
 
         function deleteClothing(itemId) {
+            if (currentUser.username !== 'BloxColaYT') {
+                alert('Only admins can delete clothing');
+                return;
+            }
             if (confirm('Delete this item?')) {
                 clothingItems = clothingItems.filter(c => c.id !== itemId);
                 loadClothingList();
                 loadAdminStats();
+                loadShop();
                 alert('Item deleted');
             }
         }
@@ -1200,6 +1545,7 @@
             const name = document.getElementById('clothingName').value;
             const category = document.getElementById('clothingCategory').value;
             const price = parseInt(document.getElementById('clothingPrice').value);
+            const image = document.getElementById('clothingImage').value;
 
             if (!name || !price) {
                 alert('Fill all fields');
@@ -1210,15 +1556,24 @@
                 id: Date.now(),
                 name: name,
                 category: category,
-                price: price
+                price: price,
+                image: image || `https://api.dicebear.com/7.x/bottts/svg?seed=${Date.now()}`
             });
 
             closeModal('addClothingModal');
+            document.getElementById('clothingName').value = '';
+            document.getElementById('clothingPrice').value = '';
+            document.getElementById('clothingImage').value = '';
             loadAdminStats();
+            loadShop();
             alert('Item added');
         }
 
         function handleBanUser() {
+            if (currentUser.username !== 'BloxColaYT') {
+                alert('Only admins can ban users');
+                return;
+            }
             const username = document.getElementById('banUsername').value;
             const reason = document.getElementById('banReason').value;
 
@@ -1230,7 +1585,7 @@
             bannedUsers.push({ username, reason, date: new Date().toISOString() });
             document.getElementById('banUsername').value = '';
             document.getElementById('banReason').value = '';
-            alert('User banned');
+            alert('User banned: ' + username);
         }
 
         function loadAdminGamesList() {
@@ -1247,11 +1602,49 @@
         }
 
         function deleteGame(gameId) {
+            if (currentUser.username !== 'BloxColaYT') {
+                alert('Only admins can delete games');
+                return;
+            }
             if (confirm('Delete this game?')) {
                 games = games.filter(g => g.id !== gameId);
                 loadAdminGamesList();
+                loadDiscoverGames();
                 alert('Game deleted');
             }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            chatMessages.push({
+                user: currentUser.username,
+                text: message,
+                timestamp: new Date()
+            });
+
+            input.value = '';
+            loadChatMessages();
+        }
+
+        function handleChatKeypress(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function loadChatMessages() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = chatMessages.map(msg => `
+                <div class="chat-message">
+                    <div class="chat-message-name">${msg.user}</div>
+                    <div>${msg.text}</div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
         }
 
         // Close modals on background click
