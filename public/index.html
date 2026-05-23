@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CubeWorld</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -173,6 +175,26 @@
 
         .auth-link a:hover {
             text-decoration: underline;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            background: #efe;
+            border: 1px solid var(--success);
+            color: #166534;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
 
         /* Main App */
@@ -802,6 +824,7 @@
 
             <!-- Login Form -->
             <div id="login-form">
+                <div id="loginError"></div>
                 <div class="form-group">
                     <label class="form-label">Username</label>
                     <input type="text" class="form-input" id="loginUsername" placeholder="Enter username">
@@ -818,6 +841,8 @@
 
             <!-- Signup Form -->
             <div id="signup-form" style="display: none;">
+                <div id="signupError"></div>
+                <div id="signupSuccess"></div>
                 <div class="form-group">
                     <label class="form-label">Username</label>
                     <input type="text" class="form-input" id="signupUsername" placeholder="Choose username">
@@ -828,7 +853,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-input" id="signupPassword" placeholder="Create password">
+                    <input type="password" class="form-input" id="signupPassword" placeholder="Create password (min 8 chars)">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
@@ -1032,6 +1057,7 @@
     <div class="modal" id="changePasswordModal">
         <div class="modal-content">
             <div class="modal-header">Change Password</div>
+            <div id="changePasswordError"></div>
             <div class="form-group">
                 <label class="form-label">Current Password</label>
                 <input type="password" class="form-input" id="currentPassword">
@@ -1054,6 +1080,7 @@
     <div class="modal" id="deleteAccountModal">
         <div class="modal-content">
             <div class="modal-header">Delete Account</div>
+            <div id="deleteAccountError"></div>
             <div class="warning-box">
                 <div class="warning-title">Warning</div>
                 <p>This action cannot be undone. All your games and data will be permanently deleted.</p>
@@ -1101,6 +1128,9 @@
     </div>
 
     <script>
+        // EmailJS Configuration
+        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Replace with your EmailJS public key
+
         // Global state
         let currentUser = null;
         let games = [];
@@ -1111,6 +1141,9 @@
         let currentGame = null;
         let blockCounter = 0;
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+        // User database (in localStorage)
+        let usersDB = JSON.parse(localStorage.getItem('usersDB')) || {};
 
         const mockClothing = [
             { id: 1, name: 'Blue Shirt', category: 'shirt', price: 100, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=shirt1' },
@@ -1127,8 +1160,27 @@
             { id: 3, title: 'Adventure World', author: 'GameDev', plays: 3421, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=game3' }
         ];
 
+        // Initialize admin account
+        function initializeAdmin() {
+            if (!usersDB['BloxColaYT']) {
+                const hashedPassword = CryptoJS.SHA256('bloxcolayyt123').toString();
+                usersDB['BloxColaYT'] = {
+                    username: 'BloxColaYT',
+                    email: 'bloxcolayyt@cubeworld.com',
+                    passwordHash: hashedPassword,
+                    coins: 50000,
+                    createdAt: new Date().toISOString(),
+                    games: [],
+                    isAdmin: true,
+                    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=BloxColaYT'
+                };
+                localStorage.setItem('usersDB', JSON.stringify(usersDB));
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            initializeAdmin();
             clothingItems = [...mockClothing];
             games = [...mockGames];
             if (isDarkMode) {
@@ -1177,7 +1229,6 @@
 
         function updateUI() {
             if (!currentUser) return;
-            const initials = currentUser.username.charAt(0).toUpperCase();
             const avatarUrl = currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
             
             document.getElementById('navAvatar').src = avatarUrl;
@@ -1189,7 +1240,7 @@
             document.getElementById('profileJoined').textContent = new Date(currentUser.createdAt).toLocaleDateString();
             document.getElementById('gamePlayCoins').textContent = currentUser.coins || 0;
 
-            if (currentUser.username === 'BloxColaYT') {
+            if (currentUser.isAdmin) {
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
                 loadAdminStats();
             } else {
@@ -1200,36 +1251,48 @@
         function showLogin() {
             document.getElementById('login-form').style.display = 'block';
             document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('loginError').innerHTML = '';
         }
 
         function showSignup() {
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('signup-form').style.display = 'block';
+            document.getElementById('signupError').innerHTML = '';
+            document.getElementById('signupSuccess').innerHTML = '';
         }
 
         function handleLogin() {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            errorDiv.innerHTML = '';
 
             if (!username || !password) {
-                alert('Please enter username and password');
+                errorDiv.innerHTML = '<div class="error-message">Please enter username and password</div>';
                 return;
             }
 
-            if (bannedUsers.some(u => u.username === username)) {
-                alert('This account has been banned');
+            const user = usersDB[username];
+
+            if (!user) {
+                errorDiv.innerHTML = '<div class="error-message">Username not found</div>';
                 return;
             }
 
-            currentUser = {
-                username: username,
-                email: username + '@cubeworld.local',
-                coins: 1000,
-                createdAt: new Date().toISOString(),
-                games: [],
-                avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
-            };
+            const hashedPassword = CryptoJS.SHA256(password).toString();
 
+            if (user.passwordHash !== hashedPassword) {
+                errorDiv.innerHTML = '<div class="error-message">Incorrect password</div>';
+                return;
+            }
+
+            if (user.banned) {
+                errorDiv.innerHTML = '<div class="error-message">This account has been banned</div>';
+                return;
+            }
+
+            currentUser = user;
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
             showApp();
         }
@@ -1239,28 +1302,68 @@
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
             const confirm = document.getElementById('signupConfirm').value;
+            const errorDiv = document.getElementById('signupError');
+            const successDiv = document.getElementById('signupSuccess');
+
+            errorDiv.innerHTML = '';
+            successDiv.innerHTML = '';
 
             if (!username || !email || !password || !confirm) {
-                alert('Please fill all fields');
+                errorDiv.innerHTML = '<div class="error-message">Please fill all fields</div>';
+                return;
+            }
+
+            if (username.length < 3) {
+                errorDiv.innerHTML = '<div class="error-message">Username must be at least 3 characters</div>';
+                return;
+            }
+
+            if (password.length < 8) {
+                errorDiv.innerHTML = '<div class="error-message">Password must be at least 8 characters</div>';
                 return;
             }
 
             if (password !== confirm) {
-                alert('Passwords do not match');
+                errorDiv.innerHTML = '<div class="error-message">Passwords do not match</div>';
                 return;
             }
 
-            currentUser = {
+            if (usersDB[username]) {
+                errorDiv.innerHTML = '<div class="error-message">Username already taken</div>';
+                return;
+            }
+
+            const hashedPassword = CryptoJS.SHA256(password).toString();
+
+            usersDB[username] = {
                 username: username,
                 email: email,
+                passwordHash: hashedPassword,
                 coins: 1000,
                 createdAt: new Date().toISOString(),
                 games: [],
+                isAdmin: false,
                 avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
             };
 
-            localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
-            showApp();
+            localStorage.setItem('usersDB', JSON.stringify(usersDB));
+
+            // Send welcome email with EmailJS
+            sendWelcomeEmail(username, email);
+
+            successDiv.innerHTML = '<div class="success-message">Account created! Welcome email sent. You can now login.</div>';
+
+            setTimeout(() => {
+                showLogin();
+            }, 2000);
+        }
+
+        function sendWelcomeEmail(username, email) {
+            emailjs.send("SERVICE_ID", "TEMPLATE_ID", {
+                to_email: email,
+                username: username,
+                message: `Welcome to CubeWorld! You've been given 1000 CubeCoins to get started.`
+            }).catch(err => console.log('Email error:', err));
         }
 
         function handleLogout() {
@@ -1344,6 +1447,8 @@
 
             if (currentUser.coins >= item.price) {
                 currentUser.coins -= item.price;
+                usersDB[currentUser.username].coins = currentUser.coins;
+                localStorage.setItem('usersDB', JSON.stringify(usersDB));
                 localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
                 updateUI();
                 alert('Purchased ' + item.name);
@@ -1409,6 +1514,8 @@
             games.push(newGame);
             if (!currentUser.games) currentUser.games = [];
             currentUser.games.push(newGame.id);
+            usersDB[currentUser.username].games = currentUser.games;
+            localStorage.setItem('usersDB', JSON.stringify(usersDB));
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
             alert('Game published!');
             loadDiscoverGames();
@@ -1447,6 +1554,8 @@
                 return;
             }
             currentUser.avatarUrl = url;
+            usersDB[currentUser.username].avatarUrl = url;
+            localStorage.setItem('usersDB', JSON.stringify(usersDB));
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
             updateUI();
             alert('Avatar updated');
@@ -1472,18 +1581,37 @@
             const current = document.getElementById('currentPassword').value;
             const newPass = document.getElementById('newPassword').value;
             const confirm = document.getElementById('confirmNewPassword').value;
+            const errorDiv = document.getElementById('changePasswordError');
+
+            errorDiv.innerHTML = '';
 
             if (!current || !newPass || !confirm) {
-                alert('Fill all fields');
+                errorDiv.innerHTML = '<div class="error-message">Fill all fields</div>';
+                return;
+            }
+
+            const hashedCurrent = CryptoJS.SHA256(current).toString();
+
+            if (usersDB[currentUser.username].passwordHash !== hashedCurrent) {
+                errorDiv.innerHTML = '<div class="error-message">Current password is incorrect</div>';
                 return;
             }
 
             if (newPass !== confirm) {
-                alert('Passwords do not match');
+                errorDiv.innerHTML = '<div class="error-message">New passwords do not match</div>';
                 return;
             }
 
-            alert('Password changed');
+            if (newPass.length < 8) {
+                errorDiv.innerHTML = '<div class="error-message">Password must be at least 8 characters</div>';
+                return;
+            }
+
+            const hashedNewPassword = CryptoJS.SHA256(newPass).toString();
+            usersDB[currentUser.username].passwordHash = hashedNewPassword;
+            localStorage.setItem('usersDB', JSON.stringify(usersDB));
+
+            alert('Password changed successfully');
             closeModal('changePasswordModal');
             document.getElementById('currentPassword').value = '';
             document.getElementById('newPassword').value = '';
@@ -1492,13 +1620,25 @@
 
         function handleDeleteAccount() {
             const password = document.getElementById('deleteConfirmPassword').value;
+            const errorDiv = document.getElementById('deleteAccountError');
+
+            errorDiv.innerHTML = '';
 
             if (!password) {
-                alert('Enter password to confirm');
+                errorDiv.innerHTML = '<div class="error-message">Enter password to confirm</div>';
+                return;
+            }
+
+            const hashedPassword = CryptoJS.SHA256(password).toString();
+
+            if (usersDB[currentUser.username].passwordHash !== hashedPassword) {
+                errorDiv.innerHTML = '<div class="error-message">Incorrect password</div>';
                 return;
             }
 
             if (confirm('Are you sure? This cannot be undone.')) {
+                delete usersDB[currentUser.username];
+                localStorage.setItem('usersDB', JSON.stringify(usersDB));
                 localStorage.removeItem('cubeworld_user');
                 currentUser = null;
                 showAuth();
@@ -1507,7 +1647,7 @@
         }
 
         function loadAdminStats() {
-            document.getElementById('statUsers').textContent = '5';
+            document.getElementById('statUsers').textContent = Object.keys(usersDB).length;
             document.getElementById('statGames').textContent = games.length;
             document.getElementById('statClothing').textContent = clothingItems.length;
             loadClothingList();
@@ -1528,7 +1668,7 @@
         }
 
         function deleteClothing(itemId) {
-            if (currentUser.username !== 'BloxColaYT') {
+            if (!currentUser.isAdmin) {
                 alert('Only admins can delete clothing');
                 return;
             }
@@ -1570,7 +1710,7 @@
         }
 
         function handleBanUser() {
-            if (currentUser.username !== 'BloxColaYT') {
+            if (!currentUser.isAdmin) {
                 alert('Only admins can ban users');
                 return;
             }
@@ -1582,7 +1722,15 @@
                 return;
             }
 
-            bannedUsers.push({ username, reason, date: new Date().toISOString() });
+            if (!usersDB[username]) {
+                alert('User not found');
+                return;
+            }
+
+            usersDB[username].banned = true;
+            usersDB[username].banReason = reason;
+            localStorage.setItem('usersDB', JSON.stringify(usersDB));
+
             document.getElementById('banUsername').value = '';
             document.getElementById('banReason').value = '';
             alert('User banned: ' + username);
@@ -1602,7 +1750,7 @@
         }
 
         function deleteGame(gameId) {
-            if (currentUser.username !== 'BloxColaYT') {
+            if (!currentUser.isAdmin) {
                 alert('Only admins can delete games');
                 return;
             }
