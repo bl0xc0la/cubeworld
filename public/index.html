@@ -1128,8 +1128,18 @@
     </div>
 
     <script>
-        // EmailJS Configuration
-        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Replace with your EmailJS public key
+        // EmailJS Configuration - REPLACE WITH YOUR ACTUAL IDS
+        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Get from Account → API Keys
+
+        // EmailJS Service IDs for different email providers
+        const EMAIL_SERVICE_IDS = {
+            gmail: "service_vidwptg",      // Create Gmail service and replace
+            outlook: "service_xjdrxgn",  // Create Outlook service and replace
+            icloud: "service_icloud_YOUR_ID"     // Create iCloud service and replace
+        };
+
+        // EmailJS Template ID - REPLACE WITH YOUR TEMPLATE ID
+        const EMAIL_TEMPLATE_ID = "service_vidwptg"; // Create template and replace
 
         // Global state
         let currentUser = null;
@@ -1185,7 +1195,7 @@
             games = [...mockGames];
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
-                document.getElementById('themeIcon').textContent = '☀️';
+                document.getElementById('themeIcon').textContent = 'Sun';
             }
             checkAuth();
         });
@@ -1219,10 +1229,10 @@
             isDarkMode = !isDarkMode;
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
-                document.getElementById('themeIcon').textContent = '☀️';
+                document.getElementById('themeIcon').textContent = 'Sun';
             } else {
                 document.body.classList.remove('dark-mode');
-                document.getElementById('themeIcon').textContent = '🌙';
+                document.getElementById('themeIcon').textContent = 'Moon';
             }
             localStorage.setItem('darkMode', isDarkMode);
         }
@@ -1359,11 +1369,24 @@
         }
 
         function sendWelcomeEmail(username, email) {
-            emailjs.send("SERVICE_ID", "TEMPLATE_ID", {
+            // Determine which email service to use based on email domain
+            let serviceId = EMAIL_SERVICE_IDS.gmail; // Default to Gmail
+
+            if (email.includes('@outlook.com') || email.includes('@hotmail.com')) {
+                serviceId = EMAIL_SERVICE_IDS.outlook;
+            } else if (email.includes('@icloud.com') || email.includes('@me.com')) {
+                serviceId = EMAIL_SERVICE_IDS.icloud;
+            }
+
+            // Send email via EmailJS
+            emailjs.send(serviceId, EMAIL_TEMPLATE_ID, {
                 to_email: email,
-                username: username,
-                message: `Welcome to CubeWorld! You've been given 1000 CubeCoins to get started.`
-            }).catch(err => console.log('Email error:', err));
+                username: username
+            }).then(function(response) {
+                console.log('Welcome email sent successfully!', response.status, response.text);
+            }).catch(function(error) {
+                console.log('Failed to send email. Make sure you have configured EmailJS correctly.', error);
+            });
         }
 
         function handleLogout() {
