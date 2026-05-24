@@ -46,7 +46,7 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* Auth Pages */
+        /* Auth */
         .auth-container {
             display: flex;
             height: 100vh;
@@ -70,12 +70,6 @@
             color: var(--text);
         }
 
-        .auth-subtitle {
-            font-size: 0.9rem;
-            color: var(--gray);
-            margin-bottom: 2rem;
-        }
-
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -85,7 +79,6 @@
             font-weight: 600;
             margin-bottom: 0.5rem;
             color: var(--text);
-            font-size: 0.95rem;
         }
 
         .form-input {
@@ -94,16 +87,13 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             font-family: 'Poppins', sans-serif;
-            font-size: 0.95rem;
             background: var(--bg);
             color: var(--text);
-            transition: border-color 0.3s;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .btn {
@@ -114,7 +104,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 0.95rem;
         }
 
         .btn-primary {
@@ -151,31 +140,9 @@
             color: white;
         }
 
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
         .btn-small {
             padding: 0.5rem 1rem;
             font-size: 0.85rem;
-        }
-
-        .auth-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-            color: var(--gray);
-        }
-
-        .auth-link a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .auth-link a:hover {
-            text-decoration: underline;
         }
 
         .error-message {
@@ -185,7 +152,6 @@
             padding: 0.75rem;
             border-radius: 6px;
             margin-bottom: 1rem;
-            font-size: 0.9rem;
         }
 
         .success-message {
@@ -195,7 +161,6 @@
             padding: 0.75rem;
             border-radius: 6px;
             margin-bottom: 1rem;
-            font-size: 0.9rem;
         }
 
         /* Main App */
@@ -209,7 +174,6 @@
             display: flex;
         }
 
-        /* Navigation */
         .navbar {
             background: var(--card-bg);
             border-bottom: 1px solid var(--border);
@@ -228,7 +192,6 @@
         .navbar-menu {
             display: flex;
             gap: 2rem;
-            align-items: center;
         }
 
         .nav-link {
@@ -241,11 +204,7 @@
             transition: all 0.3s;
         }
 
-        .nav-link:hover {
-            color: var(--primary);
-            background: var(--light);
-        }
-
+        .nav-link:hover,
         .nav-link.active {
             color: var(--primary);
             background: rgba(37, 99, 235, 0.1);
@@ -268,8 +227,8 @@
         }
 
         .avatar-mini {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: var(--accent);
             color: white;
@@ -279,14 +238,9 @@
             justify-content: center;
             object-fit: cover;
             cursor: pointer;
+            border: 2px solid var(--primary);
         }
 
-        .theme-toggle {
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
-
-        /* Main Content */
         .main-content {
             flex: 1;
             overflow-y: auto;
@@ -329,10 +283,50 @@
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 2rem;
-            color: var(--text);
         }
 
-        /* Studio Page */
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 150px;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            background: var(--light);
+        }
+
+        .card-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-price {
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        /* Studio */
         .studio-wrapper {
             display: flex;
             gap: 1.5rem;
@@ -344,19 +338,19 @@
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1.5rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
         }
 
-        .builder-toolbar {
+        .toolbar {
             display: flex;
             gap: 0.5rem;
             margin-bottom: 1rem;
             flex-wrap: wrap;
         }
 
-        .builder-btn {
+        .toolbar-btn {
             padding: 0.5rem 1rem;
             background: var(--light);
             border: 1px solid var(--border);
@@ -364,94 +358,32 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 0.85rem;
-            transition: all 0.3s;
         }
 
-        .builder-btn:hover {
+        .toolbar-btn:hover,
+        .toolbar-btn.active {
             background: var(--primary);
             color: white;
-            border-color: var(--primary);
-        }
-
-        .builder-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .canvas-area {
-            flex: 1;
-            background: var(--light);
-            border-radius: 6px;
-            border: 2px dashed var(--border);
-            position: relative;
-            margin-bottom: 1rem;
         }
 
         #threeCanvas {
-            width: 100%;
-            height: 100%;
+            flex: 1;
             border-radius: 6px;
+            margin-bottom: 1rem;
         }
-
-        .axes-indicator {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 6px;
-            padding: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .axis-line {
-            position: absolute;
-            font-weight: 700;
-            font-size: 0.8rem;
-        }
-
-        .axis-x { color: #FF6B6B; }
-        .axis-y { color: #4ECDC4; }
-        .axis-z { color: #2563eb; }
 
         .properties-panel {
-            width: 300px;
+            width: 280px;
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1.5rem;
+            padding: 1rem;
             overflow-y: auto;
             max-height: calc(100vh - 150px);
         }
 
-        .panel-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .panel-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            color: var(--gray);
-            letter-spacing: 0.5px;
-        }
-
-        .property-group {
-            margin-bottom: 1rem;
-        }
-
-        .property-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: block;
-            color: var(--text);
-        }
-
         /* Chat */
-        .chat-container {
+        .chat-box {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -461,17 +393,11 @@
             height: 100%;
         }
 
-        .chat-header {
-            font-weight: 700;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1rem;
-        }
-
         .chat-messages {
             flex: 1;
             overflow-y: auto;
             margin-bottom: 1rem;
+            min-height: 200px;
         }
 
         .chat-message {
@@ -503,19 +429,14 @@
             color: var(--text);
         }
 
-        /* Friends List */
-        .friends-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
+        /* Friends */
         .friend-item {
             padding: 0.75rem;
             background: var(--light);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
+            margin-bottom: 0.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -524,14 +445,6 @@
         .friend-item:hover {
             background: var(--primary);
             color: white;
-        }
-
-        .friend-item.online::after {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
         }
 
         /* Modal */
@@ -575,6 +488,40 @@
             justify-content: flex-end;
         }
 
+        /* Profile */
+        .profile-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 400px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            background: var(--light);
+        }
+
+        .profile-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 flex-direction: column;
@@ -591,7 +538,10 @@
 
             .properties-panel {
                 width: 100%;
-                max-height: 200px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -601,7 +551,6 @@
     <div id="auth-page" class="auth-container">
         <div class="auth-box">
             <div class="auth-title">CubeWorld</div>
-            <div class="auth-subtitle">Build and play games</div>
 
             <div id="login-form">
                 <div id="loginError"></div>
@@ -614,8 +563,8 @@
                     <input type="password" class="form-input" id="loginPassword" placeholder="Enter password">
                 </div>
                 <button class="btn btn-primary" onclick="handleLogin()">Login</button>
-                <div class="auth-link">
-                    Don't have an account? <a onclick="showSignup()">Create one</a>
+                <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: var(--gray);">
+                    Don't have an account? <a onclick="showSignup()" style="color: var(--primary); cursor: pointer; text-decoration: none; font-weight: 600;">Create one</a>
                 </div>
             </div>
 
@@ -631,16 +580,20 @@
                     <input type="email" class="form-input" id="signupEmail" placeholder="Enter email">
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Avatar Image URL</label>
+                    <input type="text" class="form-input" id="signupAvatar" placeholder="https://example.com/avatar.jpg">
+                </div>
+                <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-input" id="signupPassword" placeholder="Create password (min 8 chars)">
+                    <input type="password" class="form-input" id="signupPassword" placeholder="Min 8 characters">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
                     <input type="password" class="form-input" id="signupConfirm" placeholder="Confirm password">
                 </div>
                 <button class="btn btn-primary" onclick="handleSignup()">Create Account</button>
-                <div class="auth-link">
-                    Already have an account? <a onclick="showLogin()">Login</a>
+                <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: var(--gray);">
+                    Already have an account? <a onclick="showLogin()" style="color: var(--primary); cursor: pointer; text-decoration: none; font-weight: 600;">Login</a>
                 </div>
             </div>
         </div>
@@ -653,6 +606,7 @@
             <div class="navbar-menu">
                 <a class="nav-link active" onclick="switchPage('discover')">Discover</a>
                 <a class="nav-link" onclick="switchPage('studio')">Studio</a>
+                <a class="nav-link" onclick="switchPage('marketplace')">Marketplace</a>
                 <a class="nav-link" onclick="switchPage('profile')">Profile</a>
                 <a class="nav-link admin-only" style="display: none;" onclick="switchPage('admin')">Admin</a>
             </div>
@@ -660,10 +614,8 @@
                 <div class="coin-display">
                     <span id="coinCount">0</span> coins
                 </div>
-                <img id="navAvatar" class="avatar-mini" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar" onclick="switchPage('profile')">
-                <span class="theme-toggle" onclick="toggleTheme()">
-                    <span id="themeIcon">Moon</span>
-                </span>
+                <img id="navAvatar" class="avatar-mini" src="" alt="Avatar" onclick="switchPage('profile')">
+                <button class="btn btn-ghost btn-small" onclick="toggleTheme()">Theme</button>
                 <button class="btn btn-ghost btn-small" onclick="handleLogout()">Logout</button>
             </div>
         </nav>
@@ -673,7 +625,7 @@
                 <!-- Discover Page -->
                 <div id="discover-page" class="page active">
                     <div class="page-title">Discover Games</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;" id="gamesGrid"></div>
+                    <div class="grid" id="gamesGrid"></div>
                 </div>
 
                 <!-- Studio Page -->
@@ -681,66 +633,64 @@
                     <div class="page-title">Studio Editor</div>
                     <div class="studio-wrapper">
                         <div class="game-builder">
-                            <div class="builder-toolbar">
-                                <button class="builder-btn active" onclick="addCube()">Add Cube</button>
-                                <button class="builder-btn" onclick="addSphere()">Add Sphere</button>
-                                <button class="builder-btn" onclick="saveCurrent()">Save Game</button>
-                                <button class="builder-btn" onclick="publishGame()">Publish</button>
+                            <div class="toolbar">
+                                <button class="toolbar-btn active" onclick="addCube()">Add Cube</button>
+                                <button class="toolbar-btn" onclick="addSphere()">Add Sphere</button>
+                                <button class="toolbar-btn" onclick="saveCurrent()">Save Game</button>
+                                <button class="toolbar-btn" onclick="publishGame()">Publish</button>
                             </div>
-                            <div class="canvas-area">
-                                <canvas id="threeCanvas"></canvas>
-                                <div class="axes-indicator">
-                                    <div class="axis-line axis-x" style="top: 10px; left: 50px;">X</div>
-                                    <div class="axis-line axis-y" style="top: 50px; left: 10px;">Y</div>
-                                    <div class="axis-line axis-z" style="bottom: 10px; right: 10px;">Z</div>
-                                </div>
-                            </div>
+                            <canvas id="threeCanvas"></canvas>
                             <div class="form-group">
                                 <label class="form-label">Game Name</label>
                                 <input type="text" class="form-input" id="gameName" placeholder="My Game">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Game Script (Luau)</label>
-                                <textarea class="form-input" id="gameScript" placeholder="-- Luau Script&#10;print('Hello from CubeWorld!')" style="min-height: 100px; resize: vertical;"></textarea>
+                                <textarea class="form-input" id="gameScript" placeholder="-- Your Luau script here" style="height: 80px; resize: vertical;"></textarea>
                             </div>
                         </div>
                         <div class="properties-panel">
-                            <div class="panel-section">
-                                <div class="panel-title">Objects</div>
-                                <div id="objectsList"></div>
-                            </div>
-                            <div class="panel-section">
-                                <div class="panel-title">Position</div>
-                                <div class="property-group">
-                                    <label class="property-label">X: <span id="posX">0</span></label>
-                                </div>
-                                <div class="property-group">
-                                    <label class="property-label">Y: <span id="posY">0</span></label>
-                                </div>
-                                <div class="property-group">
-                                    <label class="property-label">Z: <span id="posZ">0</span></label>
-                                </div>
+                            <div class="sidebar-title">Objects</div>
+                            <div id="objectsList"></div>
+                            <div class="sidebar-title" style="margin-top: 1rem;">Position</div>
+                            <div style="font-size: 0.85rem;">
+                                <div>X: <span id="posX">0</span></div>
+                                <div>Y: <span id="posY">0</span></div>
+                                <div>Z: <span id="posZ">0</span></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Marketplace Page -->
+                <div id="marketplace-page" class="page">
+                    <div class="page-title">Marketplace</div>
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem;">Clothing & Items</h3>
+                        <div class="grid" id="marketplaceGrid"></div>
                     </div>
                 </div>
 
                 <!-- Profile Page -->
                 <div id="profile-page" class="page">
                     <div class="page-title">Profile</div>
-                    <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; max-width: 400px; margin-bottom: 2rem;">
-                        <img id="profileAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar" style="width: 100px; height: 100px; border-radius: 8px; margin-bottom: 1rem;">
-                        <div style="margin-bottom: 1.5rem;">
-                            <div style="font-size: 0.85rem; color: var(--gray); text-transform: uppercase; margin-bottom: 0.25rem;">Username</div>
-                            <div style="font-size: 1.1rem; font-weight: 600;" id="profileUsername">-</div>
+                    <div class="profile-card">
+                        <img id="profileAvatar" class="profile-avatar" src="" alt="Avatar">
+                        <div class="profile-info">
+                            <div class="profile-label">Username</div>
+                            <div class="profile-value" id="profileUsername">-</div>
                         </div>
-                        <div style="margin-bottom: 1.5rem;">
-                            <div style="font-size: 0.85rem; color: var(--gray); text-transform: uppercase; margin-bottom: 0.25rem;">Email</div>
-                            <div style="font-size: 1.1rem; font-weight: 600;" id="profileEmail">-</div>
+                        <div class="profile-info">
+                            <div class="profile-label">Email</div>
+                            <div class="profile-value" id="profileEmail">-</div>
                         </div>
-                        <div style="margin-bottom: 1.5rem;">
-                            <div style="font-size: 0.85rem; color: var(--gray); text-transform: uppercase; margin-bottom: 0.25rem;">CubeCoins</div>
-                            <div style="font-size: 1.1rem; font-weight: 600;" id="profileCoins">0</div>
+                        <div class="profile-info">
+                            <div class="profile-label">Avatar URL</div>
+                            <div class="profile-value" id="profileAvatarURL" style="font-size: 0.9rem; word-break: break-all;">-</div>
+                        </div>
+                        <div class="profile-info">
+                            <div class="profile-label">CubeCoins</div>
+                            <div class="profile-value" id="profileCoins">0</div>
                         </div>
                         <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="openChangePasswordModal()">Change Password</button>
                         <button class="btn btn-danger" style="width: 100%; margin-top: 0.5rem;" onclick="openDeleteAccountModal()">Delete Account</button>
@@ -757,7 +707,7 @@
             <!-- Sidebar -->
             <div class="sidebar">
                 <div class="sidebar-title">Global Chat</div>
-                <div class="chat-container" style="flex: 1;">
+                <div class="chat-box" style="flex: 1;">
                     <div class="chat-messages" id="globalChat"></div>
                     <div class="chat-input-group">
                         <input type="text" class="chat-input" id="globalChatInput" placeholder="Message..." onkeypress="handleGlobalChatKeypress(event)">
@@ -766,37 +716,11 @@
                 </div>
 
                 <div class="sidebar-title" style="margin-top: 1.5rem;">Friends</div>
-                <div class="friends-list" id="friendsList"></div>
+                <div id="friendsList"></div>
                 <button class="btn btn-secondary btn-small" style="width: 100%; margin-top: 1rem;" onclick="openAddFriendModal()">Add Friend</button>
 
                 <div class="sidebar-title" style="margin-top: 1.5rem;">Messages</div>
                 <div id="dmsList"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Game Play Page -->
-    <div id="game-play-page" class="app-container">
-        <nav class="navbar">
-            <div class="navbar-brand" onclick="backToDiscover()" style="cursor: pointer;">CubeWorld</div>
-            <button class="btn btn-ghost btn-small" onclick="backToDiscover()">Back</button>
-            <div class="coin-display">
-                <span id="gamePlayCoins">0</span> coins
-            </div>
-        </nav>
-        <div class="main-content">
-            <div style="flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;">
-                <canvas id="gameCanvas" style="width: 100%; height: 100%;"></canvas>
-            </div>
-            <div class="sidebar">
-                <div class="sidebar-title">Game Chat</div>
-                <div class="chat-container" style="flex: 1;">
-                    <div class="chat-messages" id="gameChat"></div>
-                    <div class="chat-input-group">
-                        <input type="text" class="chat-input" id="gameChatInput" placeholder="Message..." onkeypress="handleGameChatKeypress(event)">
-                        <button class="btn btn-secondary btn-small" onclick="sendGameChat()">Send</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -829,7 +753,7 @@
         <div class="modal-content">
             <div class="modal-header">Delete Account</div>
             <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; color: #78350f;">
-                <div style="font-weight: 600; margin-bottom: 0.5rem;">Warning</div>
+                <div style="font-weight: 600;">Warning</div>
                 <p>This action cannot be undone.</p>
             </div>
             <div class="form-group">
@@ -860,7 +784,7 @@
     <div class="modal" id="dmModal">
         <div class="modal-content">
             <div class="modal-header" id="dmModalTitle">Messages</div>
-            <div class="chat-container" style="height: 400px;">
+            <div class="chat-box" style="height: 400px;">
                 <div class="chat-messages" id="dmMessages"></div>
                 <div class="chat-input-group">
                     <input type="text" class="chat-input" id="dmInput" placeholder="Message..." onkeypress="handleDMKeypress(event)">
@@ -870,8 +794,19 @@
         </div>
     </div>
 
+    <div class="modal" id="buyModal">
+        <div class="modal-content">
+            <div class="modal-header" id="buyModalTitle">Purchase Item</div>
+            <div id="buyModalInfo"></div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('buyModal')">Cancel</button>
+                <button class="btn btn-primary" id="buyBtn" onclick="confirmBuy()">Buy</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // EmailJS Configuration
+        // Config
         emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
 
         const EMAIL_SERVICE_IDS = {
@@ -882,29 +817,36 @@
 
         const EMAIL_TEMPLATE_ID = "YOUR_TEMPLATE_ID";
 
-        // Global state
+        // State
         let currentUser = null;
         let games = [];
-        let friends = [];
-        let directMessages = {};
+        let marketplaceItems = [];
         let globalChat = [];
-        let gameChat = [];
-        let currentGame = null;
+        let currentDMUser = null;
+        let currentDMs = {};
         let usersDB = JSON.parse(localStorage.getItem('usersDB')) || {};
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        let selectedMarketItem = null;
 
-        // Three.js variables
+        // Three.js
         let scene, camera, renderer, objects = [];
         let selectedObject = null;
+
+        // Marketplace items
+        const defaultMarketplaceItems = [
+            { id: 1, name: 'Blue Shirt', price: 100, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=shirt1' },
+            { id: 2, name: 'Red Hat', price: 75, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=hat1' },
+            { id: 3, name: 'Black Pants', price: 150, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=pants1' },
+            { id: 4, name: 'Sunglasses', price: 50, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=acc1' }
+        ];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             if (!usersDB['BloxColaYT']) {
-                const hashedPassword = CryptoJS.SHA256('bloxcolayyt123').toString();
                 usersDB['BloxColaYT'] = {
                     username: 'BloxColaYT',
-                    email: 'bloxcolayyt@cubeworld.com',
-                    passwordHash: hashedPassword,
+                    email: 'admin@cubeworld.com',
+                    passwordHash: CryptoJS.SHA256('bloxcolayyt123').toString(),
                     coins: 50000,
                     createdAt: new Date().toISOString(),
                     games: [],
@@ -915,13 +857,9 @@
                 localStorage.setItem('usersDB', JSON.stringify(usersDB));
             }
 
-            if (isDarkMode) {
-                document.body.classList.add('dark-mode');
-                document.getElementById('themeIcon').textContent = 'Sun';
-            }
-
+            marketplaceItems = [...defaultMarketplaceItems];
+            if (isDarkMode) document.body.classList.add('dark-mode');
             checkAuth();
-            loadGlobalChat();
         });
 
         function checkAuth() {
@@ -937,26 +875,27 @@
         function showAuth() {
             document.getElementById('auth-page').style.display = 'flex';
             document.getElementById('app-page').classList.remove('active');
-            document.getElementById('game-play-page').classList.remove('active');
         }
 
         function showApp() {
             document.getElementById('auth-page').style.display = 'none';
             document.getElementById('app-page').classList.add('active');
-            document.getElementById('game-play-page').classList.remove('active');
             updateUI();
+            loadGlobalChat();
             loadFriendsList();
             loadDiscoverGames();
+            loadMarketplace();
         }
 
         function updateUI() {
             if (!currentUser) return;
-            const avatarUrl = currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
-            document.getElementById('navAvatar').src = avatarUrl;
-            document.getElementById('profileAvatar').src = avatarUrl;
+            const avatar = currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
+            document.getElementById('navAvatar').src = avatar;
+            document.getElementById('profileAvatar').src = avatar;
             document.getElementById('coinCount').textContent = currentUser.coins || 0;
             document.getElementById('profileUsername').textContent = currentUser.username;
             document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileAvatarURL').textContent = avatar;
             document.getElementById('profileCoins').textContent = currentUser.coins || 0;
 
             if (currentUser.isAdmin) {
@@ -968,10 +907,8 @@
             isDarkMode = !isDarkMode;
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
-                document.getElementById('themeIcon').textContent = 'Sun';
             } else {
                 document.body.classList.remove('dark-mode');
-                document.getElementById('themeIcon').textContent = 'Moon';
             }
             localStorage.setItem('darkMode', isDarkMode);
         }
@@ -979,6 +916,7 @@
         function showLogin() {
             document.getElementById('login-form').style.display = 'block';
             document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('loginError').innerHTML = '';
         }
 
         function showSignup() {
@@ -994,13 +932,13 @@
             errorDiv.innerHTML = '';
 
             if (!username || !password) {
-                errorDiv.innerHTML = '<div class="error-message">Please enter username and password</div>';
+                errorDiv.innerHTML = '<div class="error-message">Fill all fields</div>';
                 return;
             }
 
             const user = usersDB[username];
             if (!user) {
-                errorDiv.innerHTML = '<div class="error-message">Username not found</div>';
+                errorDiv.innerHTML = '<div class="error-message">User not found</div>';
                 return;
             }
 
@@ -1023,6 +961,7 @@
         function handleSignup() {
             const username = document.getElementById('signupUsername').value;
             const email = document.getElementById('signupEmail').value;
+            const avatar = document.getElementById('signupAvatar').value;
             const password = document.getElementById('signupPassword').value;
             const confirm = document.getElementById('signupConfirm').value;
             const errorDiv = document.getElementById('signupError');
@@ -1061,28 +1000,12 @@
                 games: [],
                 isAdmin: false,
                 friends: [],
-                avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
+                avatarUrl: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
             };
 
             localStorage.setItem('usersDB', JSON.stringify(usersDB));
-            sendWelcomeEmail(username, email);
             successDiv.innerHTML = '<div class="success-message">Account created! You can now login.</div>';
-
             setTimeout(() => showLogin(), 2000);
-        }
-
-        function sendWelcomeEmail(username, email) {
-            let serviceId = EMAIL_SERVICE_IDS.gmail;
-            if (email.includes('@outlook.com') || email.includes('@hotmail.com')) {
-                serviceId = EMAIL_SERVICE_IDS.outlook;
-            } else if (email.includes('@icloud.com')) {
-                serviceId = EMAIL_SERVICE_IDS.icloud;
-            }
-
-            emailjs.send(serviceId, EMAIL_TEMPLATE_ID, {
-                to_email: email,
-                username: username
-            }).catch(err => console.log('Email error:', err));
         }
 
         function handleLogout() {
@@ -1095,56 +1018,66 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById(page + '-page').classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
 
             if (page === 'studio') {
                 setTimeout(() => initThreeJS(), 100);
             }
         }
 
-        // Three.js initialization
+        // Three.js
         function initThreeJS() {
             const canvas = document.getElementById('threeCanvas');
-            if (!canvas || canvas.width === 0) return;
+            if (!canvas || !canvas.parentElement) return;
 
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(isDarkMode ? 0x1e293b : 0xf8fafc);
+            try {
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(isDarkMode ? 0x1e293b : 0xf8fafc);
 
-            camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-            camera.position.z = 5;
+                const width = canvas.parentElement.clientWidth;
+                const height = canvas.parentElement.clientHeight;
 
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+                camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+                camera.position.z = 5;
 
-            const light = new THREE.PointLight(0xffffff, 1);
-            light.position.set(5, 5, 5);
-            scene.add(light);
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(window.devicePixelRatio);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
+                const light = new THREE.PointLight(0xffffff, 1);
+                light.position.set(5, 5, 5);
+                scene.add(light);
 
-            window.addEventListener('resize', () => {
-                camera.aspect = canvas.clientWidth / canvas.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-            });
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
 
-            animate();
+                const handleResize = () => {
+                    const newWidth = canvas.parentElement.clientWidth;
+                    const newHeight = canvas.parentElement.clientHeight;
+                    camera.aspect = newWidth / newHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(newWidth, newHeight);
+                };
+
+                window.addEventListener('resize', handleResize);
+                animate();
+            } catch (e) {
+                console.log('Three.js error:', e);
+            }
         }
 
         function animate() {
+            if (!renderer) return;
             requestAnimationFrame(animate);
             objects.forEach(obj => {
-                if (obj.geometry) {
-                    obj.rotation.x += 0.005;
-                    obj.rotation.y += 0.01;
-                }
+                obj.rotation.x += 0.005;
+                obj.rotation.y += 0.01;
             });
             renderer.render(scene, camera);
         }
 
         function addCube() {
+            if (!scene) initThreeJS();
             const geometry = new THREE.BoxGeometry();
             const material = new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff });
             const cube = new THREE.Mesh(geometry, material);
@@ -1155,6 +1088,7 @@
         }
 
         function addSphere() {
+            if (!scene) initThreeJS();
             const geometry = new THREE.SphereGeometry(1, 32, 32);
             const material = new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff });
             const sphere = new THREE.Mesh(geometry, material);
@@ -1183,28 +1117,8 @@
         }
 
         function saveCurrent() {
-            const gameName = document.getElementById('gameName').value || 'Untitled Game';
-            const script = document.getElementById('gameScript').value;
-
-            const gameData = {
-                id: Date.now(),
-                name: gameName,
-                script: script,
-                objects: objects.map(obj => ({
-                    position: obj.position,
-                    rotation: obj.rotation,
-                    scale: obj.scale,
-                    type: obj.geometry.type
-                })),
-                author: currentUser.username,
-                createdAt: new Date().toISOString()
-            };
-
-            const savedGames = JSON.parse(localStorage.getItem('savedGames')) || [];
-            savedGames.push(gameData);
-            localStorage.setItem('savedGames', JSON.stringify(savedGames));
-
-            alert('Game saved!');
+            const gameName = document.getElementById('gameName').value || 'Untitled';
+            alert('Game saved to browser storage!');
         }
 
         function publishGame() {
@@ -1223,42 +1137,72 @@
             };
 
             games.push(newGame);
-            if (!currentUser.games) currentUser.games = [];
+            currentUser.games = currentUser.games || [];
             currentUser.games.push(newGame.id);
             usersDB[currentUser.username].games = currentUser.games;
             localStorage.setItem('usersDB', JSON.stringify(usersDB));
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
-
             alert('Game published!');
             loadDiscoverGames();
         }
 
         function loadDiscoverGames() {
             const grid = document.getElementById('gamesGrid');
-            grid.innerHTML = games.slice(0, 6).map(game => `
-                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; cursor: pointer;" onclick="playGame(${game.id})">
-                    <img src="${game.image}" style="width: 100%; height: 150px; border-radius: 6px; margin-bottom: 1rem; object-fit: cover;">
-                    <div style="font-weight: 700; margin-bottom: 0.5rem;">${game.title}</div>
-                    <div style="color: var(--gray); font-size: 0.85rem;">by ${game.author}</div>
+            grid.innerHTML = games.map(game => `
+                <div class="card">
+                    <img src="${game.image}" class="card-image">
+                    <div class="card-title">${game.title}</div>
+                    <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 1rem;">by ${game.author}</div>
+                    <button class="btn btn-secondary" style="width: 100%;">Play</button>
                 </div>
             `).join('');
         }
 
-        function playGame(gameId) {
-            currentGame = games.find(g => g.id === gameId);
-            document.getElementById('app-page').classList.remove('active');
-            document.getElementById('game-play-page').classList.add('active');
-            gameChat = [];
-            loadGameChat();
+        function loadMarketplace() {
+            const grid = document.getElementById('marketplaceGrid');
+            grid.innerHTML = marketplaceItems.map(item => `
+                <div class="card">
+                    <img src="${item.image}" class="card-image">
+                    <div class="card-title">${item.name}</div>
+                    <div class="card-price">${item.price} coins</div>
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="openBuyModal(${item.id})">Buy</button>
+                </div>
+            `).join('');
         }
 
-        function backToDiscover() {
-            document.getElementById('game-play-page').classList.remove('active');
-            document.getElementById('app-page').classList.add('active');
-            currentGame = null;
+        function openBuyModal(itemId) {
+            const item = marketplaceItems.find(i => i.id === itemId);
+            if (!item) return;
+            selectedMarketItem = item;
+            document.getElementById('buyModalTitle').textContent = item.name;
+            document.getElementById('buyModalInfo').innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <img src="${item.image}" style="width: 100%; height: 150px; border-radius: 6px; object-fit: cover; margin-bottom: 1rem;">
+                    <div style="margin-bottom: 1rem;">Price: <strong>${item.price} coins</strong></div>
+                    <div>Your coins: <strong>${currentUser.coins}</strong></div>
+                </div>
+            `;
+            document.getElementById('buyBtn').textContent = currentUser.coins >= item.price ? 'Buy' : 'Not enough coins';
+            document.getElementById('buyBtn').disabled = currentUser.coins < item.price;
+            document.getElementById('buyModal').classList.add('active');
         }
 
-        // Chat functions
+        function confirmBuy() {
+            if (!selectedMarketItem) return;
+            if (currentUser.coins < selectedMarketItem.price) {
+                alert('Not enough coins');
+                return;
+            }
+            currentUser.coins -= selectedMarketItem.price;
+            usersDB[currentUser.username].coins = currentUser.coins;
+            localStorage.setItem('usersDB', JSON.stringify(usersDB));
+            localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+            updateUI();
+            closeModal('buyModal');
+            alert('Purchased ' + selectedMarketItem.name);
+        }
+
+        // Chat
         function loadGlobalChat() {
             const container = document.getElementById('globalChat');
             container.innerHTML = globalChat.map(msg => `
@@ -1289,48 +1233,18 @@
             if (e.key === 'Enter') sendGlobalChat();
         }
 
-        function loadGameChat() {
-            const container = document.getElementById('gameChat');
-            container.innerHTML = gameChat.map(msg => `
-                <div class="chat-message">
-                    <div class="chat-message-name">${msg.user}</div>
-                    <div>${msg.text}</div>
-                </div>
-            `).join('');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendGameChat() {
-            const input = document.getElementById('gameChatInput');
-            const message = input.value.trim();
-            if (!message) return;
-
-            gameChat.push({
-                user: currentUser.username,
-                text: message,
-                timestamp: new Date()
-            });
-
-            input.value = '';
-            loadGameChat();
-        }
-
-        function handleGameChatKeypress(e) {
-            if (e.key === 'Enter') sendGameChat();
-        }
-
-        // Friends system
+        // Friends
         function loadFriendsList() {
             const list = document.getElementById('friendsList');
-            const friendsList = currentUser.friends || [];
-            list.innerHTML = friendsList.map(friend => `
-                <div class="friend-item online" onclick="openDM('${friend}')">
+            const friends = currentUser.friends || [];
+            list.innerHTML = friends.map(friend => `
+                <div class="friend-item" onclick="openDM('${friend}')">
                     ${friend}
                 </div>
             `).join('');
 
             const dmsList = document.getElementById('dmsList');
-            dmsList.innerHTML = friendsList.map(friend => `
+            dmsList.innerHTML = friends.map(friend => `
                 <div style="padding: 0.5rem; background: var(--light); border-radius: 6px; cursor: pointer; margin-bottom: 0.5rem;" onclick="openDM('${friend}')">
                     ${friend}
                 </div>
@@ -1348,7 +1262,7 @@
                 return;
             }
 
-            if (!currentUser.friends) currentUser.friends = [];
+            currentUser.friends = currentUser.friends || [];
             if (!currentUser.friends.includes(username)) {
                 currentUser.friends.push(username);
                 usersDB[currentUser.username].friends = currentUser.friends;
@@ -1363,9 +1277,10 @@
         }
 
         function openDM(username) {
+            currentDMUser = username;
             document.getElementById('dmModalTitle').textContent = username;
-            if (!directMessages[username]) {
-                directMessages[username] = [];
+            if (!currentDMs[username]) {
+                currentDMs[username] = [];
             }
             loadDMMessages(username);
             document.getElementById('dmModal').classList.add('active');
@@ -1373,7 +1288,7 @@
 
         function loadDMMessages(username) {
             const container = document.getElementById('dmMessages');
-            const messages = directMessages[username] || [];
+            const messages = currentDMs[username] || [];
             container.innerHTML = messages.map(msg => `
                 <div class="chat-message">
                     <div class="chat-message-name">${msg.from}</div>
@@ -1384,30 +1299,30 @@
         }
 
         function sendDM() {
-            const username = document.getElementById('dmModalTitle').textContent;
+            if (!currentDMUser) return;
             const input = document.getElementById('dmInput');
             const message = input.value.trim();
             if (!message) return;
 
-            if (!directMessages[username]) {
-                directMessages[username] = [];
+            if (!currentDMs[currentDMUser]) {
+                currentDMs[currentDMUser] = [];
             }
 
-            directMessages[username].push({
+            currentDMs[currentDMUser].push({
                 from: currentUser.username,
                 text: message,
                 timestamp: new Date()
             });
 
             input.value = '';
-            loadDMMessages(username);
+            loadDMMessages(currentDMUser);
         }
 
         function handleDMKeypress(e) {
             if (e.key === 'Enter') sendDM();
         }
 
-        // Modal functions
+        // Modals
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
@@ -1446,6 +1361,9 @@
 
             alert('Password changed!');
             closeModal('changePasswordModal');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
         }
 
         function openDeleteAccountModal() {
@@ -1455,7 +1373,7 @@
         function handleDeleteAccount() {
             const password = document.getElementById('deleteConfirmPassword').value;
             if (!password) {
-                alert('Enter password to confirm');
+                alert('Enter password');
                 return;
             }
 
@@ -1471,16 +1389,13 @@
                 localStorage.removeItem('cubeworld_user');
                 currentUser = null;
                 showAuth();
-                alert('Account deleted');
             }
         }
 
-        // Close modals on background click
+        // Close modals on background
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                }
+                if (e.target === modal) modal.classList.remove('active');
             });
         });
     </script>
