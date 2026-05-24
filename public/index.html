@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -277,6 +278,7 @@
             align-items: center;
             justify-content: center;
             object-fit: cover;
+            cursor: pointer;
         }
 
         .theme-toggle {
@@ -289,6 +291,30 @@
             flex: 1;
             overflow-y: auto;
             padding: 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .content-area {
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
         }
 
         .page {
@@ -304,57 +330,6 @@
             font-weight: 700;
             margin-bottom: 2rem;
             color: var(--text);
-        }
-
-        /* Discover Page */
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .game-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .game-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .game-image {
-            width: 100%;
-            height: 150px;
-            border-radius: 6px;
-            object-fit: cover;
-            margin-bottom: 1rem;
-            background: var(--light);
-        }
-
-        .game-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .game-author {
-            font-size: 0.85rem;
-            color: var(--gray);
-            margin-bottom: 1rem;
-        }
-
-        .game-stats {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.85rem;
-            color: var(--gray);
-            margin-bottom: 1rem;
         }
 
         /* Studio Page */
@@ -408,47 +383,46 @@
             background: var(--light);
             border-radius: 6px;
             border: 2px dashed var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gray);
-            margin-bottom: 1rem;
             position: relative;
+            margin-bottom: 1rem;
         }
 
-        .canvas-grid {
+        #threeCanvas {
             width: 100%;
             height: 100%;
-            position: relative;
-            background-image: 
-                linear-gradient(var(--border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 20px 20px;
+            border-radius: 6px;
         }
 
-        .game-block {
+        .axes-indicator {
             position: absolute;
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            border: 2px solid var(--secondary);
-            border-radius: 4px;
-            cursor: move;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+            bottom: 10px;
+            left: 10px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .axis-line {
+            position: absolute;
             font-weight: 700;
             font-size: 0.8rem;
         }
 
+        .axis-x { color: #FF6B6B; }
+        .axis-y { color: #4ECDC4; }
+        .axis-z { color: #2563eb; }
+
         .properties-panel {
-            width: 320px;
+            width: 300px;
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1.5rem;
             overflow-y: auto;
+            max-height: calc(100vh - 150px);
         }
 
         .panel-section {
@@ -476,206 +450,15 @@
             color: var(--text);
         }
 
-        /* Shop Page */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .item-card {
+        /* Chat */
+        .chat-container {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .item-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-        }
-
-        .item-preview {
-            width: 100%;
-            height: 120px;
-            background: var(--light);
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .item-preview img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 6px;
-        }
-
-        .item-name {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .item-price {
-            font-size: 0.9rem;
-            color: var(--gold);
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .item-btn {
-            width: 100%;
-        }
-
-        /* Profile */
-        .profile-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 2rem;
-            max-width: 400px;
-            margin-bottom: 2rem;
-        }
-
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 8px;
-            background: var(--light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            object-fit: cover;
-        }
-
-        .profile-info {
-            margin-bottom: 1.5rem;
-        }
-
-        .profile-label {
-            font-size: 0.85rem;
-            color: var(--gray);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.25rem;
-        }
-
-        .profile-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .avatar-upload {
-            margin-bottom: 1rem;
-        }
-
-        /* Admin Panel */
-        .admin-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--gray);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .admin-section {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-        }
-
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             padding: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .list-item:last-child {
-            border-bottom: none;
-        }
-
-        .list-info {
-            flex: 1;
-        }
-
-        .list-name {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .list-meta {
-            font-size: 0.85rem;
-            color: var(--gray);
-        }
-
-        .list-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* Game View */
-        .game-view {
-            display: flex;
-            gap: 1rem;
-            height: calc(100vh - 150px);
-        }
-
-        .game-viewport {
-            flex: 1;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            position: relative;
-        }
-
-        .game-chat {
-            width: 300px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
             display: flex;
             flex-direction: column;
-            padding: 1rem;
+            height: 100%;
         }
 
         .chat-header {
@@ -720,6 +503,37 @@
             color: var(--text);
         }
 
+        /* Friends List */
+        .friends-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .friend-item {
+            padding: 0.75rem;
+            background: var(--light);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .friend-item:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .friend-item.online::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -761,56 +575,23 @@
             justify-content: flex-end;
         }
 
-        .warning-box {
-            background: #fef3c7;
-            border: 1px solid #fcd34d;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            color: #78350f;
-        }
-
-        .warning-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--gray);
-        }
-
-        .empty-state-text {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-
         @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 200px;
+            }
+
             .studio-wrapper {
                 flex-direction: column;
             }
 
             .properties-panel {
                 width: 100%;
-            }
-
-            .game-view {
-                flex-direction: column;
-            }
-
-            .game-chat {
-                width: 100%;
-                height: 200px;
-            }
-
-            .navbar-menu {
-                gap: 1rem;
-                font-size: 0.9rem;
-            }
-
-            .games-grid, .shop-grid {
-                grid-template-columns: 1fr;
+                max-height: 200px;
             }
         }
     </style>
@@ -822,7 +603,6 @@
             <div class="auth-title">CubeWorld</div>
             <div class="auth-subtitle">Build and play games</div>
 
-            <!-- Login Form -->
             <div id="login-form">
                 <div id="loginError"></div>
                 <div class="form-group">
@@ -839,7 +619,6 @@
                 </div>
             </div>
 
-            <!-- Signup Form -->
             <div id="signup-form" style="display: none;">
                 <div id="signupError"></div>
                 <div id="signupSuccess"></div>
@@ -869,13 +648,11 @@
 
     <!-- Main App -->
     <div id="app-page" class="app-container">
-        <!-- Navigation -->
         <nav class="navbar">
             <div class="navbar-brand">CubeWorld</div>
             <div class="navbar-menu">
                 <a class="nav-link active" onclick="switchPage('discover')">Discover</a>
                 <a class="nav-link" onclick="switchPage('studio')">Studio</a>
-                <a class="nav-link" onclick="switchPage('shop')">Shop</a>
                 <a class="nav-link" onclick="switchPage('profile')">Profile</a>
                 <a class="nav-link admin-only" style="display: none;" onclick="switchPage('admin')">Admin</a>
             </div>
@@ -883,144 +660,117 @@
                 <div class="coin-display">
                     <span id="coinCount">0</span> coins
                 </div>
-                <img id="navAvatar" class="avatar-mini" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar">
+                <img id="navAvatar" class="avatar-mini" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar" onclick="switchPage('profile')">
                 <span class="theme-toggle" onclick="toggleTheme()">
-                    <span id="themeIcon">🌙</span>
+                    <span id="themeIcon">Moon</span>
                 </span>
                 <button class="btn btn-ghost btn-small" onclick="handleLogout()">Logout</button>
             </div>
         </nav>
 
-        <!-- Main Content -->
         <div class="main-content">
-            <!-- Discover Page -->
-            <div id="discover-page" class="page active">
-                <div class="page-title">Discover Games</div>
-                <div class="games-grid" id="gamesGrid"></div>
-            </div>
+            <div class="content-area">
+                <!-- Discover Page -->
+                <div id="discover-page" class="page active">
+                    <div class="page-title">Discover Games</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;" id="gamesGrid"></div>
+                </div>
 
-            <!-- Studio Page -->
-            <div id="studio-page" class="page">
-                <div class="page-title">Studio Editor</div>
-                <div class="studio-wrapper">
-                    <div class="game-builder">
-                        <div class="builder-toolbar">
-                            <button class="builder-btn active" onclick="selectBlock('normal')">Block</button>
-                            <button class="builder-btn" onclick="selectBlock('platform')">Platform</button>
-                            <button class="builder-btn" onclick="selectBlock('spawn')">Spawn</button>
-                            <button class="builder-btn" onclick="clearCanvas()">Clear</button>
+                <!-- Studio Page -->
+                <div id="studio-page" class="page">
+                    <div class="page-title">Studio Editor</div>
+                    <div class="studio-wrapper">
+                        <div class="game-builder">
+                            <div class="builder-toolbar">
+                                <button class="builder-btn active" onclick="addCube()">Add Cube</button>
+                                <button class="builder-btn" onclick="addSphere()">Add Sphere</button>
+                                <button class="builder-btn" onclick="saveCurrent()">Save Game</button>
+                                <button class="builder-btn" onclick="publishGame()">Publish</button>
+                            </div>
+                            <div class="canvas-area">
+                                <canvas id="threeCanvas"></canvas>
+                                <div class="axes-indicator">
+                                    <div class="axis-line axis-x" style="top: 10px; left: 50px;">X</div>
+                                    <div class="axis-line axis-y" style="top: 50px; left: 10px;">Y</div>
+                                    <div class="axis-line axis-z" style="bottom: 10px; right: 10px;">Z</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Game Name</label>
+                                <input type="text" class="form-input" id="gameName" placeholder="My Game">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Game Script (Luau)</label>
+                                <textarea class="form-input" id="gameScript" placeholder="-- Luau Script&#10;print('Hello from CubeWorld!')" style="min-height: 100px; resize: vertical;"></textarea>
+                            </div>
                         </div>
-                        <div class="canvas-area">
-                            <div class="canvas-grid" id="gameCanvas"></div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Game Name</label>
-                            <input type="text" class="form-input" id="gameName" placeholder="My Game">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-input" id="gameDesc" placeholder="Describe your game" style="min-height: 80px; resize: vertical;"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Game Image URL</label>
-                            <input type="text" class="form-input" id="gameImageUrl" placeholder="https://example.com/image.jpg">
-                        </div>
-                        <button class="btn btn-secondary" onclick="publishGame()">Publish Game</button>
-                    </div>
-                    <div class="properties-panel">
-                        <div class="panel-section">
-                            <div class="panel-title">Build Info</div>
-                            <div class="property-group">
-                                <label class="property-label">Total Blocks: <span id="blockCount">0</span></label>
+                        <div class="properties-panel">
+                            <div class="panel-section">
+                                <div class="panel-title">Objects</div>
+                                <div id="objectsList"></div>
+                            </div>
+                            <div class="panel-section">
+                                <div class="panel-title">Position</div>
+                                <div class="property-group">
+                                    <label class="property-label">X: <span id="posX">0</span></label>
+                                </div>
+                                <div class="property-group">
+                                    <label class="property-label">Y: <span id="posY">0</span></label>
+                                </div>
+                                <div class="property-group">
+                                    <label class="property-label">Z: <span id="posZ">0</span></label>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Shop Page -->
-            <div id="shop-page" class="page">
-                <div class="page-title">Avatar Shop</div>
-                <h3 style="margin-bottom: 1.5rem; color: var(--gray);">Clothing & Accessories</h3>
-                <div class="shop-grid" id="shopGrid"></div>
-            </div>
-
-            <!-- Profile Page -->
-            <div id="profile-page" class="page">
-                <div class="page-title">Profile</div>
-                <div class="profile-card">
-                    <img id="profileAvatar" class="profile-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar">
-                    <div class="avatar-upload">
-                        <label class="form-label">Avatar Image URL</label>
-                        <input type="text" class="form-input" id="avatarUrl" placeholder="https://example.com/avatar.jpg">
-                        <button class="btn btn-secondary btn-small" style="margin-top: 0.5rem; width: 100%;" onclick="updateAvatar()">Update Avatar</button>
+                <!-- Profile Page -->
+                <div id="profile-page" class="page">
+                    <div class="page-title">Profile</div>
+                    <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; max-width: 400px; margin-bottom: 2rem;">
+                        <img id="profileAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar" style="width: 100px; height: 100px; border-radius: 8px; margin-bottom: 1rem;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--gray); text-transform: uppercase; margin-bottom: 0.25rem;">Username</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;" id="profileUsername">-</div>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--gray); text-transform: uppercase; margin-bottom: 0.25rem;">Email</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;" id="profileEmail">-</div>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--gray); text-transform: uppercase; margin-bottom: 0.25rem;">CubeCoins</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;" id="profileCoins">0</div>
+                        </div>
+                        <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="openChangePasswordModal()">Change Password</button>
+                        <button class="btn btn-danger" style="width: 100%; margin-top: 0.5rem;" onclick="openDeleteAccountModal()">Delete Account</button>
                     </div>
-                    <div class="profile-info">
-                        <div class="profile-label">Username</div>
-                        <div class="profile-value" id="profileUsername">-</div>
-                    </div>
-                    <div class="profile-info">
-                        <div class="profile-label">Email</div>
-                        <div class="profile-value" id="profileEmail">-</div>
-                    </div>
-                    <div class="profile-info">
-                        <div class="profile-label">CubeCoins</div>
-                        <div class="profile-value" id="profileCoins">0</div>
-                    </div>
-                    <div class="profile-info">
-                        <div class="profile-label">Joined</div>
-                        <div class="profile-value" id="profileJoined">-</div>
-                    </div>
-                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem;" onclick="openChangePasswordModal()">Change Password</button>
-                    <button class="btn btn-danger" style="width: 100%; margin-top: 0.5rem;" onclick="openDeleteAccountModal()">Delete Account</button>
                 </div>
 
-                <div class="admin-section" id="myGamesSection">
-                    <div class="section-title">My Games</div>
-                    <div id="myGamesList"></div>
+                <!-- Admin Page -->
+                <div id="admin-page" class="page">
+                    <div class="page-title">Admin Dashboard</div>
+                    <div id="adminPanel"></div>
                 </div>
             </div>
 
-            <!-- Admin Page -->
-            <div id="admin-page" class="page">
-                <div class="page-title">Admin Dashboard</div>
-
-                <div class="admin-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Users</div>
-                        <div class="stat-value" id="statUsers">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Games Published</div>
-                        <div class="stat-value" id="statGames">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Clothing Items</div>
-                        <div class="stat-value" id="statClothing">0</div>
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-title">Global Chat</div>
+                <div class="chat-container" style="flex: 1;">
+                    <div class="chat-messages" id="globalChat"></div>
+                    <div class="chat-input-group">
+                        <input type="text" class="chat-input" id="globalChatInput" placeholder="Message..." onkeypress="handleGlobalChatKeypress(event)">
+                        <button class="btn btn-secondary btn-small" onclick="sendGlobalChat()">Send</button>
                     </div>
                 </div>
 
-                <div class="admin-section">
-                    <div class="section-title">Manage Clothing Items</div>
-                    <button class="btn btn-secondary" style="margin-bottom: 1rem;" onclick="openAddClothingModal()">Add Clothing Item</button>
-                    <div id="clothingList"></div>
-                </div>
+                <div class="sidebar-title" style="margin-top: 1.5rem;">Friends</div>
+                <div class="friends-list" id="friendsList"></div>
+                <button class="btn btn-secondary btn-small" style="width: 100%; margin-top: 1rem;" onclick="openAddFriendModal()">Add Friend</button>
 
-                <div class="admin-section">
-                    <div class="section-title">Ban Users</div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <input type="text" class="form-input" id="banUsername" placeholder="Username to ban">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <textarea class="form-input" id="banReason" placeholder="Reason for ban" style="min-height: 80px; resize: vertical;"></textarea>
-                    </div>
-                    <button class="btn btn-danger" onclick="handleBanUser()">Ban User</button>
-                </div>
-
-                <div class="admin-section">
-                    <div class="section-title">Manage Games</div>
-                    <div id="adminGamesList"></div>
-                </div>
+                <div class="sidebar-title" style="margin-top: 1.5rem;">Messages</div>
+                <div id="dmsList"></div>
             </div>
         </div>
     </div>
@@ -1029,24 +779,22 @@
     <div id="game-play-page" class="app-container">
         <nav class="navbar">
             <div class="navbar-brand" onclick="backToDiscover()" style="cursor: pointer;">CubeWorld</div>
-            <div class="navbar-menu">
-                <button class="btn btn-ghost btn-small" onclick="backToDiscover()">Back to Discover</button>
-            </div>
-            <div class="user-section">
-                <div class="coin-display">
-                    <span id="gamePlayCoins">0</span> coins
-                </div>
+            <button class="btn btn-ghost btn-small" onclick="backToDiscover()">Back</button>
+            <div class="coin-display">
+                <span id="gamePlayCoins">0</span> coins
             </div>
         </nav>
         <div class="main-content">
-            <div class="game-view">
-                <div class="game-viewport" id="gameViewport">Game Loading...</div>
-                <div class="game-chat">
-                    <div class="chat-header">Live Chat</div>
-                    <div class="chat-messages" id="chatMessages"></div>
+            <div style="flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;">
+                <canvas id="gameCanvas" style="width: 100%; height: 100%;"></canvas>
+            </div>
+            <div class="sidebar">
+                <div class="sidebar-title">Game Chat</div>
+                <div class="chat-container" style="flex: 1;">
+                    <div class="chat-messages" id="gameChat"></div>
                     <div class="chat-input-group">
-                        <input type="text" class="chat-input" id="chatInput" placeholder="Type message..." onkeypress="handleChatKeypress(event)">
-                        <button class="btn btn-secondary btn-small" onclick="sendChatMessage()">Send</button>
+                        <input type="text" class="chat-input" id="gameChatInput" placeholder="Message..." onkeypress="handleGameChatKeypress(event)">
+                        <button class="btn btn-secondary btn-small" onclick="sendGameChat()">Send</button>
                     </div>
                 </div>
             </div>
@@ -1072,7 +820,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-ghost" onclick="closeModal('changePasswordModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="handleChangePassword()">Update Password</button>
+                <button class="btn btn-primary" onclick="handleChangePassword()">Update</button>
             </div>
         </div>
     </div>
@@ -1080,98 +828,77 @@
     <div class="modal" id="deleteAccountModal">
         <div class="modal-content">
             <div class="modal-header">Delete Account</div>
-            <div id="deleteAccountError"></div>
-            <div class="warning-box">
-                <div class="warning-title">Warning</div>
-                <p>This action cannot be undone. All your games and data will be permanently deleted.</p>
+            <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; color: #78350f;">
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">Warning</div>
+                <p>This action cannot be undone.</p>
             </div>
             <div class="form-group">
-                <label class="form-label">Enter your password to confirm</label>
+                <label class="form-label">Enter password to confirm</label>
                 <input type="password" class="form-input" id="deleteConfirmPassword">
             </div>
             <div class="modal-footer">
                 <button class="btn btn-ghost" onclick="closeModal('deleteAccountModal')">Cancel</button>
-                <button class="btn btn-danger" onclick="handleDeleteAccount()">Delete Account</button>
+                <button class="btn btn-danger" onclick="handleDeleteAccount()">Delete</button>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="addClothingModal">
+    <div class="modal" id="addFriendModal">
         <div class="modal-content">
-            <div class="modal-header">Add Clothing Item</div>
+            <div class="modal-header">Add Friend</div>
             <div class="form-group">
-                <label class="form-label">Item Name</label>
-                <input type="text" class="form-input" id="clothingName">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Category</label>
-                <select class="form-input" id="clothingCategory">
-                    <option value="shirt">Shirt</option>
-                    <option value="pants">Pants</option>
-                    <option value="hat">Hat</option>
-                    <option value="accessories">Accessories</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Price (coins)</label>
-                <input type="number" class="form-input" id="clothingPrice" min="0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Image URL</label>
-                <input type="text" class="form-input" id="clothingImage" placeholder="https://example.com/image.jpg">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-input" id="friendUsername" placeholder="Enter username">
             </div>
             <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="closeModal('addClothingModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="handleAddClothing()">Add Item</button>
+                <button class="btn btn-ghost" onclick="closeModal('addFriendModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addFriend()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dmModal">
+        <div class="modal-content">
+            <div class="modal-header" id="dmModalTitle">Messages</div>
+            <div class="chat-container" style="height: 400px;">
+                <div class="chat-messages" id="dmMessages"></div>
+                <div class="chat-input-group">
+                    <input type="text" class="chat-input" id="dmInput" placeholder="Message..." onkeypress="handleDMKeypress(event)">
+                    <button class="btn btn-secondary btn-small" onclick="sendDM()">Send</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // EmailJS Configuration - REPLACE WITH YOUR ACTUAL IDS
-        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Get from Account → API Keys
+        // EmailJS Configuration
+        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
 
-        // EmailJS Service IDs for different email providers
         const EMAIL_SERVICE_IDS = {
-            gmail: "service_vidwptg",      // Create Gmail service and replace
-            outlook: "service_xjdrxgn",  // Create Outlook service and replace
-            icloud: "service_icloud_YOUR_ID"     // Create iCloud service and replace
+            gmail: "service_gmail_YOUR_ID",
+            outlook: "service_outlook_YOUR_ID",
+            icloud: "service_icloud_YOUR_ID"
         };
 
-        // EmailJS Template ID - REPLACE WITH YOUR TEMPLATE ID
-        const EMAIL_TEMPLATE_ID = "service_vidwptg"; // Create template and replace
+        const EMAIL_TEMPLATE_ID = "YOUR_TEMPLATE_ID";
 
         // Global state
         let currentUser = null;
         let games = [];
-        let clothingItems = [];
-        let bannedUsers = [];
-        let chatMessages = [];
-        let selectedBlocks = [];
+        let friends = [];
+        let directMessages = {};
+        let globalChat = [];
+        let gameChat = [];
         let currentGame = null;
-        let blockCounter = 0;
+        let usersDB = JSON.parse(localStorage.getItem('usersDB')) || {};
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
 
-        // User database (in localStorage)
-        let usersDB = JSON.parse(localStorage.getItem('usersDB')) || {};
+        // Three.js variables
+        let scene, camera, renderer, objects = [];
+        let selectedObject = null;
 
-        const mockClothing = [
-            { id: 1, name: 'Blue Shirt', category: 'shirt', price: 100, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=shirt1' },
-            { id: 2, name: 'Black Pants', category: 'pants', price: 150, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=pants1' },
-            { id: 3, name: 'Baseball Cap', category: 'hat', price: 75, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=hat1' },
-            { id: 4, name: 'Sunglasses', category: 'accessories', price: 50, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=acc1' },
-            { id: 5, name: 'Red Shirt', category: 'shirt', price: 100, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=shirt2' },
-            { id: 6, name: 'Jeans', category: 'pants', price: 150, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=pants2' }
-        ];
-
-        const mockGames = [
-            { id: 1, title: 'Building Game', author: 'BuildMaster', plays: 2543, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=game1' },
-            { id: 2, title: 'Puzzle Quest', author: 'Player123', plays: 1892, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=game2' },
-            { id: 3, title: 'Adventure World', author: 'GameDev', plays: 3421, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=game3' }
-        ];
-
-        // Initialize admin account
-        function initializeAdmin() {
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
             if (!usersDB['BloxColaYT']) {
                 const hashedPassword = CryptoJS.SHA256('bloxcolayyt123').toString();
                 usersDB['BloxColaYT'] = {
@@ -1182,22 +909,19 @@
                     createdAt: new Date().toISOString(),
                     games: [],
                     isAdmin: true,
+                    friends: [],
                     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=BloxColaYT'
                 };
                 localStorage.setItem('usersDB', JSON.stringify(usersDB));
             }
-        }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeAdmin();
-            clothingItems = [...mockClothing];
-            games = [...mockGames];
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
                 document.getElementById('themeIcon').textContent = 'Sun';
             }
+
             checkAuth();
+            loadGlobalChat();
         });
 
         function checkAuth() {
@@ -1221,8 +945,23 @@
             document.getElementById('app-page').classList.add('active');
             document.getElementById('game-play-page').classList.remove('active');
             updateUI();
+            loadFriendsList();
             loadDiscoverGames();
-            loadShop();
+        }
+
+        function updateUI() {
+            if (!currentUser) return;
+            const avatarUrl = currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
+            document.getElementById('navAvatar').src = avatarUrl;
+            document.getElementById('profileAvatar').src = avatarUrl;
+            document.getElementById('coinCount').textContent = currentUser.coins || 0;
+            document.getElementById('profileUsername').textContent = currentUser.username;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileCoins').textContent = currentUser.coins || 0;
+
+            if (currentUser.isAdmin) {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+            }
         }
 
         function toggleTheme() {
@@ -1237,38 +976,14 @@
             localStorage.setItem('darkMode', isDarkMode);
         }
 
-        function updateUI() {
-            if (!currentUser) return;
-            const avatarUrl = currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
-            
-            document.getElementById('navAvatar').src = avatarUrl;
-            document.getElementById('profileAvatar').src = avatarUrl;
-            document.getElementById('coinCount').textContent = currentUser.coins || 0;
-            document.getElementById('profileUsername').textContent = currentUser.username;
-            document.getElementById('profileEmail').textContent = currentUser.email;
-            document.getElementById('profileCoins').textContent = currentUser.coins || 0;
-            document.getElementById('profileJoined').textContent = new Date(currentUser.createdAt).toLocaleDateString();
-            document.getElementById('gamePlayCoins').textContent = currentUser.coins || 0;
-
-            if (currentUser.isAdmin) {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-                loadAdminStats();
-            } else {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-            }
-        }
-
         function showLogin() {
             document.getElementById('login-form').style.display = 'block';
             document.getElementById('signup-form').style.display = 'none';
-            document.getElementById('loginError').innerHTML = '';
         }
 
         function showSignup() {
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('signup-form').style.display = 'block';
-            document.getElementById('signupError').innerHTML = '';
-            document.getElementById('signupSuccess').innerHTML = '';
         }
 
         function handleLogin() {
@@ -1284,21 +999,19 @@
             }
 
             const user = usersDB[username];
-
             if (!user) {
                 errorDiv.innerHTML = '<div class="error-message">Username not found</div>';
                 return;
             }
 
             const hashedPassword = CryptoJS.SHA256(password).toString();
-
             if (user.passwordHash !== hashedPassword) {
                 errorDiv.innerHTML = '<div class="error-message">Incorrect password</div>';
                 return;
             }
 
             if (user.banned) {
-                errorDiv.innerHTML = '<div class="error-message">This account has been banned</div>';
+                errorDiv.innerHTML = '<div class="error-message">Account banned</div>';
                 return;
             }
 
@@ -1319,32 +1032,26 @@
             successDiv.innerHTML = '';
 
             if (!username || !email || !password || !confirm) {
-                errorDiv.innerHTML = '<div class="error-message">Please fill all fields</div>';
-                return;
-            }
-
-            if (username.length < 3) {
-                errorDiv.innerHTML = '<div class="error-message">Username must be at least 3 characters</div>';
+                errorDiv.innerHTML = '<div class="error-message">Fill all fields</div>';
                 return;
             }
 
             if (password.length < 8) {
-                errorDiv.innerHTML = '<div class="error-message">Password must be at least 8 characters</div>';
+                errorDiv.innerHTML = '<div class="error-message">Password must be 8+ chars</div>';
                 return;
             }
 
             if (password !== confirm) {
-                errorDiv.innerHTML = '<div class="error-message">Passwords do not match</div>';
+                errorDiv.innerHTML = '<div class="error-message">Passwords don\'t match</div>';
                 return;
             }
 
             if (usersDB[username]) {
-                errorDiv.innerHTML = '<div class="error-message">Username already taken</div>';
+                errorDiv.innerHTML = '<div class="error-message">Username taken</div>';
                 return;
             }
 
             const hashedPassword = CryptoJS.SHA256(password).toString();
-
             usersDB[username] = {
                 username: username,
                 email: email,
@@ -1353,48 +1060,35 @@
                 createdAt: new Date().toISOString(),
                 games: [],
                 isAdmin: false,
+                friends: [],
                 avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
             };
 
             localStorage.setItem('usersDB', JSON.stringify(usersDB));
-
-            // Send welcome email with EmailJS
             sendWelcomeEmail(username, email);
+            successDiv.innerHTML = '<div class="success-message">Account created! You can now login.</div>';
 
-            successDiv.innerHTML = '<div class="success-message">Account created! Welcome email sent. You can now login.</div>';
-
-            setTimeout(() => {
-                showLogin();
-            }, 2000);
+            setTimeout(() => showLogin(), 2000);
         }
 
         function sendWelcomeEmail(username, email) {
-            // Determine which email service to use based on email domain
-            let serviceId = EMAIL_SERVICE_IDS.gmail; // Default to Gmail
-
+            let serviceId = EMAIL_SERVICE_IDS.gmail;
             if (email.includes('@outlook.com') || email.includes('@hotmail.com')) {
                 serviceId = EMAIL_SERVICE_IDS.outlook;
-            } else if (email.includes('@icloud.com') || email.includes('@me.com')) {
+            } else if (email.includes('@icloud.com')) {
                 serviceId = EMAIL_SERVICE_IDS.icloud;
             }
 
-            // Send email via EmailJS
             emailjs.send(serviceId, EMAIL_TEMPLATE_ID, {
                 to_email: email,
                 username: username
-            }).then(function(response) {
-                console.log('Welcome email sent successfully!', response.status, response.text);
-            }).catch(function(error) {
-                console.log('Failed to send email. Make sure you have configured EmailJS correctly.', error);
-            });
+            }).catch(err => console.log('Email error:', err));
         }
 
         function handleLogout() {
             localStorage.removeItem('cubeworld_user');
             currentUser = null;
             showAuth();
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
         }
 
         function switchPage(page) {
@@ -1403,135 +1097,129 @@
             document.getElementById(page + '-page').classList.add('active');
             event.target.classList.add('active');
 
-            if (page === 'shop') {
-                loadShop();
-            }
-            if (page === 'profile') {
-                loadMyGames();
-            }
-            if (page === 'admin') {
-                loadAdminStats();
-            }
             if (page === 'studio') {
-                blockCounter = 0;
+                setTimeout(() => initThreeJS(), 100);
             }
         }
 
-        function loadDiscoverGames() {
-            const grid = document.getElementById('gamesGrid');
-            grid.innerHTML = games.map(game => `
-                <div class="game-card" onclick="playGame(${game.id})">
-                    <img src="${game.image}" class="game-image" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=${game.id}'">
-                    <div class="game-title">${game.title}</div>
-                    <div class="game-author">by ${game.author}</div>
-                    <div class="game-stats">
-                        <span>${game.plays} plays</span>
-                    </div>
-                    <button class="btn btn-secondary" style="width: 100%;">Play</button>
+        // Three.js initialization
+        function initThreeJS() {
+            const canvas = document.getElementById('threeCanvas');
+            if (!canvas || canvas.width === 0) return;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(isDarkMode ? 0x1e293b : 0xf8fafc);
+
+            camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            const light = new THREE.PointLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            window.addEventListener('resize', () => {
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            });
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            objects.forEach(obj => {
+                if (obj.geometry) {
+                    obj.rotation.x += 0.005;
+                    obj.rotation.y += 0.01;
+                }
+            });
+            renderer.render(scene, camera);
+        }
+
+        function addCube() {
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2);
+            scene.add(cube);
+            objects.push(cube);
+            updateObjectsList();
+        }
+
+        function addSphere() {
+            const geometry = new THREE.SphereGeometry(1, 32, 32);
+            const material = new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2);
+            scene.add(sphere);
+            objects.push(sphere);
+            updateObjectsList();
+        }
+
+        function updateObjectsList() {
+            const list = document.getElementById('objectsList');
+            list.innerHTML = objects.map((obj, i) => `
+                <div style="padding: 0.5rem; background: var(--light); border-radius: 6px; margin-bottom: 0.5rem; cursor: pointer;" onclick="selectObject(${i})">
+                    Object ${i + 1}
                 </div>
             `).join('');
         }
 
-        function playGame(gameId) {
-            currentGame = games.find(g => g.id === gameId);
-            if (!currentGame) return;
-
-            document.getElementById('app-page').classList.remove('active');
-            document.getElementById('game-play-page').classList.add('active');
-            document.getElementById('gameViewport').textContent = currentGame.title + ' - Playing...';
-            chatMessages = [];
-            loadChatMessages();
-        }
-
-        function backToDiscover() {
-            document.getElementById('game-play-page').classList.remove('active');
-            document.getElementById('app-page').classList.add('active');
-            currentGame = null;
-            chatMessages = [];
-        }
-
-        function loadShop() {
-            const grid = document.getElementById('shopGrid');
-            grid.innerHTML = clothingItems.map(item => `
-                <div class="item-card">
-                    <div class="item-preview">
-                        <img src="${item.image}" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=${item.id}'">
-                    </div>
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-price">${item.price} coins</div>
-                    <button class="btn btn-secondary item-btn" onclick="buyClothing(${item.id})">Buy</button>
-                </div>
-            `).join('');
-        }
-
-        function buyClothing(itemId) {
-            const item = clothingItems.find(c => c.id === itemId);
-            if (!item) return;
-
-            if (currentUser.coins >= item.price) {
-                currentUser.coins -= item.price;
-                usersDB[currentUser.username].coins = currentUser.coins;
-                localStorage.setItem('usersDB', JSON.stringify(usersDB));
-                localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
-                updateUI();
-                alert('Purchased ' + item.name);
-            } else {
-                alert('Not enough coins');
+        function selectObject(index) {
+            selectedObject = objects[index];
+            if (selectedObject) {
+                document.getElementById('posX').textContent = selectedObject.position.x.toFixed(2);
+                document.getElementById('posY').textContent = selectedObject.position.y.toFixed(2);
+                document.getElementById('posZ').textContent = selectedObject.position.z.toFixed(2);
             }
         }
 
-        function selectBlock(type) {
-            document.querySelectorAll('.builder-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+        function saveCurrent() {
+            const gameName = document.getElementById('gameName').value || 'Untitled Game';
+            const script = document.getElementById('gameScript').value;
+
+            const gameData = {
+                id: Date.now(),
+                name: gameName,
+                script: script,
+                objects: objects.map(obj => ({
+                    position: obj.position,
+                    rotation: obj.rotation,
+                    scale: obj.scale,
+                    type: obj.geometry.type
+                })),
+                author: currentUser.username,
+                createdAt: new Date().toISOString()
+            };
+
+            const savedGames = JSON.parse(localStorage.getItem('savedGames')) || [];
+            savedGames.push(gameData);
+            localStorage.setItem('savedGames', JSON.stringify(savedGames));
+
+            alert('Game saved!');
         }
-
-        function clearCanvas() {
-            document.getElementById('gameCanvas').innerHTML = '';
-            selectedBlocks = [];
-            blockCounter = 0;
-            document.getElementById('blockCount').textContent = '0';
-        }
-
-        function addBlockToCanvas(e) {
-            if (e.target.id !== 'gameCanvas') return;
-
-            const canvas = document.getElementById('gameCanvas');
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / 40) * 40;
-            const y = Math.floor((e.clientY - rect.top) / 40) * 40;
-
-            const block = document.createElement('div');
-            block.className = 'game-block';
-            block.style.left = x + 'px';
-            block.style.top = y + 'px';
-            block.textContent = (blockCounter + 1);
-            block.id = 'block-' + blockCounter;
-            blockCounter++;
-
-            selectedBlocks.push({ x, y, id: block.id });
-            canvas.appendChild(block);
-            document.getElementById('blockCount').textContent = blockCounter;
-        }
-
-        document.addEventListener('click', addBlockToCanvas);
 
         function publishGame() {
-            const name = document.getElementById('gameName').value;
-            const desc = document.getElementById('gameDesc').value;
-            const imageUrl = document.getElementById('gameImageUrl').value;
-
-            if (!name) {
+            const gameName = document.getElementById('gameName').value;
+            if (!gameName) {
                 alert('Enter game name');
                 return;
             }
 
             const newGame = {
                 id: Date.now(),
-                title: name,
-                description: desc,
+                title: gameName,
                 author: currentUser.username,
                 plays: 0,
-                image: imageUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${Date.now()}`
+                image: `https://api.dicebear.com/7.x/bottts/svg?seed=${Date.now()}`
             };
 
             games.push(newGame);
@@ -1540,64 +1228,192 @@
             usersDB[currentUser.username].games = currentUser.games;
             localStorage.setItem('usersDB', JSON.stringify(usersDB));
             localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+
             alert('Game published!');
             loadDiscoverGames();
-            clearCanvas();
         }
 
-        function loadMyGames() {
-            const list = document.getElementById('myGamesList');
-            if (!currentUser.games || currentUser.games.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-state-text">No games yet</div></div>';
-                return;
-            }
-
-            const userGames = games.filter(g => currentUser.games.includes(g.id));
-            list.innerHTML = userGames.map(game => `
-                <div class="list-item">
-                    <div class="list-info">
-                        <div class="list-name">${game.title}</div>
-                        <div class="list-meta">${game.plays} plays</div>
-                    </div>
-                    <div class="list-actions">
-                        <button class="btn btn-secondary btn-small" onclick="editGame(${game.id})">Edit</button>
-                    </div>
+        function loadDiscoverGames() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = games.slice(0, 6).map(game => `
+                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; cursor: pointer;" onclick="playGame(${game.id})">
+                    <img src="${game.image}" style="width: 100%; height: 150px; border-radius: 6px; margin-bottom: 1rem; object-fit: cover;">
+                    <div style="font-weight: 700; margin-bottom: 0.5rem;">${game.title}</div>
+                    <div style="color: var(--gray); font-size: 0.85rem;">by ${game.author}</div>
                 </div>
             `).join('');
         }
 
-        function editGame(gameId) {
-            switchPage('studio');
+        function playGame(gameId) {
+            currentGame = games.find(g => g.id === gameId);
+            document.getElementById('app-page').classList.remove('active');
+            document.getElementById('game-play-page').classList.add('active');
+            gameChat = [];
+            loadGameChat();
         }
 
-        function updateAvatar() {
-            const url = document.getElementById('avatarUrl').value;
-            if (!url) {
-                alert('Enter image URL');
+        function backToDiscover() {
+            document.getElementById('game-play-page').classList.remove('active');
+            document.getElementById('app-page').classList.add('active');
+            currentGame = null;
+        }
+
+        // Chat functions
+        function loadGlobalChat() {
+            const container = document.getElementById('globalChat');
+            container.innerHTML = globalChat.map(msg => `
+                <div class="chat-message">
+                    <div class="chat-message-name">${msg.user}</div>
+                    <div>${msg.text}</div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendGlobalChat() {
+            const input = document.getElementById('globalChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            globalChat.push({
+                user: currentUser.username,
+                text: message,
+                timestamp: new Date()
+            });
+
+            input.value = '';
+            loadGlobalChat();
+        }
+
+        function handleGlobalChatKeypress(e) {
+            if (e.key === 'Enter') sendGlobalChat();
+        }
+
+        function loadGameChat() {
+            const container = document.getElementById('gameChat');
+            container.innerHTML = gameChat.map(msg => `
+                <div class="chat-message">
+                    <div class="chat-message-name">${msg.user}</div>
+                    <div>${msg.text}</div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendGameChat() {
+            const input = document.getElementById('gameChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            gameChat.push({
+                user: currentUser.username,
+                text: message,
+                timestamp: new Date()
+            });
+
+            input.value = '';
+            loadGameChat();
+        }
+
+        function handleGameChatKeypress(e) {
+            if (e.key === 'Enter') sendGameChat();
+        }
+
+        // Friends system
+        function loadFriendsList() {
+            const list = document.getElementById('friendsList');
+            const friendsList = currentUser.friends || [];
+            list.innerHTML = friendsList.map(friend => `
+                <div class="friend-item online" onclick="openDM('${friend}')">
+                    ${friend}
+                </div>
+            `).join('');
+
+            const dmsList = document.getElementById('dmsList');
+            dmsList.innerHTML = friendsList.map(friend => `
+                <div style="padding: 0.5rem; background: var(--light); border-radius: 6px; cursor: pointer; margin-bottom: 0.5rem;" onclick="openDM('${friend}')">
+                    ${friend}
+                </div>
+            `).join('');
+        }
+
+        function openAddFriendModal() {
+            document.getElementById('addFriendModal').classList.add('active');
+        }
+
+        function addFriend() {
+            const username = document.getElementById('friendUsername').value;
+            if (!username || !usersDB[username]) {
+                alert('User not found');
                 return;
             }
-            currentUser.avatarUrl = url;
-            usersDB[currentUser.username].avatarUrl = url;
-            localStorage.setItem('usersDB', JSON.stringify(usersDB));
-            localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
-            updateUI();
-            alert('Avatar updated');
+
+            if (!currentUser.friends) currentUser.friends = [];
+            if (!currentUser.friends.includes(username)) {
+                currentUser.friends.push(username);
+                usersDB[currentUser.username].friends = currentUser.friends;
+                localStorage.setItem('usersDB', JSON.stringify(usersDB));
+                localStorage.setItem('cubeworld_user', JSON.stringify(currentUser));
+                loadFriendsList();
+            }
+
+            document.getElementById('friendUsername').value = '';
+            closeModal('addFriendModal');
+            alert('Friend added!');
+        }
+
+        function openDM(username) {
+            document.getElementById('dmModalTitle').textContent = username;
+            if (!directMessages[username]) {
+                directMessages[username] = [];
+            }
+            loadDMMessages(username);
+            document.getElementById('dmModal').classList.add('active');
+        }
+
+        function loadDMMessages(username) {
+            const container = document.getElementById('dmMessages');
+            const messages = directMessages[username] || [];
+            container.innerHTML = messages.map(msg => `
+                <div class="chat-message">
+                    <div class="chat-message-name">${msg.from}</div>
+                    <div>${msg.text}</div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendDM() {
+            const username = document.getElementById('dmModalTitle').textContent;
+            const input = document.getElementById('dmInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            if (!directMessages[username]) {
+                directMessages[username] = [];
+            }
+
+            directMessages[username].push({
+                from: currentUser.username,
+                text: message,
+                timestamp: new Date()
+            });
+
+            input.value = '';
+            loadDMMessages(username);
+        }
+
+        function handleDMKeypress(e) {
+            if (e.key === 'Enter') sendDM();
+        }
+
+        // Modal functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
 
         function openChangePasswordModal() {
             document.getElementById('changePasswordModal').classList.add('active');
-        }
-
-        function openDeleteAccountModal() {
-            document.getElementById('deleteAccountModal').classList.add('active');
-        }
-
-        function openAddClothingModal() {
-            document.getElementById('addClothingModal').classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
         }
 
         function handleChangePassword() {
@@ -1614,19 +1430,13 @@
             }
 
             const hashedCurrent = CryptoJS.SHA256(current).toString();
-
             if (usersDB[currentUser.username].passwordHash !== hashedCurrent) {
-                errorDiv.innerHTML = '<div class="error-message">Current password is incorrect</div>';
+                errorDiv.innerHTML = '<div class="error-message">Current password incorrect</div>';
                 return;
             }
 
             if (newPass !== confirm) {
-                errorDiv.innerHTML = '<div class="error-message">New passwords do not match</div>';
-                return;
-            }
-
-            if (newPass.length < 8) {
-                errorDiv.innerHTML = '<div class="error-message">Password must be at least 8 characters</div>';
+                errorDiv.innerHTML = '<div class="error-message">Passwords don\'t match</div>';
                 return;
             }
 
@@ -1634,32 +1444,28 @@
             usersDB[currentUser.username].passwordHash = hashedNewPassword;
             localStorage.setItem('usersDB', JSON.stringify(usersDB));
 
-            alert('Password changed successfully');
+            alert('Password changed!');
             closeModal('changePasswordModal');
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
+        }
+
+        function openDeleteAccountModal() {
+            document.getElementById('deleteAccountModal').classList.add('active');
         }
 
         function handleDeleteAccount() {
             const password = document.getElementById('deleteConfirmPassword').value;
-            const errorDiv = document.getElementById('deleteAccountError');
-
-            errorDiv.innerHTML = '';
-
             if (!password) {
-                errorDiv.innerHTML = '<div class="error-message">Enter password to confirm</div>';
+                alert('Enter password to confirm');
                 return;
             }
 
             const hashedPassword = CryptoJS.SHA256(password).toString();
-
             if (usersDB[currentUser.username].passwordHash !== hashedPassword) {
-                errorDiv.innerHTML = '<div class="error-message">Incorrect password</div>';
+                alert('Incorrect password');
                 return;
             }
 
-            if (confirm('Are you sure? This cannot be undone.')) {
+            if (confirm('Are you sure?')) {
                 delete usersDB[currentUser.username];
                 localStorage.setItem('usersDB', JSON.stringify(usersDB));
                 localStorage.removeItem('cubeworld_user');
@@ -1667,155 +1473,6 @@
                 showAuth();
                 alert('Account deleted');
             }
-        }
-
-        function loadAdminStats() {
-            document.getElementById('statUsers').textContent = Object.keys(usersDB).length;
-            document.getElementById('statGames').textContent = games.length;
-            document.getElementById('statClothing').textContent = clothingItems.length;
-            loadClothingList();
-            loadAdminGamesList();
-        }
-
-        function loadClothingList() {
-            const list = document.getElementById('clothingList');
-            list.innerHTML = clothingItems.map(item => `
-                <div class="list-item">
-                    <div class="list-info">
-                        <div class="list-name">${item.name}</div>
-                        <div class="list-meta">${item.category} - ${item.price} coins</div>
-                    </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteClothing(${item.id})">Delete</button>
-                </div>
-            `).join('');
-        }
-
-        function deleteClothing(itemId) {
-            if (!currentUser.isAdmin) {
-                alert('Only admins can delete clothing');
-                return;
-            }
-            if (confirm('Delete this item?')) {
-                clothingItems = clothingItems.filter(c => c.id !== itemId);
-                loadClothingList();
-                loadAdminStats();
-                loadShop();
-                alert('Item deleted');
-            }
-        }
-
-        function handleAddClothing() {
-            const name = document.getElementById('clothingName').value;
-            const category = document.getElementById('clothingCategory').value;
-            const price = parseInt(document.getElementById('clothingPrice').value);
-            const image = document.getElementById('clothingImage').value;
-
-            if (!name || !price) {
-                alert('Fill all fields');
-                return;
-            }
-
-            clothingItems.push({
-                id: Date.now(),
-                name: name,
-                category: category,
-                price: price,
-                image: image || `https://api.dicebear.com/7.x/bottts/svg?seed=${Date.now()}`
-            });
-
-            closeModal('addClothingModal');
-            document.getElementById('clothingName').value = '';
-            document.getElementById('clothingPrice').value = '';
-            document.getElementById('clothingImage').value = '';
-            loadAdminStats();
-            loadShop();
-            alert('Item added');
-        }
-
-        function handleBanUser() {
-            if (!currentUser.isAdmin) {
-                alert('Only admins can ban users');
-                return;
-            }
-            const username = document.getElementById('banUsername').value;
-            const reason = document.getElementById('banReason').value;
-
-            if (!username || !reason) {
-                alert('Fill all fields');
-                return;
-            }
-
-            if (!usersDB[username]) {
-                alert('User not found');
-                return;
-            }
-
-            usersDB[username].banned = true;
-            usersDB[username].banReason = reason;
-            localStorage.setItem('usersDB', JSON.stringify(usersDB));
-
-            document.getElementById('banUsername').value = '';
-            document.getElementById('banReason').value = '';
-            alert('User banned: ' + username);
-        }
-
-        function loadAdminGamesList() {
-            const list = document.getElementById('adminGamesList');
-            list.innerHTML = games.map(game => `
-                <div class="list-item">
-                    <div class="list-info">
-                        <div class="list-name">${game.title}</div>
-                        <div class="list-meta">by ${game.author} - ${game.plays} plays</div>
-                    </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteGame(${game.id})">Delete</button>
-                </div>
-            `).join('');
-        }
-
-        function deleteGame(gameId) {
-            if (!currentUser.isAdmin) {
-                alert('Only admins can delete games');
-                return;
-            }
-            if (confirm('Delete this game?')) {
-                games = games.filter(g => g.id !== gameId);
-                loadAdminGamesList();
-                loadDiscoverGames();
-                alert('Game deleted');
-            }
-        }
-
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-
-            if (!message) return;
-
-            chatMessages.push({
-                user: currentUser.username,
-                text: message,
-                timestamp: new Date()
-            });
-
-            input.value = '';
-            loadChatMessages();
-        }
-
-        function handleChatKeypress(e) {
-            if (e.key === 'Enter') {
-                sendChatMessage();
-            }
-        }
-
-        function loadChatMessages() {
-            const container = document.getElementById('chatMessages');
-            container.innerHTML = chatMessages.map(msg => `
-                <div class="chat-message">
-                    <div class="chat-message-name">${msg.user}</div>
-                    <div>${msg.text}</div>
-                </div>
-            `).join('');
-            container.scrollTop = container.scrollHeight;
         }
 
         // Close modals on background click
