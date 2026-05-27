@@ -4,189 +4,175 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CubeWorld</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
     </script>
     <style>
         :root {
-            --primary: #3a86ff;
-            --primary-dark: #2563eb;
-            --success: #06d6a0;
-            --error: #ff4d6d;
-            --warning: #ffbe0b;
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-input: #334155;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --border-radius: 12px;
+            --bg: #0b0e14;
+            --card: #161b22;
+            --primary: #3b82f6;
+            --accent: #10b981;
+            --text: #f9fafb;
+            --text-dim: #9ca3af;
+            --border: #30363d;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg-main); color: var(--text-main); overflow-x: hidden; }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Auth UI */
-        #auth-overlay { position: fixed; inset: 0; background: var(--bg-main); z-index: 9999; display: flex; }
-        .auth-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 4rem; }
-        .auth-form { flex: 0 0 450px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; padding: 2rem; border-left: 2px solid var(--border-color); }
+        /* Navigation Sidebar */
+        .wrapper { display: flex; height: 100vh; }
+        .sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; }
+        .logo { font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        
+        .nav-link { padding: 12px 16px; border-radius: 8px; color: var(--text-dim); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: var(--border); color: var(--text); }
+        .nav-link.active { border-left: 4px solid var(--primary); }
 
-        /* Topbar */
-        .topbar { background: var(--bg-card); padding: 0.8rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); sticky: top; z-index: 100; }
-        .nav-links { display: flex; gap: 0.5rem; }
-        .nav-item { padding: 0.6rem 1.2rem; border-radius: 8px; color: var(--text-muted); cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .nav-item.active { background: var(--bg-input); color: var(--text-main); }
-
-        /* Content */
-        .app-layout { display: none; min-height: 100vh; flex-direction: column; }
-        .content-body { padding: 2rem; max-width: 1300px; margin: 0 auto; width: 100%; flex: 1; }
-        .page { display: none; animation: fadeIn 0.3s ease; }
+        /* Main Area */
+        .main-content { flex: 1; overflow-y: auto; padding: 40px; position: relative; }
+        .page { display: none; animation: slideUp 0.4s ease; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Cards & Buttons */
-        .card { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 1rem; }
-        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-ghost { background: transparent; color: var(--text-muted); border: 2px solid var(--border-color); }
-        .btn-ghost:hover { border-color: var(--primary); color: var(--text-main); }
+        /* Studio Viewport */
+        #viewport { width: 100%; height: 500px; background: #000; border-radius: 12px; border: 1px solid var(--border); position: relative; }
+        .studio-tools { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 10; }
+        
+        /* Components */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .game-thumb { aspect-ratio: 16/9; background: var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        
+        .btn { padding: 12px 24px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .btn-p { background: var(--primary); color: white; }
+        .btn-p:hover { filter: brightness(1.2); }
 
-        /* Social / Friend List */
-        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-color); }
-        .online-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 5px; }
+        /* Auth */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .auth-box { width: 400px; padding: 40px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
+        .input { width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: white; margin-bottom: 16px; }
 
-        /* Three.js Studio Viewport */
-        #studio-container { width: 100%; height: 600px; background: #000; border-radius: var(--border-radius); overflow: hidden; position: relative; border: 2px solid var(--primary); }
-        .studio-ui { position: absolute; top: 20px; left: 20px; z-index: 10; pointer-events: none; }
-        .studio-btn { pointer-events: all; background: rgba(30, 41, 59, 0.8); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; margin-right: 5px; }
-
-        /* Input Styles */
-        .form-group { margin-bottom: 1.2rem; }
-        .form-input { width: 100%; padding: 0.8rem; background: var(--bg-input); border: 2px solid transparent; border-radius: 8px; color: white; outline: none; }
-        .form-input:focus { border-color: var(--primary); }
+        .badge-admin { background: #ef4444; font-size: 10px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
     </style>
 </head>
 <body>
 
-    <div id="auth-overlay">
-        <div class="auth-panel" style="background: var(--primary);">
-            <h1 style="font-size: 5rem; font-weight: 800;">CUBE.</h1>
-            <p style="font-size: 1.5rem; opacity: 0.9;">Build with Three.js. Follow the best.</p>
-        </div>
-        <div class="auth-form">
-            <div style="width: 100%; max-width: 350px;">
-                <h2 style="margin-bottom: 2rem;">Secure Login</h2>
-                <div class="form-group">
-                    <input type="text" id="auth-user" class="form-input" placeholder="Username">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="auth-pass" class="form-input" placeholder="Password">
-                </div>
-                <div class="h-captcha" data-sitekey="4d00da62-6dd2-434e-8e1a-1a8279c8321c"></div>
-                <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="handleAuth()">Access CubeWorld</button>
-            </div>
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h1 style="margin-bottom: 8px;">CubeWorld</h1>
+            <p style="color: var(--text-dim); margin-bottom: 24px;">Login or create an account</p>
+            <input type="text" id="user-in" class="input" placeholder="Username">
+            <input type="password" id="pass-in" class="input" placeholder="Password">
+            <div class="h-captcha" data-sitekey="4d00da62-6dd2-434e-8e1a-1a8279c8321c"></div>
+            <button class="btn btn-p" style="width: 100%; margin-top: 20px;" onclick="auth('login')">Login</button>
+            <button class="btn" style="width: 100%; color: var(--text-dim);" onclick="auth('register')">Sign Up</button>
         </div>
     </div>
 
-    <div class="app-layout" id="main-app">
-        <nav class="topbar">
-            <div style="font-weight: 800; font-size: 1.5rem; color: var(--primary);">CUBEWORLD</div>
-            <div class="nav-links">
-                <div class="nav-item active" onclick="switchTab(this, 'home')">Home</div>
-                <div class="nav-item" onclick="switchTab(this, 'social')">Social</div>
-                <div class="nav-item" onclick="switchTab(this, 'studio')">Studio</div>
+    <div class="wrapper">
+        <div class="sidebar">
+            <div class="logo"><i class="fas fa-cubes"></i> CubeWorld</div>
+            <div class="nav-link active" onclick="tab('home', this)"><i class="fas fa-home"></i> Home</div>
+            <div class="nav-link" onclick="tab('games', this)"><i class="fas fa-gamepad"></i> Games</div>
+            <div class="nav-link" onclick="tab('studio', this)"><i class="fas fa-pencil-ruler"></i> Studio</div>
+            <div class="nav-link" onclick="tab('social', this)"><i class="fas fa-users"></i> Social</div>
+            
+            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);">
+                <div id="me-display" style="font-weight: 800;"></div>
+                <div style="color: var(--accent); font-size: 14px;"><i class="fas fa-coins"></i> <span id="cc-bal">0</span> CC</div>
             </div>
-            <div id="user-pill" style="font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                <span id="display-name"></span>
-                <span style="color: var(--warning);"><i class="fas fa-coins"></i> <span id="coin-count">0</span></span>
-            </div>
-        </nav>
+        </div>
 
-        <main class="content-body">
+        <div class="main-content">
             <div id="page-home" class="page active">
                 <div class="card">
-                    <h1>Welcome to the Grid.</h1>
-                    <p style="color: var(--text-muted);">Manage your friends, build worlds, and earn CubeCoins.</p>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="card">
-                        <h3>Daily Rewards</h3>
-                        <button class="btn btn-success" style="margin-top: 1rem;" onclick="claimDaily()">Claim 100 CC</button>
-                    </div>
-                    <div class="card">
-                        <h3>Platform Stats</h3>
-                        <p style="font-size: 2rem; font-weight: 800; color: var(--primary);">4.2k <small style="font-size: 1rem; font-weight: 400; color: var(--text-muted);">Active Builders</small></p>
-                    </div>
+                    <h2>Hello, <span class="me-name">Developer</span>!</h2>
+                    <p style="color: var(--text-dim);">The community has created 12 new items today.</p>
                 </div>
             </div>
 
-            <div id="page-social" class="page">
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-                    <div class="card">
-                        <h2>Global Feed</h2>
-                        <div id="global-users">
-                            </div>
+            <div id="page-games" class="page">
+                <h2 style="margin-bottom: 24px;">Discover</h2>
+                <div class="grid" id="game-list">
                     </div>
-                    <div class="card">
-                        <h2>Following</h2>
-                        <div id="following-list" style="color: var(--text-muted);">You aren't following anyone yet.</div>
-                    </div>
-                </div>
             </div>
 
             <div id="page-studio" class="page">
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                        <h2>CubeWorld Studio v1.0</h2>
-                        <button class="btn btn-primary" onclick="spawnCube()">Add Block</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2>Studio Editor</h2>
+                    <div>
+                        <button class="btn btn-p" onclick="saveGame()">Save Map</button>
                     </div>
-                    <div id="studio-container">
-                        <div class="studio-ui">
-                            <button class="studio-btn" onclick="setWireframe()">Wireframe</button>
-                            <button class="studio-btn" onclick="resetCamera()">Reset View</button>
-                        </div>
+                </div>
+                <div id="viewport">
+                    <div class="studio-tools">
+                        <button class="btn btn-p" style="padding: 8px 16px;" onclick="addPart()">+ Part</button>
+                        <button class="btn" style="padding: 8px 16px; background: var(--card);" onclick="changeColor()">Color</button>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 
     <script type="module">
         import * as THREE from 'three';
 
-        // --- GLOBAL STATE ---
-        let currentUser = null;
-        let following = new Set();
-        const socket = io();
+        let user = null;
+        let scene, camera, renderer, blocks = [];
 
-        // --- THREE.JS ENGINE SETUP ---
-        let scene, camera, renderer, cube;
+        // --- AUTH LOGIC ---
+        window.auth = async (type) => {
+            const u = document.getElementById('user-in').value;
+            const p = document.getElementById('pass-in').value;
+            const res = await fetch(`/api/${type}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p, captchaToken: hcaptcha.getResponse()})
+            });
+            const data = await res.json();
+            if(data.success) {
+                if(type === 'register') return alert("Account created! Now login.");
+                user = data.user;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('me-display').innerText = user.username;
+                if(user.isAdmin) document.getElementById('me-display').innerHTML += ' <span class="badge-admin">ADMIN</span>';
+                document.getElementById('cc-bal').innerText = user.balance;
+                initStudio();
+            } else alert(data.message);
+        };
+
+        // --- NAVIGATION ---
+        window.tab = (id, el) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById(`page-${id}`).classList.add('active');
+            el.classList.add('active');
+        };
+
+        // --- STUDIO LOGIC ---
         function initStudio() {
-            const container = document.getElementById('studio-container');
+            const container = document.getElementById('viewport');
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0f172a);
-
+            scene.background = new THREE.Color(0x0b0e14);
+            
             camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0,0,0);
+
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
 
-            // Lighting
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(5, 5, 5).normalize();
-            scene.add(light);
-            scene.add(new THREE.AmbientLight(0x404040));
-
-            // Grid helper
-            const grid = new THREE.GridHelper(20, 20, 0x334155, 0x1e293b);
+            const grid = new THREE.GridHelper(20, 20, 0x30363d, 0x30363d);
             scene.add(grid);
 
-            camera.position.set(5, 5, 5);
-            camera.lookAt(0, 0, 0);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambient);
 
             animate();
         }
@@ -196,71 +182,25 @@
             renderer.render(scene, camera);
         }
 
-        window.spawnCube = () => {
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const material = new THREE.MeshLambertMaterial({ color: 0x3a86ff });
-            const newCube = new THREE.Mesh(geometry, material);
-            newCube.position.set(Math.random() * 4 - 2, 0.5, Math.random() * 4 - 2);
-            scene.add(newCube);
+        window.addPart = () => {
+            const geo = new THREE.BoxGeometry(1, 1, 1);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x3b82f6 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(Math.floor(Math.random()*5), 0.5, Math.floor(Math.random()*5));
+            scene.add(mesh);
+            blocks.push({ x: mesh.position.x, y: mesh.position.y, z: mesh.position.z, color: 0x3b82f6 });
         };
 
-        window.setWireframe = () => {
-            scene.traverse((obj) => {
-                if(obj.isMesh) obj.material.wireframe = !obj.material.wireframe;
+        window.saveGame = async () => {
+            const title = prompt("Map Title:");
+            if(!title) return;
+            await fetch('/api/studio/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ title, creator: user.username, blocks })
             });
+            alert("Map Saved to Cloud!");
         };
-
-        // --- AUTH & SOCIAL LOGIC ---
-        window.handleAuth = async () => {
-            const username = document.getElementById('auth-user').value;
-            const pass = document.getElementById('auth-pass').value;
-            const captcha = hcaptcha.getResponse();
-
-            if(!username || !pass || !captcha) return alert("Fill all fields + Captcha!");
-
-            // In a real app, this is a fetch() to your backend
-            currentUser = { username, balance: 50, isAdmin: username.toLowerCase() === 'bloxcolayt' };
-            
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('main-app').style.display = 'flex';
-            document.getElementById('display-name').innerText = username;
-            if(currentUser.isAdmin) document.getElementById('display-name').innerHTML += ' <span style="background:var(--error); font-size:10px; padding:2px 5px; border-radius:4px;">ADMIN</span>';
-            
-            loadUsers();
-            initStudio();
-        };
-
-        window.switchTab = (el, tabId) => {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById(`page-${tabId}`).classList.add('active');
-        };
-
-        function loadUsers() {
-            const mockUsers = ['CyberCola', 'Vorton_Dev', 'PixelMaster', 'RbxBuilder'];
-            const container = document.getElementById('global-users');
-            container.innerHTML = mockUsers.map(u => `
-                <div class="user-row">
-                    <span><div class="online-dot"></div> ${u}</span>
-                    <button class="btn btn-ghost" onclick="followUser('${u}')">Follow</button>
-                </div>
-            `).join('');
-        }
-
-        window.followUser = (name) => {
-            following.add(name);
-            updateFollowingUI();
-        };
-
-        function updateFollowingUI() {
-            const list = document.getElementById('following-list');
-            list.innerHTML = Array.from(following).map(f => `
-                <div style="padding: 5px 0; color: white;">
-                    <i class="fas fa-check-circle" style="color: var(--primary);"></i> ${f}
-                </div>
-            `).join('');
-        }
     </script>
 </body>
 </html>
