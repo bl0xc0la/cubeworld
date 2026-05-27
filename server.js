@@ -1,75 +1,125 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const axios = require('axios');
 const cors = require('cors');
-const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
+
+// --- MIDDLEWARE ---
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.static('public')); // This serves your HTML file from a 'public' folder
 
-// Mock Database (In a production app, use MongoDB or PostgreSQL)
-let users = {}; 
+// --- MONGODB CONNECTION ---
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cubeworld';
+mongoose.connect(MONGO_URI)
+    .then(() => console.log("📦 Connected to MongoDB"))
+    .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-const HCAPTCHA_SECRET = '0x0000000000000000000000000000000000000000'; // Replace with your actual secret key
+// --- DATABASE SCHEMAS ---
+const UserSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    balance: { type: Number, default: 0 },
+    lastReward: { type: Date, default: 0 },
+    isAdmin: { type: Boolean, default: false }
+});
 
-// Route: Verify Captcha & Login
+const GroupSchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true },
+    owner: { type: String, required: true },
+    members: { type: Number, default: 1 }
+});
+
+const User = mongoose.model('User', UserSchema);
+const Group = mongoose.model('Group', GroupSchema);
+
+// --- API ROUTES ---
+
+/**
+ * AUTH & REGISTRATION
+ * Verifies hCaptcha and finds/creates the user profile.
+ */
 app.post('/api/auth', async (req, res) => {
     const { username, captchaToken } = req.body;
+    const SECRET_KEY = process.env.HCAPTCHA_SECRET;
 
-    if (!username || !captchaToken) {
-        return res.status(400).json({ success: false, message: "Missing data" });
-    }
+    if (!username || !captchaToken) return res.status(400).json({ success: false, message: "Missing data" });
 
     try {
-        // 1. Verify hCaptcha with their API
-        const response = await axios.post(
-            `https://hcaptcha.com/siteverify`,
-            new URLSearchParams({
-                response: captchaToken,
-                secret: HCAPTCHA_SECRET
-            })
-        );
+        // 1. Verify hCaptcha
+        const verifyUrl = `https://hcaptcha.com/siteverify`;
+        const response = await axios.post(verifyUrl, new URLSearchParams({
+            response: captchaToken,
+            secret: SECRET_KEY
+        }));
 
         if (!response.data.success) {
-            return res.status(401).json({ success: false, message: "Invalid Captcha" });
+            return res.status(401).json({ success: false, message: "Captcha verification failed." });
         }
 
-        // 2. Initialize or fetch user
-        if (!users[username]) {
-            users[username] = {
+        // 2. Find or Create User
+        let user = await User.findOne({ username });
+        if (!user) {
+            user = new User({
                 username: username,
-                balance: 0,
-                lastReward: 0,
-                groups: [],
-                isAdmin: username.toLowerCase() === 'bloxcolayt'
-            };
+                isAdmin: username.toLowerCase() === 'bloxcolayt' // Automatic Admin logic
+            });
+            await user.save();
         }
 
-        res.json({ success: true, user: users[username] });
-
+        res.json({ success: true, user });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Server Error" });
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 });
 
-// Route: Daily Reward
-app.post('/api/daily-reward', (req, res) => {
+/**
+ * DAILY REWARDS (CubeCoins)
+ */
+app.post('/api/daily-reward', async (req, res) => {
     const { username } = req.body;
-    const user = users[username];
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+        const now = new Date();
+        const oneDay = 24 * 60 * 60 * 1000;
 
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-
-    if (now - user.lastReward > oneDay) {
-        user.balance += 100;
-        user.lastReward = now;
-        return res.json({ success: true, newBalance: user.balance });
-    } else {
-        return res.status(400).json({ success: false, message: "Too early!" });
+        if (now - user.lastReward > oneDay) {
+            user.balance += 100;
+            user.lastReward = now;
+            await user.save();
+            return res.json({ success: true, newBalance: user.balance });
+        } else {
+            return res.status(400).json({ success: false, message: "Reward already claimed today!" });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false });
     }
 });
 
+/**
+ * GROUPS SYSTEM
+ */
+app.get('/api/groups', async (req, res) => {
+    const groups = await Group.find();
+    res.json(groups);
+});
+
+app.post('/api/groups', async (req, res) => {
+    const { name, owner } = req.body;
+    try {
+        const newGroup = new Group({ name, owner });
+        await newGroup.save();
+        res.json({ success: true, group: newGroup });
+    } catch (error) {
+        res.status(400).json({ success: false, message: "Group name already exists!" });
+    }
+});
+
+// --- START SERVER ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`🚀 CubeWorld Backend live on port ${PORT}`);
+});
