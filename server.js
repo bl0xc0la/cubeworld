@@ -1,48 +1,75 @@
-// server.js
-
 const express = require('express');
-const path = require('path');
+const axios = require('axios');
 const cors = require('cors');
-require('dotenv').config();
+const bodyParser = require('body-parser');
 
 const app = express();
-
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(express.static('public'));
+app.use(bodyParser.json());
 
-// Import API Routes
-const cubeworldAPI = require('./cubeworldAPI');
-app.use(cubeworldAPI);
+// Mock Database (In a production app, use MongoDB or PostgreSQL)
+let users = {}; 
 
-// Serve HTML
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+const HCAPTCHA_SECRET = '0x0000000000000000000000000000000000000000'; // Replace with your actual secret key
+
+// Route: Verify Captcha & Login
+app.post('/api/auth', async (req, res) => {
+    const { username, captchaToken } = req.body;
+
+    if (!username || !captchaToken) {
+        return res.status(400).json({ success: false, message: "Missing data" });
+    }
+
+    try {
+        // 1. Verify hCaptcha with their API
+        const response = await axios.post(
+            `https://hcaptcha.com/siteverify`,
+            new URLSearchParams({
+                response: captchaToken,
+                secret: HCAPTCHA_SECRET
+            })
+        );
+
+        if (!response.data.success) {
+            return res.status(401).json({ success: false, message: "Invalid Captcha" });
+        }
+
+        // 2. Initialize or fetch user
+        if (!users[username]) {
+            users[username] = {
+                username: username,
+                balance: 0,
+                lastReward: 0,
+                groups: [],
+                isAdmin: username.toLowerCase() === 'bloxcolayt'
+            };
+        }
+
+        res.json({ success: true, user: users[username] });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        message: 'CubeWorld is running'
-    });
+// Route: Daily Reward
+app.post('/api/daily-reward', (req, res) => {
+    const { username } = req.body;
+    const user = users[username];
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    if (now - user.lastReward > oneDay) {
+        user.balance += 100;
+        user.lastReward = now;
+        return res.json({ success: true, newBalance: user.balance });
+    } else {
+        return res.status(400).json({ success: false, message: "Too early!" });
+    }
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({ success: false, error: 'Not found' });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-    console.error(err);
-    res.status(500).json({ success: false, error: err.message });
-});
-
-// Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🎮 CubeWorld running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
