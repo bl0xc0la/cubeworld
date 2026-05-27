@@ -1,93 +1,86 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const http = require('http');
-const { Server } = require('socket.io');
 const path = require('path');
-
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
 
 app.use(express.json());
 app.use(express.static('public'));
 
-// --- SCHEMAS ---
+// --- MONGODB CONNECTION ---
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log("📦 Database Connected"))
+    .catch(err => console.error("❌ Connection Error:", err));
+
+// --- DATA MODELS ---
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
-    password: { type: String, required: true }, // Hashed
-    balance: { type: Number, default: 0 },
-    friends: [{ type: String }],
+    password: { type: String, required: true },
+    balance: { type: Number, default: 100 },
+    lastReward: { type: Date, default: 0 },
+    following: [{ type: String }],
+    followers: [{ type: String }],
     isAdmin: { type: Boolean, default: false }
 });
 
 const GameSchema = new mongoose.Schema({
     title: { type: String, required: true },
-    creator: { type: String },
-    playerCount: { type: Number, default: 0 },
-    assetUrl: { type: String } // For the .dmg launcher to pull
-});
-
-const MessageSchema = new mongoose.Schema({
-    from: String,
-    to: String,
-    content: String,
-    timestamp: { type: Date, default: Date.now }
+    creator: { type: String, required: true },
+    data: { type: Array, default: [] }, // Stores the Three.js block positions
+    visits: { type: Number, default: 0 }
 });
 
 const User = mongoose.model('User', UserSchema);
 const Game = mongoose.model('Game', GameSchema);
-const Message = mongoose.model('Message', MessageSchema);
 
-// --- AUTH WITH PASSWORDS ---
-app.post('/api/auth/register', async (req, res) => {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+// --- AUTH SYSTEM ---
+app.post('/api/register', async (req, res) => {
     try {
-        const newUser = new User({ 
+        const { username, password } = req.body;
+        const hashed = await bcrypt.hash(password, 10);
+        const user = new User({ 
             username, 
-            password: hashedPassword,
-            isAdmin: username.toLowerCase() === 'bloxcolayt'
+            password: hashed,
+            isAdmin: username.toLowerCase() === 'bloxcolayt' 
         });
-        await newUser.save();
+        await user.save();
         res.json({ success: true });
-    } catch (e) { res.status(400).json({ message: "User exists" }); }
+    } catch (e) { res.status(400).json({ message: "User already exists." }); }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     if (user && await bcrypt.compare(password, user.password)) {
         res.json({ success: true, user });
     } else {
-        res.status(401).json({ message: "Invalid credentials" });
+        res.status(401).json({ message: "Invalid credentials." });
     }
 });
 
-// --- SOCIAL & GAMES ---
-app.get('/api/games', async (req, res) => res.json(await Game.find()));
+// --- STUDIO: SAVE & LOAD ---
+app.post('/api/studio/save', async (req, res) => {
+    const { title, creator, blocks } = req.body;
+    const game = await Game.findOneAndUpdate(
+        { title, creator }, 
+        { data: blocks }, 
+        { upsert: true, new: true }
+    );
+    res.json({ success: true, game });
+});
 
-app.post('/api/friends/add', async (req, res) => {
-    const { user, friend } = req.body;
-    await User.updateOne({ username: user }, { $addToSet: { friends: friend } });
+app.get('/api/games', async (req, res) => {
+    const games = await Game.find().sort({ visits: -1 });
+    res.json(games);
+});
+
+// --- SOCIAL: FOLLOW ---
+app.post('/api/social/follow', async (req, res) => {
+    const { me, target } = req.body;
+    await User.updateOne({ username: me }, { $addToSet: { following: target } });
+    await User.updateOne({ username: target }, { $addToSet: { followers: me } });
     res.json({ success: true });
 });
 
-// --- REAL-TIME (DMs & Multiplayer) ---
-io.on('connection', (socket) => {
-    socket.on('join-chat', (username) => socket.join(username));
-    
-    socket.on('send-dm', async (data) => {
-        const msg = new Message(data);
-        await msg.save();
-        io.to(data.to).emit('receive-dm', data);
-    });
-
-    socket.on('player-move', (data) => {
-        // Broadcast movement to others in the same game instance
-        socket.broadcast.emit('move-update', data);
-    });
-});
-
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`CubeWorld MegaServer on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 CubeWorld running on port ${PORT}`));
