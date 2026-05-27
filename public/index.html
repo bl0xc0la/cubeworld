@@ -3,25 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld</title>
+    <title>CubeWorld | Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <style>
+        /* CSS carried over from Flat UI with new additions */
         :root {
-            /* Flat Color Palette */
             --primary: #3a86ff;
             --primary-dark: #2563eb;
             --success: #06d6a0;
             --error: #ff4d6d;
             --warning: #ffbe0b;
-            
-            /* Backgrounds */
             --bg-main: #0f172a;
             --bg-card: #1e293b;
             --bg-input: #334155;
-            
-            /* Text & Borders */
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
@@ -29,547 +25,219 @@
             --admin-color: #ff4757;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-main); color: var(--text-main); }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* --- FLAT AUTH CONTAINER --- */
+        /* Auth/Login Overlay */
         #auth-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-main);
-            z-index: 9999;
-            display: flex;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-main); z-index: 9999; display: flex;
         }
 
-        .auth-left {
-            flex: 1;
-            background-color: var(--primary);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 4rem;
-        }
+        .auth-side { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 4rem; background: var(--primary); }
+        .auth-form-side { flex: 0 0 500px; display: flex; align-items: center; justify-content: center; padding: 2rem; border-left: 2px solid var(--border-color); background: var(--bg-main); }
+        
+        /* Main App Layout */
+        .app-layout { display: none; min-height: 100vh; flex-direction: column; }
+        .topbar { background: var(--bg-card); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); sticky: top; }
+        
+        .nav-links { display: flex; gap: 1rem; }
+        .nav-item { padding: 0.5rem 1rem; border-radius: var(--border-radius); color: var(--text-muted); cursor: pointer; font-weight: 600; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: var(--bg-input); color: var(--text-main); }
 
-        .auth-left h1 {
-            font-size: 4rem;
-            font-weight: 800;
-            letter-spacing: -2px;
-            margin-bottom: 1rem;
-        }
+        .content-body { padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .page { display: none; }
+        .page.active { display: block; }
 
-        .auth-left p {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            max-width: 450px;
-        }
+        /* Cards & Components */
+        .card { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+        .btn { padding: 0.8rem 1.5rem; border-radius: var(--border-radius); font-weight: 700; cursor: pointer; border: none; transition: 0.2s; gap: 0.5rem; display: inline-flex; align-items: center; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        
+        .badge-admin { background: var(--admin-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; margin-left: 8px; }
+        
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-muted); }
+        .form-input { width: 100%; padding: 0.8rem; background: var(--bg-input); border: 2px solid transparent; border-radius: var(--border-radius); color: white; outline: none; }
+        .form-input:focus { border-color: var(--primary); }
 
-        .auth-right {
-            flex: 0 0 500px;
-            background-color: var(--bg-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            border-left: 2px solid var(--border-color);
-        }
-
-        .auth-box {
-            width: 100%;
-            max-width: 360px;
-        }
-
-        .auth-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
-        .auth-subtitle {
-            color: var(--text-muted);
-            margin-bottom: 2.5rem;
-            font-size: 0.95rem;
-        }
-
-        /* --- MAIN DASHBOARD LAYOUT --- */
-        .app-layout {
-            display: none;
-            min-height: 100vh;
-            flex-direction: column;
-        }
-
-        .topbar {
-            background-color: var(--bg-card);
-            padding: 0.75rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .brand {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .nav-item {
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background-color: var(--bg-input);
-            color: var(--text-main);
-        }
-
-        .content-body {
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            flex: 1;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* --- FLAT COMPONENTS --- */
-        .card {
-            background-color: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            background-color: var(--bg-input);
-            border: 2px solid transparent;
-            border-radius: var(--border-radius);
-            color: white;
-            font-family: inherit;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.8rem 1.5rem;
-            border-radius: var(--border-radius);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            font-family: inherit;
-            gap: 0.5rem;
-        }
-
-        .btn-block { width: 100%; }
-        .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:hover { background-color: var(--primary-dark); }
-        .btn-success { background-color: var(--success); color: white; }
-        .btn-success:hover { filter: brightness(0.9); }
-
-        .badge-admin {
-            background-color: var(--admin-color);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-left: 8px;
-            letter-spacing: 0.5px;
-        }
-
-        /* --- GROUPS DESIGN --- */
-        .group-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .group-card {
-            background-color: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .group-header h3 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .group-meta {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
-
-        /* --- FLUID UTILS --- */
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin: 1.5rem 0;
-        }
-
-        .checkbox-group input { accent-color: var(--primary); }
-
-        /* Modal system */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.9);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            padding: 2.5rem;
-            border-radius: 12px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            border: 2px solid var(--primary);
-        }
-
-        @media (max-width: 900px) {
-            .auth-left { display: none; }
-            .auth-right { flex: 1; }
-        }
+        /* Group List */
+        .group-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        
+        /* Modal for Daily Reward */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg-card); padding: 2.5rem; border-radius: 12px; text-align: center; max-width: 400px; border: 2px solid var(--primary); }
     </style>
 </head>
 <body>
 
-    <!-- AUTHENTICATION SCREEN -->
     <div id="auth-overlay">
-        <div class="auth-left">
-            <h1>CubeWorld.</h1>
-            <p>A flat-out better way to build, play, and share your own digital universes.</p>
+        <div class="auth-side">
+            <h1 style="font-size: 4rem; font-weight: 800;">CubeWorld.</h1>
+            <p>Develop. Reward. Repeat.</p>
         </div>
-        
-        <div class="auth-right">
-            <div class="auth-box">
-                <div class="auth-title">Welcome</div>
-                <div class="auth-subtitle">Login or register below</div>
+        <div class="auth-form-side">
+            <div style="width: 100%; max-width: 340px;">
+                <h2 id="auth-title" style="margin-bottom: 0.5rem;">Create Account</h2>
+                <p id="auth-sub" style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem;">Join the future of cuboid gaming.</p>
                 
                 <div class="form-group">
                     <label class="form-label">Username</label>
-                    <input type="text" id="username-input" class="form-input" placeholder="e.g. BloxColaYT">
+                    <input type="text" id="username-input" class="form-input" placeholder="BloxColaYT">
                 </div>
 
-                <!-- hCaptcha Widget Elements Container -->
-                <div class="form-group">
+                <form id="captcha-form">
                     <div class="h-captcha" data-sitekey="4d00da62-6dd2-434e-8e1a-1a8279c8321c"></div>
-                </div>
-
-                <button class="btn btn-primary btn-block" onclick="processAuth()">
-                    <i class="fas fa-arrow-right"></i> Enter Platform
-                </button>
+                    <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="processAuth()">Enter CubeWorld</button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP STRUCTURE -->
     <div class="app-layout" id="main-app">
         <nav class="topbar">
-            <a href="#" class="brand" onclick="showPage('home')">
-                <i class="fas fa-cube"></i> CubeWorld
-            </a>
+            <div class="brand" style="font-weight: 800; font-size: 1.5rem; color: var(--primary);">
+                <i class="fas fa-cube"></i> CUBEWORLD
+            </div>
             <div class="nav-links">
-                <div class="nav-item active" data-target="home" onclick="switchTab(this, 'home')">Home</div>
-                <div class="nav-item" data-target="groups" onclick="switchTab(this, 'groups')">Groups</div>
-                <div class="nav-item" data-target="shop" onclick="switchTab(this, 'shop')">Shop</div>
+                <div class="nav-item active" onclick="showPage('home')">Home</div>
+                <div class="nav-item" onclick="showPage('groups')">Groups</div>
+                <div class="nav-item" onclick="showPage('shop')">Shop</div>
             </div>
             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                <div style="color: var(--warning); font-weight: 700; font-size: 1.05rem;">
+                <div style="color: var(--warning); font-weight: 700;">
                     <i class="fas fa-coins"></i> <span id="coin-balance">0</span> CC
                 </div>
-                <div id="user-display" style="font-weight: 700; display: flex; align-items: center;"></div>
+                <div id="user-display" style="font-weight: 600;"></div>
             </div>
         </nav>
 
         <main class="content-body">
-            <!-- HOME PAGE -->
             <div id="page-home" class="page active">
                 <div class="card">
-                    <h2 style="font-size: 2rem;">Hey, <span class="user-name-span">Developer</span>! 👋</h2>
-                    <p style="color: var(--text-muted); margin-top: 0.25rem;">Ready to collect your standard daily drops?</p>
-                    
-                    <div style="margin-top: 2rem;">
-                        <button class="btn btn-success" onclick="claimDailyCoins()">
-                            <i class="fas fa-gift"></i> Claim 100 Daily CubeCoins
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- GROUPS PAGE -->
-            <div id="page-groups" class="page">
-                <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                    <div>
-                        <h2>Community Groups</h2>
-                        <p style="color: var(--text-muted);">Create affiliations or join existing dev circles</p>
-                    </div>
-                    <button class="btn btn-primary" onclick="createNewGroupPrompt()">
-                        <i class="fas fa-plus"></i> Create Group
+                    <h2>Welcome back, <span class="user-name-span"></span>!</h2>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Your daily rewards are waiting.</p>
+                    <button class="btn btn-success" style="margin-top: 1rem;" onclick="checkDailyReward()">
+                        <i class="fas fa-gift"></i> Claim Daily CubeCoins
                     </button>
                 </div>
-
-                <div class="group-grid" id="group-list-container">
-                    <!-- Dynamic Groups appear here -->
-                </div>
             </div>
 
-            <!-- SHOP PAGE -->
-            <div id="page-shop" class="page">
-                <div class="card">
-                    <h2>CubeMarket</h2>
-                    <p style="color: var(--text-muted);">Spend your hard-earned CubeCoins on exclusive cosmetics and tools.</p>
-                    <p style="margin-top: 1rem; font-style: italic; color: var(--text-muted);">Catalog restocking soon...</p>
+            <div id="page-groups" class="page">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1>Groups</h1>
+                    <button class="btn btn-primary" onclick="createGroup()">+ Create Group</button>
+                </div>
+                <div id="group-list" class="card">
+                    <p style="color: var(--text-muted);">No groups found. Be the first to create one!</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- REWARD NOTICE POPUP -->
     <div id="reward-modal" class="modal">
         <div class="modal-content">
-            <h1 style="color: var(--warning); font-size: 3.5rem;"><i class="fas fa-coins"></i></h1>
-            <h2 style="margin: 0.5rem 0 1rem 0; font-weight: 800;">+100 CubeCoins!</h2>
-            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">Tokens added straight to your flat profile balance.</p>
-            <button class="btn btn-primary btn-block" onclick="closeRewardModal()">Sweet!</button>
+            <h1 style="color: var(--warning); font-size: 3rem;"><i class="fas fa-coins"></i></h1>
+            <h2 style="margin: 1rem 0;">+100 CubeCoins!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Come back in 24 hours for more.</p>
+            <button class="btn btn-primary" onclick="closeModal()">Awesome!</button>
         </div>
     </div>
 
-    <!-- CORE INTERACTION CLIENT SCRIPT -->
     <script>
-        // Update this URL to point directly to your live Render endpoint once deployed
-        const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3000/api'
-            : 'https://YOUR-RENDER-BACKEND-URL.onrender.com/api'; 
+        let currentUser = null;
+        let userData = JSON.parse(localStorage.getItem('cubeUserData')) || {
+            balance: 0,
+            lastReward: 0,
+            groups: []
+        };
 
-        let userSession = null;
+        // --- AUTH LOGIC ---
+        function processAuth() {
+            const username = document.getElementById('username-input').value.trim();
+            const captchaResponse = hcaptcha.getResponse();
 
-        // --- AUTH/LOGIN ENGINE ---
-        async function processAuth() {
-            const usernameInput = document.getElementById('username-input').value.trim();
-            const captchaToken = hcaptcha.getResponse();
+            if (!username) return alert("Please enter a username!");
+            if (!captchaResponse) return alert("Please complete the Captcha!");
 
-            if (!usernameInput) return alert("Please supply an account title.");
-            if (!captchaToken) return alert("Security verification check needed via hCaptcha container.");
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/auth`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput, captchaToken: captchaToken })
-                });
-
-                const statusData = await response.json();
-
-                if (statusData.success) {
-                    userSession = statusData.user;
-                    
-                    // Transition to Main App Shell
-                    document.getElementById('auth-overlay').style.display = 'none';
-                    document.getElementById('main-app').style.display = 'flex';
-                    
-                    renderUserDashboardData();
-                    getPlatformGroups();
-                } else {
-                    alert(statusData.message || "Authorization processing failure.");
-                    hcaptcha.reset();
-                }
-            } catch (error) {
-                console.error("Connection tracking payload failure:", error);
-                alert("Network boundary error connecting to backend instance.");
-            }
-        }
-
-        function renderUserDashboardData() {
-            if (!userSession) return;
-
-            const profileHeader = document.getElementById('user-display');
-            profileHeader.innerHTML = userSession.username;
-
-            // Strict Hard-Coded Condition for your specific Admin Identity Profile
-            if (userSession.username.toLowerCase() === 'bloxcolayt' || userSession.isAdmin) {
-                profileHeader.innerHTML += '<span class="badge-admin">Admin</span>';
-            }
-
-            document.getElementById('coin-balance').innerText = userSession.balance;
-            document.querySelectorAll('.user-name-span').forEach(el => el.innerText = userSession.username);
-        }
-
-        // --- CUBECOINS DROP HANDLER ---
-        async function claimDailyCoins() {
-            if (!userSession) return;
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/daily-reward`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: userSession.username })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    userSession.balance = result.newBalance;
-                    document.getElementById('coin-balance').innerText = userSession.balance;
-                    document.getElementById('reward-modal').style.display = 'flex';
-                } else {
-                    alert(result.message || "Daily reward loop cycle already fulfilled.");
-                }
-            } catch (err) {
-                alert("Failed processing reward collection payload transaction.");
-            }
-        }
-
-        // --- GROUPS ENGINE INTEGRATION ---
-        async function getPlatformGroups() {
-            try {
-                const response = await fetch(`${BACKEND_URL}/groups`);
-                const groupsList = await response.json();
-                
-                const frame = document.getElementById('group-list-container');
-                if (!groupsList || groupsList.length === 0) {
-                    frame.innerHTML = `<p style="color: var(--text-muted);">No active platform groups found.</p>`;
-                    return;
-                }
-
-                frame.innerHTML = groupsList.map(g => `
-                    <div class="group-card">
-                        <div class="group-header">
-                            <h3>${g.name}</h3>
-                            <div class="group-meta">Managed by ${g.owner}</div>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
-                            <span style="font-size:0.9rem; color:var(--text-muted); font-weight:600;">
-                                <i class="fas fa-users"></i> ${g.members || 1} Members
-                            </span>
-                            <button class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem;">View</button>
-                        </div>
-                    </div>
-                `).join('');
-
-            } catch (e) {
-                console.error("Groups lookup failure state:", e);
-            }
-        }
-
-        async function createNewGroupPrompt() {
-            const groupNameInput = prompt("Enter clean, recognizable name identifier for group:");
-            if (!groupNameInput || groupNameInput.trim() === "") return;
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/groups`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: groupNameInput.trim(),
-                        owner: userSession.username
-                    })
-                });
-
-                if (response.ok) {
-                    getPlatformGroups();
-                } else {
-                    const errPayload = await response.json();
-                    alert(errPayload.message || "Group identity creation denied.");
-                }
-            } catch (err) {
-                alert("Network fault creating new group framework registry item.");
-            }
-        }
-
-        // --- VIEW CONTROL INTERFACES ---
-        function switchTab(element, pageId) {
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            currentUser = username;
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
             
-            element.classList.add('active');
-            document.getElementById(`page-${pageId}`).classList.add('active');
+            setupUserUI();
+        }
 
-            if (pageId === 'groups') {
-                getPlatformGroups();
+        function setupUserUI() {
+            const display = document.getElementById('user-display');
+            display.innerHTML = currentUser;
+            
+            // ADMIN CHECK
+            if (currentUser.toLowerCase() === 'bloxcolayt') {
+                display.innerHTML += '<span class="badge-admin">Admin</span>';
+            }
+
+            document.querySelectorAll('.user-name-span').forEach(el => el.innerText = currentUser);
+            updateBalanceUI();
+            renderGroups();
+        }
+
+        // --- CUBECOIN SYSTEM ---
+        function updateBalanceUI() {
+            document.getElementById('coin-balance').innerText = userData.balance;
+            localStorage.setItem('cubeUserData', JSON.stringify(userData));
+        }
+
+        function checkDailyReward() {
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+
+            if (now - userData.lastReward > oneDay) {
+                userData.balance += 100;
+                userData.lastReward = now;
+                updateBalanceUI();
+                document.getElementById('reward-modal').style.display = 'flex';
+            } else {
+                const timeLeft = Math.ceil((oneDay - (now - userData.lastReward)) / (1000 * 60 * 60));
+                alert(`Reward already claimed! Try again in ${timeLeft} hours.`);
             }
         }
 
-        function closeRewardModal() {
+        // --- GROUP SYSTEM ---
+        function createGroup() {
+            const gName = prompt("Enter Group Name:");
+            if (gName) {
+                userData.groups.push({ name: gName, members: 1, owner: currentUser });
+                updateBalanceUI();
+                renderGroups();
+            }
+        }
+
+        function renderGroups() {
+            const container = document.getElementById('group-list');
+            if (userData.groups.length === 0) return;
+            
+            container.innerHTML = userData.groups.map(g => `
+                <div class="group-item">
+                    <div>
+                        <strong style="font-size: 1.1rem;">${g.name}</strong><br>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Owner: ${g.owner} • ${g.members} Members</span>
+                    </div>
+                    <button class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem;">Join</button>
+                </div>
+            `).join('');
+        }
+
+        // --- UI NAVIGATION ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function closeModal() {
             document.getElementById('reward-modal').style.display = 'none';
         }
     </script>
