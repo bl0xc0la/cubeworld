@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeWorld | Dashboard</title>
+    <title>CubeWorld</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
     <style>
-        /* CSS carried over from Flat UI with new additions */
         :root {
             --primary: #3a86ff;
             --primary-dark: #2563eb;
@@ -21,224 +24,242 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
-            --border-radius: 8px;
-            --admin-color: #ff4757;
+            --border-radius: 12px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-main); color: var(--text-main); }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-main); color: var(--text-main); overflow-x: hidden; }
 
-        /* Auth/Login Overlay */
-        #auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-main); z-index: 9999; display: flex;
-        }
+        /* Auth UI */
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg-main); z-index: 9999; display: flex; }
+        .auth-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 4rem; }
+        .auth-form { flex: 0 0 450px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; padding: 2rem; border-left: 2px solid var(--border-color); }
 
-        .auth-side { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 4rem; background: var(--primary); }
-        .auth-form-side { flex: 0 0 500px; display: flex; align-items: center; justify-content: center; padding: 2rem; border-left: 2px solid var(--border-color); background: var(--bg-main); }
-        
-        /* Main App Layout */
+        /* Topbar */
+        .topbar { background: var(--bg-card); padding: 0.8rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); sticky: top; z-index: 100; }
+        .nav-links { display: flex; gap: 0.5rem; }
+        .nav-item { padding: 0.6rem 1.2rem; border-radius: 8px; color: var(--text-muted); cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .nav-item.active { background: var(--bg-input); color: var(--text-main); }
+
+        /* Content */
         .app-layout { display: none; min-height: 100vh; flex-direction: column; }
-        .topbar { background: var(--bg-card); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); sticky: top; }
-        
-        .nav-links { display: flex; gap: 1rem; }
-        .nav-item { padding: 0.5rem 1rem; border-radius: var(--border-radius); color: var(--text-muted); cursor: pointer; font-weight: 600; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: var(--bg-input); color: var(--text-main); }
-
-        .content-body { padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
-        .page { display: none; }
+        .content-body { padding: 2rem; max-width: 1300px; margin: 0 auto; width: 100%; flex: 1; }
+        .page { display: none; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Cards & Components */
-        .card { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
-        .btn { padding: 0.8rem 1.5rem; border-radius: var(--border-radius); font-weight: 700; cursor: pointer; border: none; transition: 0.2s; gap: 0.5rem; display: inline-flex; align-items: center; }
+        /* Cards & Buttons */
+        .card { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 1rem; }
+        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        
-        .badge-admin { background: var(--admin-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; margin-left: 8px; }
-        
-        .form-group { margin-bottom: 1rem; }
-        .form-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-muted); }
-        .form-input { width: 100%; padding: 0.8rem; background: var(--bg-input); border: 2px solid transparent; border-radius: var(--border-radius); color: white; outline: none; }
-        .form-input:focus { border-color: var(--primary); }
+        .btn-ghost { background: transparent; color: var(--text-muted); border: 2px solid var(--border-color); }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--text-main); }
 
-        /* Group List */
-        .group-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-color); }
-        
-        /* Modal for Daily Reward */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg-card); padding: 2.5rem; border-radius: 12px; text-align: center; max-width: 400px; border: 2px solid var(--primary); }
+        /* Social / Friend List */
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        .online-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+        /* Three.js Studio Viewport */
+        #studio-container { width: 100%; height: 600px; background: #000; border-radius: var(--border-radius); overflow: hidden; position: relative; border: 2px solid var(--primary); }
+        .studio-ui { position: absolute; top: 20px; left: 20px; z-index: 10; pointer-events: none; }
+        .studio-btn { pointer-events: all; background: rgba(30, 41, 59, 0.8); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; margin-right: 5px; }
+
+        /* Input Styles */
+        .form-group { margin-bottom: 1.2rem; }
+        .form-input { width: 100%; padding: 0.8rem; background: var(--bg-input); border: 2px solid transparent; border-radius: 8px; color: white; outline: none; }
+        .form-input:focus { border-color: var(--primary); }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
-        <div class="auth-side">
-            <h1 style="font-size: 4rem; font-weight: 800;">CubeWorld.</h1>
-            <p>Develop. Reward. Repeat.</p>
+        <div class="auth-panel" style="background: var(--primary);">
+            <h1 style="font-size: 5rem; font-weight: 800;">CUBE.</h1>
+            <p style="font-size: 1.5rem; opacity: 0.9;">Build with Three.js. Follow the best.</p>
         </div>
-        <div class="auth-form-side">
-            <div style="width: 100%; max-width: 340px;">
-                <h2 id="auth-title" style="margin-bottom: 0.5rem;">Create Account</h2>
-                <p id="auth-sub" style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem;">Join the future of cuboid gaming.</p>
-                
+        <div class="auth-form">
+            <div style="width: 100%; max-width: 350px;">
+                <h2 style="margin-bottom: 2rem;">Secure Login</h2>
                 <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" id="username-input" class="form-input" placeholder="BloxColaYT">
+                    <input type="text" id="auth-user" class="form-input" placeholder="Username">
                 </div>
-
-                <form id="captcha-form">
-                    <div class="h-captcha" data-sitekey="4d00da62-6dd2-434e-8e1a-1a8279c8321c"></div>
-                    <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="processAuth()">Enter CubeWorld</button>
-                </form>
+                <div class="form-group">
+                    <input type="password" id="auth-pass" class="form-input" placeholder="Password">
+                </div>
+                <div class="h-captcha" data-sitekey="4d00da62-6dd2-434e-8e1a-1a8279c8321c"></div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="handleAuth()">Access CubeWorld</button>
             </div>
         </div>
     </div>
 
     <div class="app-layout" id="main-app">
         <nav class="topbar">
-            <div class="brand" style="font-weight: 800; font-size: 1.5rem; color: var(--primary);">
-                <i class="fas fa-cube"></i> CUBEWORLD
-            </div>
+            <div style="font-weight: 800; font-size: 1.5rem; color: var(--primary);">CUBEWORLD</div>
             <div class="nav-links">
-                <div class="nav-item active" onclick="showPage('home')">Home</div>
-                <div class="nav-item" onclick="showPage('groups')">Groups</div>
-                <div class="nav-item" onclick="showPage('shop')">Shop</div>
+                <div class="nav-item active" onclick="switchTab(this, 'home')">Home</div>
+                <div class="nav-item" onclick="switchTab(this, 'social')">Social</div>
+                <div class="nav-item" onclick="switchTab(this, 'studio')">Studio</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 1.5rem;">
-                <div style="color: var(--warning); font-weight: 700;">
-                    <i class="fas fa-coins"></i> <span id="coin-balance">0</span> CC
-                </div>
-                <div id="user-display" style="font-weight: 600;"></div>
+            <div id="user-pill" style="font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                <span id="display-name"></span>
+                <span style="color: var(--warning);"><i class="fas fa-coins"></i> <span id="coin-count">0</span></span>
             </div>
         </nav>
 
         <main class="content-body">
             <div id="page-home" class="page active">
                 <div class="card">
-                    <h2>Welcome back, <span class="user-name-span"></span>!</h2>
-                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Your daily rewards are waiting.</p>
-                    <button class="btn btn-success" style="margin-top: 1rem;" onclick="checkDailyReward()">
-                        <i class="fas fa-gift"></i> Claim Daily CubeCoins
-                    </button>
+                    <h1>Welcome to the Grid.</h1>
+                    <p style="color: var(--text-muted);">Manage your friends, build worlds, and earn CubeCoins.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="card">
+                        <h3>Daily Rewards</h3>
+                        <button class="btn btn-success" style="margin-top: 1rem;" onclick="claimDaily()">Claim 100 CC</button>
+                    </div>
+                    <div class="card">
+                        <h3>Platform Stats</h3>
+                        <p style="font-size: 2rem; font-weight: 800; color: var(--primary);">4.2k <small style="font-size: 1rem; font-weight: 400; color: var(--text-muted);">Active Builders</small></p>
+                    </div>
                 </div>
             </div>
 
-            <div id="page-groups" class="page">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h1>Groups</h1>
-                    <button class="btn btn-primary" onclick="createGroup()">+ Create Group</button>
+            <div id="page-social" class="page">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <div class="card">
+                        <h2>Global Feed</h2>
+                        <div id="global-users">
+                            </div>
+                    </div>
+                    <div class="card">
+                        <h2>Following</h2>
+                        <div id="following-list" style="color: var(--text-muted);">You aren't following anyone yet.</div>
+                    </div>
                 </div>
-                <div id="group-list" class="card">
-                    <p style="color: var(--text-muted);">No groups found. Be the first to create one!</p>
+            </div>
+
+            <div id="page-studio" class="page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <h2>CubeWorld Studio v1.0</h2>
+                        <button class="btn btn-primary" onclick="spawnCube()">Add Block</button>
+                    </div>
+                    <div id="studio-container">
+                        <div class="studio-ui">
+                            <button class="studio-btn" onclick="setWireframe()">Wireframe</button>
+                            <button class="studio-btn" onclick="resetCamera()">Reset View</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="reward-modal" class="modal">
-        <div class="modal-content">
-            <h1 style="color: var(--warning); font-size: 3rem;"><i class="fas fa-coins"></i></h1>
-            <h2 style="margin: 1rem 0;">+100 CubeCoins!</h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Come back in 24 hours for more.</p>
-            <button class="btn btn-primary" onclick="closeModal()">Awesome!</button>
-        </div>
-    </div>
+    <script type="module">
+        import * as THREE from 'three';
 
-    <script>
+        // --- GLOBAL STATE ---
         let currentUser = null;
-        let userData = JSON.parse(localStorage.getItem('cubeUserData')) || {
-            balance: 0,
-            lastReward: 0,
-            groups: []
+        let following = new Set();
+        const socket = io();
+
+        // --- THREE.JS ENGINE SETUP ---
+        let scene, camera, renderer, cube;
+        function initStudio() {
+            const container = document.getElementById('studio-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Lighting
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5).normalize();
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+
+            // Grid helper
+            const grid = new THREE.GridHelper(20, 20, 0x334155, 0x1e293b);
+            scene.add(grid);
+
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        window.spawnCube = () => {
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshLambertMaterial({ color: 0x3a86ff });
+            const newCube = new THREE.Mesh(geometry, material);
+            newCube.position.set(Math.random() * 4 - 2, 0.5, Math.random() * 4 - 2);
+            scene.add(newCube);
         };
 
-        // --- AUTH LOGIC ---
-        function processAuth() {
-            const username = document.getElementById('username-input').value.trim();
-            const captchaResponse = hcaptcha.getResponse();
+        window.setWireframe = () => {
+            scene.traverse((obj) => {
+                if(obj.isMesh) obj.material.wireframe = !obj.material.wireframe;
+            });
+        };
 
-            if (!username) return alert("Please enter a username!");
-            if (!captchaResponse) return alert("Please complete the Captcha!");
+        // --- AUTH & SOCIAL LOGIC ---
+        window.handleAuth = async () => {
+            const username = document.getElementById('auth-user').value;
+            const pass = document.getElementById('auth-pass').value;
+            const captcha = hcaptcha.getResponse();
 
-            currentUser = username;
+            if(!username || !pass || !captcha) return alert("Fill all fields + Captcha!");
+
+            // In a real app, this is a fetch() to your backend
+            currentUser = { username, balance: 50, isAdmin: username.toLowerCase() === 'bloxcolayt' };
+            
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
+            document.getElementById('display-name').innerText = username;
+            if(currentUser.isAdmin) document.getElementById('display-name').innerHTML += ' <span style="background:var(--error); font-size:10px; padding:2px 5px; border-radius:4px;">ADMIN</span>';
             
-            setupUserUI();
-        }
+            loadUsers();
+            initStudio();
+        };
 
-        function setupUserUI() {
-            const display = document.getElementById('user-display');
-            display.innerHTML = currentUser;
-            
-            // ADMIN CHECK
-            if (currentUser.toLowerCase() === 'bloxcolayt') {
-                display.innerHTML += '<span class="badge-admin">Admin</span>';
-            }
+        window.switchTab = (el, tabId) => {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById(`page-${tabId}`).classList.add('active');
+        };
 
-            document.querySelectorAll('.user-name-span').forEach(el => el.innerText = currentUser);
-            updateBalanceUI();
-            renderGroups();
-        }
-
-        // --- CUBECOIN SYSTEM ---
-        function updateBalanceUI() {
-            document.getElementById('coin-balance').innerText = userData.balance;
-            localStorage.setItem('cubeUserData', JSON.stringify(userData));
-        }
-
-        function checkDailyReward() {
-            const now = Date.now();
-            const oneDay = 24 * 60 * 60 * 1000;
-
-            if (now - userData.lastReward > oneDay) {
-                userData.balance += 100;
-                userData.lastReward = now;
-                updateBalanceUI();
-                document.getElementById('reward-modal').style.display = 'flex';
-            } else {
-                const timeLeft = Math.ceil((oneDay - (now - userData.lastReward)) / (1000 * 60 * 60));
-                alert(`Reward already claimed! Try again in ${timeLeft} hours.`);
-            }
-        }
-
-        // --- GROUP SYSTEM ---
-        function createGroup() {
-            const gName = prompt("Enter Group Name:");
-            if (gName) {
-                userData.groups.push({ name: gName, members: 1, owner: currentUser });
-                updateBalanceUI();
-                renderGroups();
-            }
-        }
-
-        function renderGroups() {
-            const container = document.getElementById('group-list');
-            if (userData.groups.length === 0) return;
-            
-            container.innerHTML = userData.groups.map(g => `
-                <div class="group-item">
-                    <div>
-                        <strong style="font-size: 1.1rem;">${g.name}</strong><br>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Owner: ${g.owner} • ${g.members} Members</span>
-                    </div>
-                    <button class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem;">Join</button>
+        function loadUsers() {
+            const mockUsers = ['CyberCola', 'Vorton_Dev', 'PixelMaster', 'RbxBuilder'];
+            const container = document.getElementById('global-users');
+            container.innerHTML = mockUsers.map(u => `
+                <div class="user-row">
+                    <span><div class="online-dot"></div> ${u}</span>
+                    <button class="btn btn-ghost" onclick="followUser('${u}')">Follow</button>
                 </div>
             `).join('');
         }
 
-        // --- UI NAVIGATION ---
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            document.getElementById(`page-${pageId}`).classList.add('active');
-            event.target.classList.add('active');
-        }
+        window.followUser = (name) => {
+            following.add(name);
+            updateFollowingUI();
+        };
 
-        function closeModal() {
-            document.getElementById('reward-modal').style.display = 'none';
+        function updateFollowingUI() {
+            const list = document.getElementById('following-list');
+            list.innerHTML = Array.from(following).map(f => `
+                <div style="padding: 5px 0; color: white;">
+                    <i class="fas fa-check-circle" style="color: var(--primary);"></i> ${f}
+                </div>
+            `).join('');
         }
     </script>
 </body>
