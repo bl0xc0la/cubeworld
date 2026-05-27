@@ -1,125 +1,93 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const axios = require('axios');
-const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const http = require('http');
+const { Server } = require('socket.io');
 const path = require('path');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-// --- MIDDLEWARE ---
-app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // This serves your HTML file from a 'public' folder
+app.use(express.static('public'));
 
-// --- MONGODB CONNECTION ---
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cubeworld';
-mongoose.connect(MONGO_URI)
-    .then(() => console.log("📦 Connected to MongoDB"))
-    .catch(err => console.error("❌ MongoDB Connection Error:", err));
-
-// --- DATABASE SCHEMAS ---
+// --- SCHEMAS ---
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
+    password: { type: String, required: true }, // Hashed
     balance: { type: Number, default: 0 },
-    lastReward: { type: Date, default: 0 },
+    friends: [{ type: String }],
     isAdmin: { type: Boolean, default: false }
 });
 
-const GroupSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true },
-    owner: { type: String, required: true },
-    members: { type: Number, default: 1 }
+const GameSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    creator: { type: String },
+    playerCount: { type: Number, default: 0 },
+    assetUrl: { type: String } // For the .dmg launcher to pull
+});
+
+const MessageSchema = new mongoose.Schema({
+    from: String,
+    to: String,
+    content: String,
+    timestamp: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model('User', UserSchema);
-const Group = mongoose.model('Group', GroupSchema);
+const Game = mongoose.model('Game', GameSchema);
+const Message = mongoose.model('Message', MessageSchema);
 
-// --- API ROUTES ---
-
-/**
- * AUTH & REGISTRATION
- * Verifies hCaptcha and finds/creates the user profile.
- */
-app.post('/api/auth', async (req, res) => {
-    const { username, captchaToken } = req.body;
-    const SECRET_KEY = process.env.HCAPTCHA_SECRET;
-
-    if (!username || !captchaToken) return res.status(400).json({ success: false, message: "Missing data" });
-
+// --- AUTH WITH PASSWORDS ---
+app.post('/api/auth/register', async (req, res) => {
+    const { username, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
     try {
-        // 1. Verify hCaptcha
-        const verifyUrl = `https://hcaptcha.com/siteverify`;
-        const response = await axios.post(verifyUrl, new URLSearchParams({
-            response: captchaToken,
-            secret: SECRET_KEY
-        }));
+        const newUser = new User({ 
+            username, 
+            password: hashedPassword,
+            isAdmin: username.toLowerCase() === 'bloxcolayt'
+        });
+        await newUser.save();
+        res.json({ success: true });
+    } catch (e) { res.status(400).json({ message: "User exists" }); }
+});
 
-        if (!response.data.success) {
-            return res.status(401).json({ success: false, message: "Captcha verification failed." });
-        }
-
-        // 2. Find or Create User
-        let user = await User.findOne({ username });
-        if (!user) {
-            user = new User({
-                username: username,
-                isAdmin: username.toLowerCase() === 'bloxcolayt' // Automatic Admin logic
-            });
-            await user.save();
-        }
-
+app.post('/api/auth/login', async (req, res) => {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (user && await bcrypt.compare(password, user.password)) {
         res.json({ success: true, user });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+    } else {
+        res.status(401).json({ message: "Invalid credentials" });
     }
 });
 
-/**
- * DAILY REWARDS (CubeCoins)
- */
-app.post('/api/daily-reward', async (req, res) => {
-    const { username } = req.body;
-    try {
-        const user = await User.findOne({ username });
-        if (!user) return res.status(404).json({ message: "User not found" });
+// --- SOCIAL & GAMES ---
+app.get('/api/games', async (req, res) => res.json(await Game.find()));
 
-        const now = new Date();
-        const oneDay = 24 * 60 * 60 * 1000;
-
-        if (now - user.lastReward > oneDay) {
-            user.balance += 100;
-            user.lastReward = now;
-            await user.save();
-            return res.json({ success: true, newBalance: user.balance });
-        } else {
-            return res.status(400).json({ success: false, message: "Reward already claimed today!" });
-        }
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
+app.post('/api/friends/add', async (req, res) => {
+    const { user, friend } = req.body;
+    await User.updateOne({ username: user }, { $addToSet: { friends: friend } });
+    res.json({ success: true });
 });
 
-/**
- * GROUPS SYSTEM
- */
-app.get('/api/groups', async (req, res) => {
-    const groups = await Group.find();
-    res.json(groups);
+// --- REAL-TIME (DMs & Multiplayer) ---
+io.on('connection', (socket) => {
+    socket.on('join-chat', (username) => socket.join(username));
+    
+    socket.on('send-dm', async (data) => {
+        const msg = new Message(data);
+        await msg.save();
+        io.to(data.to).emit('receive-dm', data);
+    });
+
+    socket.on('player-move', (data) => {
+        // Broadcast movement to others in the same game instance
+        socket.broadcast.emit('move-update', data);
+    });
 });
 
-app.post('/api/groups', async (req, res) => {
-    const { name, owner } = req.body;
-    try {
-        const newGroup = new Group({ name, owner });
-        await newGroup.save();
-        res.json({ success: true, group: newGroup });
-    } catch (error) {
-        res.status(400).json({ success: false, message: "Group name already exists!" });
-    }
-});
-
-// --- START SERVER ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 CubeWorld Backend live on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`CubeWorld MegaServer on ${PORT}`));
