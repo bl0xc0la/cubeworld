@@ -4,12 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CubeWorld</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <style>
         * {
             margin: 0;
@@ -18,1818 +14,318 @@
         }
 
         :root {
-            --primary: #00b4d8;
-            --primary-dark: #0096c7;
-            --secondary: #0077b6;
-            --accent: #00b4d8;
+            /* Flat Color Palette */
+            --primary: #3a86ff;
+            --primary-dark: #2563eb;
             --success: #06d6a0;
-            --error: #ef476f;
-            --warning: #ffd60a;
-            --dark: #000814;
-            --darker: #001d3d;
-            --light: #f0f3ff;
-            --lighter: #e0e1ff;
-            --gray: #666666;
-            --gray-light: #999999;
-            --border: #d0d5dd;
-            --bg: #0f3460;
-            --bg-light: #16213e;
-            --card-bg: #0d1b2a;
-            --text: #f1faee;
-            --text-dark: #e8e8e8;
-            --success-light: #d4f1f4;
-        }
-
-        body.dark-mode {
-            --bg: #0d1b2a;
-            --bg-light: #16213e;
-            --card-bg: #0f3460;
-            --text: #e8f4f8;
-        }
-
-        html {
-            scroll-behavior: smooth;
+            --error: #ff4d6d;
+            --warning: #ffbe0b;
+            
+            /* Backgrounds */
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            
+            /* Text & Borders */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --border-radius: 8px;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--bg) 50%, var(--darker) 100%);
-            color: var(--text);
-            background-attachment: fixed;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-light);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--primary), var(--secondary));
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
-
-        /* Auth Screen */
+        /* --- FLAT AUTH LAYOUT --- */
         .auth-container {
             display: flex;
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--bg) 50%, var(--darker) 100%);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .auth-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="%2300b4d8" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="1200" height="600" fill="%23000814"/><rect width="1200" height="600" fill="url(%23grid)"/></svg>');
-            z-index: 0;
         }
 
         .auth-left {
             flex: 1;
+            background-color: var(--primary);
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            padding: 3rem;
-            color: white;
-            z-index: 1;
+            padding: 4rem;
         }
 
         .auth-left h1 {
-            font-size: 3.5rem;
-            font-weight: 900;
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -2px;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .auth-left p {
-            font-size: 1.2rem;
-            color: var(--gray-light);
-            margin-bottom: 2rem;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .auth-features {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            max-width: 400px;
-        }
-
-        .auth-feature {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .auth-feature-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 450px;
         }
 
         .auth-right {
-            flex: 0 0 420px;
-            background: var(--card-bg);
-            padding: 3rem 2rem;
+            flex: 0 0 500px;
+            background-color: var(--bg-main);
             display: flex;
-            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            border-left: 1px solid rgba(0, 180, 216, 0.2);
-            z-index: 1;
-            overflow-y: auto;
+            padding: 2rem;
+            border-left: 2px solid var(--border-color);
         }
 
         .auth-box {
-            display: flex;
-            flex-direction: column;
+            width: 100%;
+            max-width: 360px;
         }
 
         .auth-title {
             font-size: 2rem;
-            font-weight: 800;
+            font-weight: 700;
             margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--primary);
         }
 
         .auth-subtitle {
-            color: var(--gray-light);
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
         }
 
+        /* --- FLAT COMPONENTS --- */
         .form-group {
             margin-bottom: 1.5rem;
         }
 
         .form-label {
             display: block;
+            font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
         }
 
         .form-input {
             width: 100%;
-            padding: 1rem;
-            border: 1.5px solid rgba(0, 180, 216, 0.3);
-            border-radius: 10px;
-            font-family: 'Poppins', sans-serif;
-            background: rgba(15, 52, 96, 0.5);
-            color: var(--text);
-            transition: all 0.3s;
-            font-size: 0.95rem;
+            padding: 0.8rem 1rem;
+            background-color: var(--bg-input);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius);
+            color: white;
+            font-family: inherit;
+            transition: border-color 0.2s;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary);
-            background: rgba(15, 52, 96, 0.8);
-            box-shadow: 0 0 0 4px rgba(0, 180, 216, 0.1);
-        }
-
-        .form-input::placeholder {
-            color: var(--gray-light);
         }
 
         .btn {
-            padding: 1rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+            width: 100%;
             gap: 0.5rem;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background-color: var(--primary);
             color: white;
-            width: 100%;
-            box-shadow: 0 8px 20px rgba(0, 180, 216, 0.3);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(0, 180, 216, 0.4);
+            background-color: var(--primary-dark);
         }
 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-secondary {
-            background: rgba(0, 180, 216, 0.2);
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(0, 180, 216, 0.3);
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--primary);
-            border: none;
-        }
-
-        .btn-ghost:hover {
-            background: rgba(0, 180, 216, 0.1);
-        }
-
-        .btn-small {
-            padding: 0.6rem 1.2rem;
-            font-size: 0.85rem;
-        }
-
-        .btn-icon {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            border-radius: 8px;
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            animation: slideDown 0.3s ease;
-        }
-
-        .error-message {
-            background: rgba(239, 71, 111, 0.1);
-            border: 1px solid rgba(239, 71, 111, 0.3);
-            color: #ff6b9d;
-        }
-
-        .success-message {
-            background: rgba(6, 214, 160, 0.1);
-            border: 1px solid rgba(6, 214, 160, 0.3);
-            color: var(--success);
-        }
-
-        .warning-message {
-            background: rgba(255, 214, 10, 0.1);
-            border: 1px solid rgba(255, 214, 10, 0.3);
-            color: #ffed4e;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .auth-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-            color: var(--gray-light);
-        }
-
-        .auth-link a {
-            color: var(--primary);
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .auth-link a:hover {
-            color: var(--success);
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .checkbox-group input {
-            cursor: pointer;
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-        }
-
-        .checkbox-group label {
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: var(--text-dark);
-        }
-
-        /* hCaptcha Styling */
-        .h-captcha {
-            margin-bottom: 1.5rem;
-        }
-
-        .h-captcha iframe {
-            border-radius: 8px !important;
-        }
-
-        /* Main App */
-        .app-container {
-            display: none;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        .app-container.active {
-            display: flex;
-        }
-
-        /* Topbar */
+        /* --- TOPBAR --- */
         .topbar {
-            background: linear-gradient(180deg, var(--card-bg) 0%, rgba(13, 27, 42, 0.8) 100%);
-            border-bottom: 1px solid rgba(0, 180, 216, 0.2);
-            padding: 1rem 2rem;
+            background-color: var(--bg-card);
+            padding: 0.75rem 2rem;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            gap: 2rem;
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .topbar-left {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .brand {
             font-size: 1.5rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .topbar-menu {
+        .nav-links {
             display: flex;
-            gap: 0.5rem;
-            align-items: center;
+            gap: 1rem;
         }
 
-        .menu-item {
-            color: var(--text-dark);
-            cursor: pointer;
-            font-weight: 500;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            transition: all 0.3s;
-            white-space: nowrap;
-            font-size: 0.9rem;
-        }
-
-        .menu-item:hover {
-            color: var(--primary);
-            background: rgba(0, 180, 216, 0.1);
-        }
-
-        .menu-item.active {
-            color: var(--primary);
-            background: rgba(0, 180, 216, 0.15);
-            border-bottom: 2px solid var(--primary);
-        }
-
-        .topbar-right {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .user-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.6rem 1.2rem;
-            background: rgba(0, 180, 216, 0.1);
-            border: 1px solid rgba(0, 180, 216, 0.2);
-            border-radius: 8px;
+        .nav-item {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            color: var(--text-muted);
+            text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
         }
 
-        .currency-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1.2rem;
-            background: linear-gradient(135deg, rgba(6, 214, 160, 0.2), rgba(0, 180, 216, 0.2));
-            border: 1px solid rgba(0, 180, 216, 0.2);
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--bg-input);
+            color: var(--text-main);
         }
 
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-            border: 2px solid var(--primary);
-        }
-
-        /* Content */
-        .content-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .page {
-            display: none;
-            height: 100%;
-            overflow-y: auto;
-        }
-
-        .page.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .page-header {
-            margin-bottom: 2rem;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .page-subtitle {
-            color: var(--gray-light);
-            font-size: 0.95rem;
-        }
-
-        /* Grid */
+        /* --- GAME CARDS (FLAT STYLE) --- */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            flex: 1;
+            gap: 2rem;
+            padding: 2rem;
         }
 
         .game-card {
-            background: linear-gradient(135deg, var(--card-bg), rgba(15, 52, 96, 0.5));
-            border: 1px solid rgba(0, 180, 216, 0.2);
+            background-color: var(--bg-card);
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            position: relative;
+            transition: border-color 0.2s;
         }
 
         .game-card:hover {
             border-color: var(--primary);
-            box-shadow: 0 12px 40px rgba(0, 180, 216, 0.2);
-            transform: translateY(-6px);
         }
 
-        .game-card-image {
+        .game-thumb {
             width: 100%;
-            height: 180px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            height: 160px;
+            background-color: var(--bg-input);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3.5rem;
-            color: white;
-            position: relative;
-            overflow: hidden;
+            font-size: 3rem;
         }
 
-        .game-card-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="%23ffffff" stroke-width="0.5" opacity="0.1"/></svg>');
-            animation: spin 20s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .game-card-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(239, 71, 111, 0.9);
-            color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            z-index: 2;
-        }
-
-        .game-card-content {
+        .game-info {
             padding: 1.5rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
         }
 
         .game-title {
+            font-weight: 700;
             font-size: 1.1rem;
-            font-weight: 700;
             margin-bottom: 0.5rem;
-            color: var(--text);
         }
 
-        .game-author {
+        .game-meta {
             font-size: 0.85rem;
-            color: var(--gray-light);
-            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* --- UTILS --- */
+        .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-        }
-
-        .game-description {
-            font-size: 0.85rem;
-            color: var(--gray-light);
-            margin-bottom: 1rem;
-            line-height: 1.4;
-        }
-
-        .game-stats {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.85rem;
-            color: var(--gray-light);
-            margin-bottom: 1rem;
-            margin-top: auto;
-        }
-
-        .game-stat {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .game-buttons {
-            display: flex;
             gap: 0.5rem;
-        }
-
-        .game-buttons .btn {
-            flex: 1;
-            padding: 0.7rem;
-        }
-
-        /* Chat */
-        .chat-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 340px;
-            height: 420px;
-            background: linear-gradient(135deg, var(--card-bg), rgba(15, 52, 96, 0.8));
-            border: 1px solid rgba(0, 180, 216, 0.2);
-            border-radius: 12px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        .chat-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(0, 180, 216, 0.2);
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(180deg, rgba(0, 180, 216, 0.1), transparent);
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .chat-message {
-            margin-bottom: 1rem;
             font-size: 0.85rem;
-            animation: slideDown 0.3s ease;
+            color: var(--text-muted);
+            margin: 1rem 0;
         }
 
-        .chat-user {
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
+        .checkbox-group input {
+            accent-color: var(--primary);
         }
 
-        .chat-text {
-            background: rgba(0, 180, 216, 0.1);
-            padding: 0.6rem 0.8rem;
-            border-radius: 6px;
-            border-left: 2px solid var(--primary);
-            word-wrap: break-word;
-            color: var(--text-dark);
-        }
-
-        .chat-input-group {
-            display: flex;
-            gap: 0.5rem;
-            padding: 1rem;
-            border-top: 1px solid rgba(0, 180, 216, 0.2);
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 0.6rem;
-            border: 1px solid rgba(0, 180, 216, 0.3);
-            border-radius: 6px;
-            font-family: 'Poppins', sans-serif;
-            background: rgba(15, 52, 96, 0.5);
-            color: var(--text);
-            font-size: 0.85rem;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(15, 52, 96, 0.8);
-        }
-
-        .chat-toggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 24px rgba(0, 180, 216, 0.4);
-            z-index: 999;
-            transition: all 0.3s;
-        }
-
-        .chat-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 32px rgba(0, 180, 216, 0.5);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, var(--card-bg), rgba(15, 52, 96, 0.8));
-            border: 1px solid rgba(0, 180, 216, 0.2);
-            border-radius: 12px;
-            padding: 2.5rem;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-            justify-content: flex-end;
-        }
-
-        /* Game Window */
-        .game-window {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000;
-            z-index: 3000;
-        }
-
-        .game-window.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .game-window-header {
-            background: linear-gradient(180deg, var(--card-bg), rgba(13, 27, 42, 0.8));
-            padding: 1rem;
-            border-bottom: 1px solid rgba(0, 180, 216, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #gameCanvas {
-            flex: 1;
-            background: linear-gradient(180deg, #000, #0a1929);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(0, 180, 216, 0.1), rgba(6, 214, 160, 0.05));
-            border: 1px solid rgba(0, 180, 216, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--gray-light);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .auth-left {
-                display: none;
-            }
-
-            .auth-right {
-                flex: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .topbar {
-                flex-wrap: wrap;
-            }
-
-            .topbar-menu {
-                order: 3;
-                width: 100%;
-                margin-top: 1rem;
-                gap: 0.25rem;
-            }
-
-            .menu-item {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.85rem;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .chat-container {
-                width: calc(100% - 2rem);
-                height: 300px;
-                bottom: 1rem;
-                right: 1rem;
-            }
-
-            .page-title {
-                font-size: 1.8rem;
-            }
-
-            .auth-left p {
-                display: none;
-            }
-
-            .auth-features {
-                display: none;
-            }
-        }
-
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0, 180, 216, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 0.8s linear infinite;
-        }
-
-        /* Tooltip */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: var(--text);
-            text-align: center;
-            border-radius: 6px;
-            padding: 0.75rem;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.85rem;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
+        @media (max-width: 900px) {
+            .auth-left { display: none; }
+            .auth-right { flex: 1; }
         }
     </style>
 </head>
 <body>
-    <!-- Auth Screen -->
-    <div id="auth-page" class="auth-container">
-        <div class="auth-background"></div>
-        
-        <div class="auth-left">
-            <h1>CubeWorld</h1>
-            <p>Build games, play with millions, earn real money</p>
-            <div class="auth-features">
-                <div class="auth-feature">
-                    <div class="auth-feature-icon">🎮</div>
-                    <div>
-                        <strong>Play Games</strong>
-                        <div style="font-size: 0.85rem; color: var(--gray-light);">Millions of user-created experiences</div>
-                    </div>
-                </div>
-                <div class="auth-feature">
-                    <div class="auth-feature-icon">🏗️</div>
-                    <div>
-                        <strong>Create</strong>
-                        <div style="font-size: 0.85rem; color: var(--gray-light);">Build and monetize your games</div>
-                    </div>
-                </div>
-                <div class="auth-feature">
-                    <div class="auth-feature-icon">💰</div>
-                    <div>
-                        <strong>Earn</strong>
-                        <div style="font-size: 0.85rem; color: var(--gray-light);">Developer Exchange: Convert R$ to USD</div>
-                    </div>
-                </div>
-                <div class="auth-feature">
-                    <div class="auth-feature-icon">👥</div>
-                    <div>
-                        <strong>Social</strong>
-                        <div style="font-size: 0.85rem; color: var(--gray-light);">Connect with friends worldwide</div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
+    <div class="auth-container">
+        <div class="auth-left">
+            <h1>CubeWorld.</h1>
+            <p>A flat-out better way to build, play, and share your own digital universes.</p>
+        </div>
+        
         <div class="auth-right">
             <div class="auth-box">
-                <div class="auth-title">CubeWorld</div>
-                <div class="auth-subtitle">The Ultimate Game Platform</div>
-
-                <!-- Login Form -->
-                <div id="login-form">
-                    <div id="loginError"></div>
-                    <div class="form-group">
-                        <label class="form-label">📧 Username or Email</label>
-                        <input type="text" class="form-input" id="loginUsername" placeholder="your_username">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">🔒 Password</label>
-                        <input type="password" class="form-input" id="loginPassword" placeholder="••••••••">
-                    </div>
-
-                    <!-- hCaptcha -->
-                    <div class="h-captcha" data-sitekey="c31ce02a-ec50-4156-95f4-03a6e49a34ae"></div>
-
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="rememberMe">
-                        <label for="rememberMe">Remember me for 30 days</label>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="handleLogin()">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-
-                    <div class="auth-link">
-                        New to CubeWorld? <a onclick="showSignup()">Create an account</a>
-                    </div>
+                <div class="auth-title">Welcome back</div>
+                <div class="auth-subtitle">Login to your developer account</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" placeholder="e.g. CubeDev">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" placeholder="••••••••">
                 </div>
 
-                <!-- Signup Form -->
-                <div id="signup-form" style="display: none;">
-                    <div id="signupError"></div>
-                    <div id="signupSuccess"></div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">👤 Username</label>
-                        <input type="text" class="form-input" id="signupUsername" placeholder="choose_username">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">📧 Email</label>
-                        <input type="email" class="form-input" id="signupEmail" placeholder="you@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">🔒 Password</label>
-                        <input type="password" class="form-input" id="signupPassword" placeholder="Min 8 characters">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">🔐 Confirm Password</label>
-                        <input type="password" class="form-input" id="signupConfirm" placeholder="Confirm password">
-                    </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Keep me logged in</label>
+                </div>
 
-                    <!-- hCaptcha for Signup -->
-                    <div class="h-captcha" data-sitekey="c31ce02a-ec50-4156-95f4-03a6e49a34ae"></div>
-
-                    <button class="btn btn-primary" onclick="handleSignup()">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </button>
-
-                    <div class="auth-link">
-                        Already have an account? <a onclick="showLogin()">Login</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App -->
-    <div id="app-page" class="app-container">
-        <div class="topbar">
-            <div class="topbar-left">
-                <div class="brand">
-                    <i class="fas fa-cube"></i> CubeWorld
-                </div>
-                <div class="topbar-menu">
-                    <div class="menu-item active" onclick="switchPage('home')">
-                        <i class="fas fa-home"></i> Home
-                    </div>
-                    <div class="menu-item" onclick="switchPage('discover')">
-                        <i class="fas fa-compass"></i> Discover
-                    </div>
-                    <div class="menu-item" onclick="switchPage('create')">
-                        <i class="fas fa-pencil-alt"></i> Create
-                    </div>
-                    <div class="menu-item" onclick="switchPage('shop')">
-                        <i class="fas fa-shopping-bag"></i> Shop
-                    </div>
-                    <div class="menu-item" onclick="switchPage('leaderboard')">
-                        <i class="fas fa-trophy"></i> Leaderboard
-                    </div>
-                    <div class="menu-item" onclick="switchPage('groups')">
-                        <i class="fas fa-users"></i> Groups
-                    </div>
-                    <div class="menu-item" onclick="switchPage('friends')">
-                        <i class="fas fa-user-friends"></i> Friends
-                    </div>
-                </div>
-            </div>
-            <div class="topbar-right">
-                <div class="currency-badge">
-                    <i class="fas fa-coins"></i>
-                    <span id="currencyDisplay">1000</span> R$
-                </div>
-                <div class="currency-badge" style="background: linear-gradient(135deg, rgba(255, 214, 10, 0.2), rgba(0, 180, 216, 0.2));">
-                    <i class="fas fa-gem"></i>
-                    <span id="robuxDisplay">500</span> Robux
-                </div>
-                <div class="avatar" id="userAvatar" title="Profile">U</div>
-                <button class="btn btn-ghost btn-small" onclick="handleLogout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <button class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> Sign In
                 </button>
             </div>
         </div>
+    </div>
 
-        <div class="content-area">
-            <!-- Home Page -->
-            <div id="home-page" class="page active">
-                <div class="page-header">
-                    <div class="page-title">Welcome to CubeWorld</div>
-                    <div class="page-subtitle">Build games, play with millions, earn real money</div>
-                </div>
+    <nav class="topbar">
+        <div class="brand">
+            <i class="fas fa-cube"></i> CubeWorld
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-item active">Home</a>
+            <a href="#" class="nav-item">Discover</a>
+            <a href="#" class="nav-item">Develop</a>
+            <a href="#" class="nav-item">Market</a>
+        </div>
+        <div style="font-weight: 700; color: var(--success);">
+            <i class="fas fa-coins"></i> 1,250
+        </div>
+    </nav>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">👥 Friends Online</div>
-                        <div class="stat-value">12</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">🏆 Achievements</div>
-                        <div class="stat-value">8</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">🎮 Games Played</div>
-                        <div class="stat-value">24</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">📊 Level</div>
-                        <div class="stat-value">15</div>
-                    </div>
-                </div>
-
-                <h3 style="margin-bottom: 1.5rem; color: var(--text); font-size: 1.3rem;">Featured Games</h3>
-                <div class="grid" id="homeGrid"></div>
+    <div class="grid">
+        <div class="game-card">
+            <div class="game-thumb"><i class="fas fa-rocket"></i></div>
+            <div class="game-info">
+                <div class="game-title">Space Explorer</div>
+                <div class="game-meta">by StarLord • 1.2k playing</div>
+                <button class="btn btn-primary">Play</button>
             </div>
+        </div>
 
-            <!-- Discover Page -->
-            <div id="discover-page" class="page">
-                <div class="page-header">
-                    <div class="page-title">Discover</div>
-                    <div class="page-subtitle">Explore thousands of games created by the community</div>
-                </div>
-                <div class="grid" id="discoverGrid"></div>
-            </div>
-
-            <!-- Create Page -->
-            <div id="create-page" class="page">
-                <div class="page-header">
-                    <div class="page-title">Studio</div>
-                    <div class="page-subtitle">Create, publish, and monetize your games</div>
-                </div>
-                <div style="background: linear-gradient(135deg, var(--card-bg), rgba(15, 52, 96, 0.5)); border: 1px solid rgba(0, 180, 216, 0.2); border-radius: 12px; padding: 3rem; text-align: center; max-width: 600px;">
-                    <i class="fas fa-gamepad" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem; display: block;"></i>
-                    <h3 style="margin-bottom: 1rem;">Start Creating</h3>
-                    <p style="color: var(--gray-light); margin-bottom: 2rem;">Use our powerful game engine to create amazing experiences and earn R$ from players worldwide.</p>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create New Game
-                    </button>
-                </div>
-            </div>
-
-            <!-- Shop Page -->
-            <div id="shop-page" class="page">
-                <div class="page-header">
-                    <div class="page-title">Catalog</div>
-                    <div class="page-subtitle">Customize your avatar with exclusive items</div>
-                </div>
-                <div class="grid" id="shopGrid"></div>
-            </div>
-
-            <!-- Leaderboard Page -->
-            <div id="leaderboard-page" class="page">
-                <div class="page-header">
-                    <div class="page-title">Leaderboard</div>
-                    <div class="page-subtitle">Top players and developers</div>
-                </div>
-                <div id="leaderboardContent"></div>
-            </div>
-
-            <!-- Groups Page -->
-            <div id="groups-page" class="page">
-                <div class="page-header">
-                    <div class="page-title">Groups</div>
-                    <div class="page-subtitle">Join communities and play with friends</div>
-                </div>
-                <button class="btn btn-primary" style="margin-bottom: 1.5rem;">
-                    <i class="fas fa-plus"></i> Create Group
-                </button>
-                <div class="grid" id="groupsGrid"></div>
-            </div>
-
-            <!-- Friends Page -->
-            <div id="friends-page" class="page">
-                <div class="page-header">
-                    <div class="page-title">Friends</div>
-                    <div class="page-subtitle">Manage your friends and connections</div>
-                </div>
-                <button class="btn btn-primary" style="margin-bottom: 1.5rem;">
-                    <i class="fas fa-user-plus"></i> Add Friend
-                </button>
-                <div id="friendsContent"></div>
+        <div class="game-card">
+            <div class="game-thumb" style="background-color: var(--primary);"><i class="fas fa-hammer"></i></div>
+            <div class="game-info">
+                <div class="game-title">City Builder Tycoon</div>
+                <div class="game-meta">by Architect • 850 playing</div>
+                <button class="btn btn-primary">Play</button>
             </div>
         </div>
     </div>
 
-    <!-- Game Window -->
-    <div id="game-window" class="game-window">
-        <div class="game-window-header">
-            <div id="gameWindowTitle">
-                <i class="fas fa-gamepad"></i> Game
-            </div>
-            <button class="btn btn-ghost btn-small" onclick="closeGame()">
-                <i class="fas fa-times"></i> Exit
-            </button>
-        </div>
-        <canvas id="gameCanvas"></canvas>
-    </div>
-
-    <!-- Global Chat -->
-    <button class="chat-toggle" id="chatToggle" onclick="toggleChat()" title="Global Chat">
-        <i class="fas fa-comments"></i>
-    </button>
-    <div class="chat-container" id="chatContainer" style="display: none;">
-        <div class="chat-header">
-            <span><i class="fas fa-comments"></i> Global Chat</span>
-            <button onclick="toggleChat()" style="background: none; border: none; cursor: pointer; color: var(--text); font-size: 1.2rem;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-group">
-            <input type="text" class="chat-input" id="chatInput" placeholder="Say something..." onkeypress="handleChatKeypress(event)">
-            <button class="btn btn-secondary btn-small" onclick="sendChatMessage()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-    </div>
-
-    <script>
-        // ===== CONFIG =====
-        const CONFIG = {
-            API_URL: 'https://cubeworld-2.onrender.com',
-            SOCKET_URL: 'https://cubeworld-2.onrender.com',
-            LOCAL_STORAGE_KEY: 'cubeworld_account',
-            GAMES_STORAGE_KEY: 'cubeworld_saved_games'
-        };
-
-        // ===== STATE =====
-        let currentUser = null;
-        let usersDB = JSON.parse(localStorage.getItem('usersDB')) || {};
-        let allGames = [];
-        let savedGames = JSON.parse(localStorage.getItem(CONFIG.GAMES_STORAGE_KEY)) || [];
-        let chatMessages = [];
-        let socket = null;
-        let currentGameSession = null;
-        let renderer = null;
-        let scene = null;
-        let camera = null;
-
-        // ===== INITIALIZATION =====
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeAdmin();
-            restoreSession();
-            loadAllGames();
-            initializeSocket();
-            loadGlobalChat();
-            handleWindowResize();
-        });
-
-        function initializeAdmin() {
-            if (!usersDB['BloxColaYT']) {
-                usersDB['BloxColaYT'] = {
-                    username: 'BloxColaYT',
-                    email: 'admin@cubeworld.com',
-                    passwordHash: CryptoJS.SHA256('Ilikechips!1').toString(),
-                    coins: 50000,
-                    robux: 10000,
-                    level: 50,
-                    createdAt: new Date().toISOString(),
-                    isAdmin: true,
-                    savedGames: []
-                };
-                localStorage.setItem('usersDB', JSON.stringify(usersDB));
-            }
-        }
-
-        // ===== AUTH SYSTEM WITH hCaptcha =====
-        function restoreSession() {
-            const saved = localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY);
-            if (saved) {
-                currentUser = JSON.parse(saved);
-                showApp();
-            }
-        }
-
-        function handleLogin() {
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-            const captchaToken = document.querySelector('[name="h-captcha-response"]')?.value;
-            const errorDiv = document.getElementById('loginError');
-
-            errorDiv.innerHTML = '';
-
-            if (!username || !password) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Enter username and password</div>';
-                return;
-            }
-
-            // Validate hCaptcha
-            if (!captchaToken) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Please complete the CAPTCHA</div>';
-                return;
-            }
-
-            const user = usersDB[username];
-            if (!user) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-times-circle"></i> Username not found</div>';
-                return;
-            }
-
-            const hashedPassword = CryptoJS.SHA256(password).toString();
-            if (user.passwordHash !== hashedPassword) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-times-circle"></i> Incorrect password</div>';
-                return;
-            }
-
-            currentUser = user;
-            localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(currentUser));
-            if (document.getElementById('rememberMe').checked) {
-                localStorage.setItem('cubeworld_remember', username);
-            }
-            showApp();
-        }
-
-        function handleSignup() {
-            const username = document.getElementById('signupUsername').value;
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const confirm = document.getElementById('signupConfirm').value;
-            const captchaToken = document.querySelector('[name="h-captcha-response"]')?.value;
-            const errorDiv = document.getElementById('signupError');
-
-            errorDiv.innerHTML = '';
-
-            if (!username || !email || !password || !confirm) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Fill all fields</div>';
-                return;
-            }
-
-            if (username.length < 3) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Username must be 3+ characters</div>';
-                return;
-            }
-
-            if (password.length < 8) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Password must be 8+ characters</div>';
-                return;
-            }
-
-            if (password !== confirm) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Passwords do not match</div>';
-                return;
-            }
-
-            // Validate hCaptcha
-            if (!captchaToken) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Please complete the CAPTCHA</div>';
-                return;
-            }
-
-            if (usersDB[username]) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Username already taken</div>';
-                return;
-            }
-
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                errorDiv.innerHTML = '<div class="message error-message"><i class="fas fa-exclamation-circle"></i> Invalid email format</div>';
-                return;
-            }
-
-            const hashedPassword = CryptoJS.SHA256(password).toString();
-            usersDB[username] = {
-                username: username,
-                email: email,
-                passwordHash: hashedPassword,
-                coins: 1000,
-                robux: 100,
-                level: 1,
-                createdAt: new Date().toISOString(),
-                isAdmin: false,
-                savedGames: [],
-                friends: [],
-                achievements: [],
-                inventory: []
-            };
-
-            localStorage.setItem('usersDB', JSON.stringify(usersDB));
-            document.getElementById('signupSuccess').innerHTML = '<div class="message success-message"><i class="fas fa-check-circle"></i> Account created! Logging you in...</div>';
-            setTimeout(() => {
-                document.getElementById('loginUsername').value = username;
-                showLogin();
-            }, 2000);
-        }
-
-        function handleLogout() {
-            localStorage.removeItem(CONFIG.LOCAL_STORAGE_KEY);
-            currentUser = null;
-            location.reload();
-        }
-
-        function showApp() {
-            document.getElementById('auth-page').style.display = 'none';
-            document.getElementById('app-page').classList.add('active');
-            updateUI();
-            loadAllGames();
-            loadHome();
-        }
-
-        function showLogin() {
-            document.getElementById('login-form').style.display = 'block';
-            document.getElementById('signup-form').style.display = 'none';
-        }
-
-        function showSignup() {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('signup-form').style.display = 'block';
-        }
-
-        // ===== UI =====
-        function updateUI() {
-            document.getElementById('currencyDisplay').textContent = (currentUser.coins || 1000).toLocaleString();
-            document.getElementById('robuxDisplay').textContent = (currentUser.robux || 100).toLocaleString();
-            document.getElementById('userAvatar').textContent = currentUser.username[0].toUpperCase();
-            document.getElementById('userAvatar').title = currentUser.username;
-        }
-
-        function switchPage(page) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            
-            document.getElementById(page + '-page').classList.add('active');
-            event.target.closest('.menu-item').classList.add('active');
-
-            if (page === 'discover') loadDiscover();
-            if (page === 'shop') loadShop();
-            if (page === 'leaderboard') loadLeaderboard();
-            if (page === 'groups') loadGroups();
-            if (page === 'friends') loadFriends();
-        }
-
-        // ===== GAMES =====
-        function loadAllGames() {
-            allGames = [
-                { id: 1, title: 'Obby Paradise', author: 'DevX', plays: 5000, emoji: '🏔️', description: 'Navigate challenging obstacles', genre: 'Parkour', players: 234, visits: 45000 },
-                { id: 2, title: 'Tycoon Empire', author: 'BuilderX', plays: 3000, emoji: '💰', description: 'Build your business empire', genre: 'Simulation', players: 156, visits: 32100 },
-                { id: 3, title: 'Hangout Space', author: 'SocialXYZ', plays: 8000, emoji: '🎮', description: 'Chill and hang with friends', genre: 'Social', players: 567, visits: 89000 },
-                { id: 4, title: 'Parkour Rush', author: 'JumpKing', plays: 2500, emoji: '🏃', description: 'Speed-running challenges', genre: 'Parkour', players: 123, visits: 22500 },
-                { id: 5, title: 'Zombie Escape', author: 'HorrorStudio', plays: 4200, emoji: '🧟', description: 'Survive the apocalypse', genre: 'Horror', players: 345, visits: 67800 },
-                { id: 6, title: 'Craft World', author: 'BuildNation', plays: 6100, emoji: '⛏️', description: 'Mine, craft, and build', genre: 'Survival', players: 456, visits: 78900 }
-            ];
-        }
-
-        function loadHome() {
-            const grid = document.getElementById('homeGrid');
-            grid.innerHTML = allGames.slice(0, 3).map(game => createGameCard(game)).join('');
-        }
-
-        function loadDiscover() {
-            const grid = document.getElementById('discoverGrid');
-            grid.innerHTML = allGames.map(game => createGameCard(game)).join('');
-        }
-
-        function createGameCard(game) {
-            const badge = game.plays > 5000 ? '<div class="game-card-badge">🔥 Popular</div>' : '';
-            return `
-                <div class="game-card">
-                    <div class="game-card-image">
-                        ${game.emoji}
-                        ${badge}
-                    </div>
-                    <div class="game-card-content">
-                        <div class="game-title">${game.title}</div>
-                        <div class="game-author">
-                            <i class="fas fa-user"></i> ${game.author}
-                        </div>
-                        <div class="game-description">${game.description}</div>
-                        <div class="game-stats">
-                            <div class="game-stat" title="Total Plays">
-                                <i class="fas fa-play"></i> ${game.plays.toLocaleString()}
-                            </div>
-                            <div class="game-stat" title="Current Players">
-                                <i class="fas fa-users"></i> ${game.players}
-                            </div>
-                            <div class="game-stat" title="Total Visits">
-                                <i class="fas fa-eye"></i> ${game.visits.toLocaleString()}
-                            </div>
-                        </div>
-                        <div class="game-buttons">
-                            <button class="btn btn-primary btn-small" onclick="playGame(${game.id})">
-                                <i class="fas fa-play"></i> Play
-                            </button>
-                            <button class="btn btn-secondary btn-small" onclick="saveGame(${game.id})">
-                                <i class="fas fa-bookmark"></i> Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function playGame(gameId) {
-            const game = allGames.find(g => g.id === gameId);
-            if (!game) return;
-
-            document.getElementById('game-window').classList.add('active');
-            document.getElementById('gameWindowTitle').textContent = game.title;
-
-            currentGameSession = {
-                id: gameId,
-                title: game.title,
-                startedAt: new Date(),
-                players: [currentUser.username]
-            };
-
-            initializeGameEngine();
-        }
-
-        function saveGame(gameId) {
-            if (!currentUser.savedGames) {
-                currentUser.savedGames = [];
-            }
-            if (!currentUser.savedGames.includes(gameId)) {
-                currentUser.savedGames.push(gameId);
-                usersDB[currentUser.username].savedGames = currentUser.savedGames;
-                localStorage.setItem('usersDB', JSON.stringify(usersDB));
-                localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(currentUser));
-                alert('✅ Game saved to your library!');
-            } else {
-                alert('⚠️ Game already in your library');
-            }
-        }
-
-        function closeGame() {
-            document.getElementById('game-window').classList.remove('active');
-            if (renderer) {
-                renderer.dispose();
-            }
-            currentGameSession = null;
-        }
-
-        // ===== SHOP =====
-        function loadShop() {
-            const grid = document.getElementById('shopGrid');
-            const items = [
-                { id: 1, name: 'Blue Shirt', price: 100, emoji: '👕', rarity: 'Common' },
-                { id: 2, name: 'Cool Hat', price: 75, emoji: '🎩', rarity: 'Common' },
-                { id: 3, name: 'Gold Pants', price: 150, emoji: '👖', rarity: 'Rare' },
-                { id: 4, name: 'Sneakers', price: 125, emoji: '👟', rarity: 'Common' },
-                { id: 5, name: 'Crown', price: 500, emoji: '👑', rarity: 'Legendary' },
-                { id: 6, name: 'Dragon Wings', price: 750, emoji: '🐉', rarity: 'Legendary' },
-            ];
-
-            grid.innerHTML = items.map(item => `
-                <div class="game-card">
-                    <div class="game-card-image" style="background: linear-gradient(135deg, var(--primary), var(--success));">
-                        ${item.emoji}
-                    </div>
-                    <div class="game-card-content">
-                        <div class="game-title">${item.name}</div>
-                        <div style="font-size: 0.85rem; color: ${item.rarity === 'Legendary' ? '#ffd60a' : 'var(--gray-light)'};">
-                            ${item.rarity}
-                        </div>
-                        <div style="color: var(--primary); font-weight: 700; margin: 1rem 0;">
-                            <i class="fas fa-coins"></i> ${item.price} R$
-                        </div>
-                        <button class="btn btn-primary btn-small" style="width: 100%;" onclick="buyItem('${item.name}', ${item.price})">
-                            <i class="fas fa-shopping-cart"></i> Buy
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function buyItem(name, price) {
-            if (currentUser.coins >= price) {
-                currentUser.coins -= price;
-                if (!currentUser.inventory) currentUser.inventory = [];
-                currentUser.inventory.push(name);
-                usersDB[currentUser.username].coins = currentUser.coins;
-                usersDB[currentUser.username].inventory = currentUser.inventory;
-                localStorage.setItem('usersDB', JSON.stringify(usersDB));
-                localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(currentUser));
-                updateUI();
-                alert(`✅ Purchased ${name}!`);
-                loadShop();
-            } else {
-                alert('❌ Not enough currency');
-            }
-        }
-
-        // ===== LEADERBOARD =====
-        function loadLeaderboard() {
-            const content = document.getElementById('leaderboardContent');
-            content.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div>
-                        <h3 style="margin-bottom: 1.5rem; color: var(--text);">💰 Top Earners</h3>
-                        <div style="background: linear-gradient(135deg, var(--card-bg), rgba(15, 52, 96, 0.5)); border: 1px solid rgba(0, 180, 216, 0.2); border-radius: 12px; overflow: hidden;">
-                            ${['TopDev', 'GameMaker', 'Creator', 'CodeWizard', 'BuildMaster'].map((name, idx) => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem; border-bottom: 1px solid rgba(0, 180, 216, 0.1); ${idx === 4 ? 'border-bottom: none;' : ''}">
-                                    <div>
-                                        <strong style="color: var(--text);">#${idx + 1} ${name}</strong>
-                                    </div>
-                                    <div style="color: var(--primary); font-weight: 700;">
-                                        ${(50000 - idx * 10000).toLocaleString()} R$
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div>
-                        <h3 style="margin-bottom: 1.5rem; color: var(--text);">👑 Most Popular Games</h3>
-                        <div style="background: linear-gradient(135deg, var(--card-bg), rgba(15, 52, 96, 0.5)); border: 1px solid rgba(0, 180, 216, 0.2); border-radius: 12px; overflow: hidden;">
-                            ${allGames.sort((a, b) => b.plays - a.plays).slice(0, 5).map((game, idx) => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem; border-bottom: 1px solid rgba(0, 180, 216, 0.1); ${idx === 4 ? 'border-bottom: none;' : ''}">
-                                    <div>
-                                        <strong style="color: var(--text);">#${idx + 1} ${game.title}</strong>
-                                    </div>
-                                    <div style="color: var(--success); font-weight: 700;">
-                                        ${game.plays.toLocaleString()}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // ===== GROUPS =====
-        function loadGroups() {
-            const grid = document.getElementById('groupsGrid');
-            const groups = [
-                { name: 'Developers Hub', members: 2450, owner: 'TopDev', icon: '👨‍💻' },
-                { name: 'Game Players', members: 12500, owner: 'Gamer123', icon: '🎮' },
-                { name: 'Builders Club', members: 5670, owner: 'BuildMaster', icon: '🏗️' },
-                { name: 'Creative Studio', members: 3200, owner: 'Artist99', icon: '🎨' },
-            ];
-
-            grid.innerHTML = groups.map(group => `
-                <div class="game-card">
-                    <div class="game-card-image" style="font-size: 4rem;">
-                        ${group.icon}
-                    </div>
-                    <div class="game-card-content">
-                        <div class="game-title">${group.name}</div>
-                        <div class="game-author">
-                            <i class="fas fa-crown"></i> ${group.owner}
-                        </div>
-                        <div class="game-stats">
-                            <div class="game-stat">
-                                <i class="fas fa-users"></i> ${group.members.toLocaleString()} members
-                            </div>
-                        </div>
-                        <button class="btn btn-primary btn-small" style="width: 100%;">
-                            <i class="fas fa-sign-in-alt"></i> Join
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // ===== FRIENDS =====
-        function loadFriends() {
-            const content = document.getElementById('friendsContent');
-            const friends = [
-                { name: 'Player123', status: 'Playing Hangout Space', online: true },
-                { name: 'Gamer456', status: 'In Studio', online: true },
-                { name: 'BuilderX', status: 'Offline', online: false },
-            ];
-
-            content.innerHTML = `
-                <div style="max-width: 500px; display: flex; flex-direction: column; gap: 1rem;">
-                    ${friends.map(friend => `
-                        <div style="background: linear-gradient(135deg, var(--card-bg), rgba(15, 52, 96, 0.5)); border: 1px solid rgba(0, 180, 216, 0.2); border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
-                                    <span style="width: 10px; height: 10px; border-radius: 50%; background: ${friend.online ? 'var(--success)' : 'var(--gray)'}; display: inline-block;"></span>
-                                    ${friend.name}
-                                </div>
-                                <div style="font-size: 0.85rem; color: var(--gray-light);">${friend.status}</div>
-                            </div>
-                            <button class="btn btn-secondary btn-small">
-                                <i class="fas fa-comment"></i> Chat
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // ===== GAME ENGINE (THREE.JS) =====
-        function initializeGameEngine() {
-            const canvas = document.getElementById('gameCanvas');
-            
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x000814);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 5;
-
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight - 60);
-
-            // Create 3D scene
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const material = new THREE.MeshPhongMaterial({ color: 0x00b4d8 });
-            const cube = new THREE.Mesh(geometry, material);
-            scene.add(cube);
-
-            const light = new THREE.PointLight(0xffffff, 1, 100);
-            light.position.set(10, 10, 10);
-            scene.add(light);
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-
-            // Animation loop
-            function animate() {
-                requestAnimationFrame(animate);
-                cube.rotation.x += 0.01;
-                cube.rotation.y += 0.01;
-                renderer.render(scene, camera);
-            }
-            animate();
-        }
-
-        // ===== SOCKET.IO =====
-        function initializeSocket() {
-            try {
-                socket = io(CONFIG.SOCKET_URL, { reconnection: true });
-                socket.on('connect', () => {
-                    console.log('✅ Connected to CubeWorld server');
-                    socket.emit('user_joined', { username: currentUser.username });
-                });
-                socket.on('chat_message', (msg) => {
-                    addChatMessage(msg.user, msg.text);
-                });
-                socket.on('disconnect', () => {
-                    console.log('❌ Disconnected from server');
-                });
-            } catch (err) {
-                console.log('⚠️ Offline mode:', err.message);
-            }
-        }
-
-        // ===== GLOBAL CHAT =====
-        function toggleChat() {
-            const container = document.getElementById('chatContainer');
-            container.style.display = container.style.display === 'none' ? 'flex' : 'none';
-        }
-
-        function loadGlobalChat() {
-            chatMessages = [
-                { user: 'System', text: '✅ Welcome to CubeWorld!' },
-                { user: 'Player123', text: 'Just started playing!' },
-            ];
-            renderChatMessages();
-        }
-
-        function addChatMessage(user, text) {
-            chatMessages.push({ user, text });
-            renderChatMessages();
-            if (socket && socket.connected) {
-                socket.emit('chat_message', { user, text });
-            }
-        }
-
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            addChatMessage(currentUser.username, text);
-            input.value = '';
-        }
-
-        function handleChatKeypress(e) {
-            if (e.key === 'Enter') {
-                sendChatMessage();
-            }
-        }
-
-        function renderChatMessages() {
-            const container = document.getElementById('chatMessages');
-            container.innerHTML = chatMessages.slice(-20).map(msg => `
-                <div class="chat-message">
-                    <div class="chat-user">
-                        <i class="fas fa-user-circle"></i> ${msg.user}
-                    </div>
-                    <div class="chat-text">${msg.text}</div>
-                </div>
-            `).join('');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // ===== UTILITIES =====
-        function handleWindowResize() {
-            window.addEventListener('resize', () => {
-                if (renderer) {
-                    renderer.setSize(window.innerWidth, window.innerHeight - 60);
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                }
-            });
-        }
-    </script>
 </body>
 </html>
