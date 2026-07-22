@@ -8,12 +8,12 @@
   <!-- External Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 
   <style>
     :root {
       --bg-dark: #0d0f12;
-      --panel-bg: rgba(22, 26, 33, 0.75);
+      --panel-bg: rgba(22, 26, 33, 0.85);
       --panel-border: rgba(255, 255, 255, 0.08);
       --accent-color: #6366f1;
       --accent-hover: #4f46e5;
@@ -28,6 +28,7 @@
       margin: 0;
       padding: 0;
       font-family: 'Inter', sans-serif;
+      font-weight: 400;
       user-select: none;
     }
 
@@ -57,7 +58,6 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      font-weight: 800;
       font-size: 1.25rem;
       letter-spacing: -0.5px;
     }
@@ -70,7 +70,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
     }
 
     nav {
@@ -84,7 +83,6 @@
       color: var(--text-muted);
       padding: 8px 16px;
       border-radius: var(--radius-md);
-      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -102,6 +100,7 @@
       padding: 6px 14px;
       border-radius: 20px;
       border: 1px solid var(--panel-border);
+      cursor: pointer;
     }
 
     .status-dot {
@@ -109,7 +108,6 @@
       height: 8px;
       background: #10b981;
       border-radius: 50%;
-      box-shadow: 0 0 8px #10b981;
     }
 
     /* --- Main Layout --- */
@@ -134,7 +132,6 @@
 
     .panel-header {
       padding: 16px;
-      font-weight: 700;
       font-size: 0.95rem;
       border-bottom: 1px solid var(--panel-border);
       display: flex;
@@ -189,7 +186,6 @@
     }
 
     .chat-msg .username {
-      font-weight: 700;
       color: var(--accent-color);
       margin-right: 6px;
     }
@@ -201,7 +197,7 @@
       gap: 8px;
     }
 
-    input[type="text"] {
+    input[type="text"], input[type="password"] {
       flex: 1;
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--panel-border);
@@ -211,7 +207,7 @@
       outline: none;
     }
 
-    input[type="text"]:focus {
+    input[type="text"]:focus, input[type="password"]:focus {
       border-color: var(--accent-color);
     }
 
@@ -221,7 +217,6 @@
       border: none;
       padding: 0 16px;
       border-radius: var(--radius-md);
-      font-weight: 600;
       cursor: pointer;
       transition: background 0.2s ease;
     }
@@ -229,9 +224,89 @@
     .action-btn:hover {
       background: var(--accent-hover);
     }
+
+    /* --- Login Modal --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .login-card {
+      width: 360px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .login-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+    }
+
+    .login-header h2 {
+      font-size: 1.5rem;
+    }
+
+    .login-header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .login-btn {
+      height: 42px;
+      width: 100%;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="login-card">
+      <div class="login-header">
+        <h2>CubeWorld</h2>
+        <p>Sign in to your account</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="login-user">Username</label>
+          <input type="text" id="login-user" placeholder="Enter username" required />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="login-pass">Password</label>
+          <input type="password" id="login-pass" placeholder="Enter password" required />
+        </div>
+
+        <button type="submit" class="action-btn login-btn">Sign In</button>
+      </form>
+    </div>
+  </div>
 
   <!-- Header Section -->
   <header>
@@ -247,9 +322,9 @@
       <button class="nav-btn">Community</button>
     </nav>
 
-    <div class="user-profile">
+    <div class="user-profile" onclick="openLogin()">
       <div class="status-dot"></div>
-      <span id="player-username">Player</span>
+      <span id="player-username">Sign In</span>
     </div>
   </header>
 
@@ -271,7 +346,7 @@
     <!-- Center Panel: 3D Render Engine Viewport -->
     <section id="viewport-container">
       <div class="viewport-overlay">
-        <span><strong>CubeWorld Engine v1.0</strong> | Active Session</span>
+        <span>CubeWorld Engine v1.0 | Active Session</span>
       </div>
       <canvas id="cubeworld-canvas"></canvas>
     </section>
@@ -298,6 +373,20 @@
 
   <!-- Engine & Socket Logic Script -->
   <script>
+    // --- Login Logic ---
+    function handleLogin(event) {
+      event.preventDefault();
+      const usernameInput = document.getElementById('login-user').value.trim();
+      if (usernameInput) {
+        document.getElementById('player-username').innerText = usernameInput;
+        document.getElementById('login-modal').style.display = 'none';
+      }
+    }
+
+    function openLogin() {
+      document.getElementById('login-modal').style.display = 'flex';
+    }
+
     // --- CubeWorld Socket & Global Init ---
     const socket = typeof io !== 'undefined' ? io() : null;
 
@@ -366,7 +455,10 @@
       const chatBox = document.getElementById('chat-box');
       const msgDiv = document.createElement('div');
       msgDiv.className = 'chat-msg';
-      msgDiv.innerHTML = `<span class="username">You:</span> ${escapeHtml(text)}`;
+      const currentUser = document.getElementById('player-username').innerText;
+      const sender = currentUser === 'Sign In' ? 'You' : currentUser;
+      
+      msgDiv.innerHTML = `<span class="username">${escapeHtml(sender)}:</span> ${escapeHtml(text)}`;
       chatBox.appendChild(msgDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
 
